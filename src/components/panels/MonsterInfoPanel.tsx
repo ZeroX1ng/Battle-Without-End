@@ -19,7 +19,7 @@ export function MonsterInfoPanel() {
   return (
     <div style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '12px 16px', width: 220, fontSize: 13
+      padding: '12px 16px', width: 185, fontSize: 13, minHeight: 135
     }}>
       <div
         style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 6 }}

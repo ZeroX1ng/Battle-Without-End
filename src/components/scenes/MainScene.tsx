@@ -47,7 +47,7 @@ export function MainScene() {
         <PetInfoPanel />
       </div>
 
-      <div style={{ position: 'absolute', top: 10, left: 590 }}>
+      <div style={{ position: 'absolute', top: 10, left: 590, width: 200, bottom: 10 }}>
         <OtherPanel />
       </div>
 

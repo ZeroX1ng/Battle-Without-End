@@ -21,7 +21,7 @@ export function LootPanel() {
   return (
     <div style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '10px 14px', width: 180, fontSize: 12,
+      padding: '10px 14px', width: 170, fontSize: 12,
     }}>
       <div style={{
         fontSize: 13, fontWeight: 'bold', color: 'var(--color-text-bright)',
