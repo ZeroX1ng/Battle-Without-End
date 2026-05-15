@@ -68,31 +68,16 @@ export function OtherPanel() {
 
   const handleTabClick = useCallback((id: OtherPanelTabId) => {
     setActiveTab(id)
-    console.log(
-      `%c[标签切换] %c→ %c"${tabDefs.find(t => t.id === id)?.label}" %c(id: ${id})`,
-      'color: #FFA640; font-weight: bold',
-      'color: #4BEA14; font-size: 14px',
-      'color: #fff; font-size: 14px',
-      'color: #aaa'
-    )
   }, [])
 
   const scrollLeft = useCallback(() => {
     const next = Math.max(scrollOffset - 1, minOffset)
     setScrollOffset(next)
-    console.log(
-      `%c[箭头按钮] %c◀ 左 %coffset: ${scrollOffset}→${next} %c(${VISIBLE_COUNT}/${tabDefs.length})`,
-      'color: #FFA640; font-weight: bold', 'color: #4BEA14', 'color: #fff', 'color: #aaa'
-    )
   }, [scrollOffset])
 
   const scrollRight = useCallback(() => {
     const next = Math.min(scrollOffset + 1, maxOffset)
     setScrollOffset(next)
-    console.log(
-      `%c[箭头按钮] %c▶ 右 %coffset: ${scrollOffset}→${next} %c(${VISIBLE_COUNT}/${tabDefs.length})`,
-      'color: #FFA640; font-weight: bold', 'color: #4BEA14', 'color: #fff', 'color: #aaa'
-    )
   }, [scrollOffset])
 
   return (

@@ -15,16 +15,6 @@ export function AllInfoPanel() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    if (infoMessages.length > prevLengthRef.current) {
-      const added = infoMessages.slice(prevLengthRef.current);
-      console.log(
-        `%c[战斗日志] %c新增 ${added.length} 条消息 %c(共 ${infoMessages.length} 条)`,
-        'color: #4BEA14; font-weight: bold',
-        'color: #FFA640',
-        'color: #aaa',
-        added.map(m => ({ text: m.text.replace(/<[^>]+>/g, ''), category: m.category }))
-      );
-    }
     prevLengthRef.current = infoMessages.length;
   }, [infoMessages.length]);
 
