@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpriteImage 状态机 Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #0f0f23;
+    color: #c8c8d4;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 20px; margin-bottom: 8px; color: #ffd700; }
+  .subtitle { font-size: 12px; color: #6a6a7a; margin-bottom: 24px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .card h3 {
+    font-size: 14px;
+    color: #ffd700;
+    margin-bottom: 4px;
+  }
+  .card .meta {
+    font-size: 11px;
+    color: #6a6a7a;
+    margin-bottom: 12px;
+  }
+
+  .canvas-box {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 12px;
+    border: 2px solid #2a2a4a;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .canvas-box.single { border-color: #4a8; }
+  .canvas-box.loop   { border-color: #48a; }
+  .canvas-box.once   { border-color: #a84; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .stat {
+    background: #0f0f23;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .stat .label { color: #6a6a7a; }
+  .stat .value { color: #aab; font-weight: bold; }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  button {
+    background: #2a2a4a;
+    color: #c8c8d4;
+    border: 1px solid #3a3a5a;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    transition: background 0.15s;
+  }
+  button:hover { background: #3a3a5a; }
+  button:active { background: #4a4a6a; }
+  button.danger { border-color: #a44; color: #f88; }
+  button.danger:hover { background: #3a1a1a; }
+
+  .log-panel {
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .log-panel h3 { font-size: 14px; color: #ffd700; margin-bottom: 8px; }
+  .log-entry {
+    font-size: 11px;
+    padding: 3px 0;
+    border-bottom: 1px solid #1a1a2e;
+    color: #aab;
+  }
+  .log-entry .time { color: #6a6a7a; margin-right: 8px; }
+  .log-entry.warn { color: #fa0; }
+  .log-entry.done { color: #4a8; }
+
+  /* 帧可视化块 */
+  .frame-viz {
+    display: flex;
+    gap: 2px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .frame-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: #2a2a4a;
+    transition: background 0.1s;
+  }
+  .frame-dot.active { background: #ffd700; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: #6a6a7a;
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 3px; }
+  .legend .dot.single { background: #4a8; }
+  .legend .dot.loop   { background: #48a; }
+  .legend .dot.once   { background: #a84; }
+</style>
+</head>
+<body>
+
+<h1>🧪 SpriteImage 状态机 Demo</h1>
+<p class="subtitle">模拟 React 组件核心逻辑：registry 查找 → 单帧静态 / 多帧 setInterval → loop / play-once → onComplete</p>
+
+<div class="legend">
+  <span><span class="dot single"></span> 单帧静态</span>
+  <span><span class="dot loop"></span> 多帧 + 循环</span>
+  <span><span class="dot once"></span> 多帧 + 播完停止</span>
+</div>
+
+<div class="grid">
+  <!-- 卡片1: 单帧 -->
+  <div class="card" id="card-single"></div>
+  <!-- 卡片2: 多帧循环 -->
+  <div class="card" id="card-loop"></div>
+  <!-- 卡片3: 多帧播一次 -->
+  <div class="card" id="card-once"></div>
+</div>
+
+<div class="log-panel">
+  <h3>📋 事件日志</h3>
+  <div id="log"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// 模拟 spriteRegistry（最终会由 import.meta.glob 生成）
+// ═══════════════════════════════════════════
+const registry = {
+  mc_fireball:  { dir: 'DefineSprite_27_mc_fireball',  frames: 1 },
+  map_mc:       { dir: 'DefineSprite_135_map_mc',       frames: 85 },
+  brand_mc:     { dir: 'DefineSprite_291_brand_mc',     frames: 321 },
+  people_use1:  { dir: 'DefineSprite_159_people_use1',  frames: 24 },
+}
+
+// ═══════════════════════════════════════════
+// 模拟 URL 生成（实际环境：/sprites/{dir}/{n}.png）
+// ═══════════════════════════════════════════
+function getFrameUrl(dir, frameIndex) {
+  return `/sprites/${dir}/${frameIndex}.png`
+}
+
+// ═══════════════════════════════════════════
+// 日志
+// ═══════════════════════════════════════════
+const logEl = document.getElementById('log')
+function log(msg, cls = '') {
+  const now = new Date().toLocaleTimeString()
+  const entry = document.createElement('div')
+  entry.className = 'log-entry ' + cls
+  entry.innerHTML = `<span class="time">${now}</span>${msg}`
+  logEl.prepend(entry)
+}
+
+// ═══════════════════════════════════════════
+// 核心状态机（纯逻辑，无 DOM / React 依赖）
+// ═══════════════════════════════════════════
+function createSpriteMachine(name, { fps = 12, loop = true, onComplete = null } = {}) {
+  const entry = registry[name]
+  if (!entry) throw new Error(`Sprite "${name}" not in registry`)
+
+  const frameCount = entry.frames
+  const dir = entry.dir
+
+  // 状态
+  let timerId = null
+  let currentFrame = 1
+  let running = false
+  let completed = false
+
+  const listeners = []
+
+  function notify(event, payload) {
+    listeners.forEach(fn => fn(event, payload))
+  }
+
+  function getState() {
+    return { currentFrame, frameCount, running, completed, dir }
+  }
+
+  function start() {
+    if (frameCount === 1) return // 单帧永远不需要启动
+    if (running) return
+
+    running = true
+    completed = false
+    const intervalMs = 1000 / fps
+
+    timerId = setInterval(() => {
+      const next = currentFrame + 1
+
+      if (next > frameCount) {
+        if (loop) {
+          currentFrame = 1
+          notify('frame', currentFrame)
+        } else {
+          currentFrame = frameCount
+          running = false
+          completed = true
+          clearInterval(timerId)
+          timerId = null
+          notify('frame', currentFrame)
+          notify('complete', currentFrame)
+          if (onComplete) onComplete()
+        }
+      } else {
+        currentFrame = next
+        notify('frame', currentFrame)
+      }
+    }, intervalMs)
+
+    notify('start', currentFrame)
+  }
+
+  function stop() {
+    if (timerId) {
+      clearInterval(timerId)
+      timerId = null
+    }
+    running = false
+    notify('stop', currentFrame)
+  }
+
+  function reset() {
+    stop()
+    currentFrame = 1
+    completed = false
+    notify('reset', currentFrame)
+  }
+
+  function destroy() {
+    stop()
+    listeners.length = 0
+  }
+
+  return { start, stop, reset, destroy, getState, subscribe: (fn) => { listeners.push(fn); return () => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1) } } }
+}
+
+// ═══════════════════════════════════════════
+// 渲染工具
+// ═══════════════════════════════════════════
+const COLORS = [
+  '#e6194b','#3cb44b','#ffe119','#4363d8','#f58231',
+  '#911eb4','#46f0f0','#f032e6','#bcf60c','#fabebe',
+  '#008080','#e6beff','#9a6324','#fffac8','#800000',
+  '#aaffc3','#808000','#ffd8b1','#000075','#808080',
+]
+
+function renderCard(cardId, machine, meta) {
+  const card = document.getElementById(cardId)
+  if (!card) return
+
+  const st = machine.getState()
+  const url = getFrameUrl(st.dir, st.currentFrame)
+  const bgColor = COLORS[(st.currentFrame - 1) % COLORS.length]
+  const borderClass = st.frameCount === 1 ? 'single' : meta.loop ? 'loop' : 'once'
+
+  const dots = Array.from({ length: st.frameCount }, (_, i) => {
+    const active = i + 1 === st.currentFrame
+    return `<div class="frame-dot${active ? ' active' : ''}" title="帧${i + 1}"></div>`
+  }).join('')
+
+  card.innerHTML = `
+    <h3>${meta.title}</h3>
+    <div class="meta">name="${meta.name}"  fps=${meta.fps}  loop=${meta.loop}  frames=${st.frameCount}</div>
+    <div class="canvas-box ${borderClass}" style="background:${bgColor}">
+      ${st.currentFrame}
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="label">当前帧</span><span class="value">${st.currentFrame} / ${st.frameCount}</span></div>
+      <div class="stat"><span class="label">状态</span><span class="value">${st.frameCount === 1 ? '静态' : st.completed ? '已完成' : st.running ? '播放中' : '已停止'}</span></div>
+      <div class="stat"><span class="label">URL</span><span class="value" title="${url}" style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${url}</span></div>
+      <div class="stat"><span class="label">计时器</span><span class="value">${st.frameCount > 1 && st.running ? '活跃' : '空闲'}</span></div>
+    </div>
+    <div class="frame-viz">${dots}</div>
+    <div class="controls">
+      ${st.frameCount > 1 ? `<button class="start-btn">▶ 播放</button><button class="stop-btn">⏸ 停止</button><button class="reset-btn danger">↺ 重置</button>` : '<span style="font-size:11px;color:#6a6a7a">单帧无需控制</span>'}
+    </div>
+  `
+
+  // 绑定按钮事件（延迟到 DOM 就绪）
+  requestAnimationFrame(() => {
+    card.querySelector('.start-btn')?.addEventListener('click', () => machine.start())
+    card.querySelector('.stop-btn')?.addEventListener('click', () => machine.stop())
+    card.querySelector('.reset-btn')?.addEventListener('click', () => machine.reset())
+  })
+}
+
+// ═══════════════════════════════════════════
+// 创建三台状态机
+// ═══════════════════════════════════════════
+
+// 1. 单帧静态精灵 — mc_fireball
+const mSingle = createSpriteMachine('mc_fireball')
+mSingle.subscribe((evt) => {
+  if (evt === 'frame') log(`🔥 mc_fireball 帧变更 → ${mSingle.getState().currentFrame}`)
+})
+
+// 2. 多帧循环 — people_use1 (24帧, 8fps 方便观察)
+const mLoop = createSpriteMachine('people_use1', { fps: 8, loop: true })
+mLoop.subscribe((evt, frame) => {
+  if (evt === 'frame' && frame % 6 === 0) log(`🔄 people_use1 帧 → ${frame}/${mLoop.getState().frameCount}`)
+  if (evt === 'start') log(`▶ people_use1 开始循环播放`, 'warn')
+  if (evt === 'stop') log(`⏸ people_use1 已停止`)
+  if (evt === 'reset') log(`↺ people_use1 已重置`)
+})
+
+// 3. 多帧播放一次 — brand_mc (321帧, 30fps 加速观察)
+const mOnce = createSpriteMachine('brand_mc', { fps: 30, loop: false, onComplete: () => log('🏁 brand_mc 播放完成！onComplete 回调触发', 'done') })
+mOnce.subscribe((evt, frame) => {
+  if (evt === 'frame' && frame % 50 === 0) log(`🎬 brand_mc 帧 → ${frame}/${mOnce.getState().frameCount}`)
+  if (evt === 'start') log(`▶ brand_mc 开始播放`, 'warn')
+  if (evt === 'complete') log(`✅ brand_mc end 触发`, 'done')
+  if (evt === 'reset') log(`↺ brand_mc 已重置`)
+})
+
+// ═══════════════════════════════════════════
+// 渲染 & 自动启动循环动画
+// ═══════════════════════════════════════════
+function refreshAll() {
+  renderCard('card-single', mSingle, { title: '单帧静态', name: 'mc_fireball', fps: 0, loop: false })
+  renderCard('card-loop',   mLoop,   { title: '多帧循环', name: 'people_use1', fps: 8, loop: true })
+  renderCard('card-once',   mOnce,   { title: '播完停止', name: 'brand_mc', fps: 30, loop: false })
+}
+
+// 每 100ms 刷新一次面板（模拟 React 的 setState）
+setInterval(refreshAll, 100)
+
+// 自动启动循环精灵
+mLoop.start()
+
+log('🤖 沙箱就绪 — people_use1 自动循环播放中（8fps）')
+log('ℹ️ brand_mc 321帧/30fps，点击 ▶ 按钮手动触发播放')
+</script>
+</body>
+</html>

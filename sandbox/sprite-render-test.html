@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpriteImage 真实素材渲染验证</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Consolas', monospace;
+    background: #0f0f23;
+    color: #c8c8d4;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 18px; color: #ffd700; margin-bottom: 16px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+  }
+  .cell {
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .cell img {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto 6px;
+  }
+  .cell .label {
+    font-size: 9px;
+    color: #6a6a7a;
+    word-break: break-all;
+  }
+  .cell.loading img { opacity: 0.3; }
+  .cell.error img { display: none; }
+  .cell.error::before {
+    content: '❌';
+    font-size: 24px;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .status {
+    margin-bottom: 16px;
+    font-size: 12px;
+  }
+  .status .ok { color: #4a8; }
+  .status .fail { color: #a44; }
+</style>
+</head>
+<body>
+
+<h1>🔬 真实素材渲染验证 — SpriteImage 组件集成测试</h1>
+<div class="status" id="status">加载中...</div>
+
+<div class="grid" id="grid"></div>
+
+<script type="module">
+// 模拟 spriteRegistry 的查找逻辑（从真实路径加载）
+const sprites = [
+  { name: 'before_system', path: '/sprites/DefineSprite_205_before_system/1.png' },
+  { name: 'after_system',  path: '/sprites/DefineSprite_204_after_system/1.png' },
+  { name: 'before_skill',  path: '/sprites/DefineSprite_209_before_skill/1.png' },
+  { name: 'before_equip',  path: '/sprites/DefineSprite_236_before_equip/1.png' },
+  { name: 'before_pet',    path: '/sprites/DefineSprite_244_before_pet/1.png' },
+  { name: 'before_title',  path: '/sprites/DefineSprite_201_before_title/1.png' },
+  { name: 'before_info',   path: '/sprites/DefineSprite_248_before_info/1.png' },
+  { name: 'before_item',   path: '/sprites/DefineSprite_226_before_item/1.png' },
+  { name: 'mc_fireball',   path: '/sprites/DefineSprite_27_mc_fireball/1.png' },
+  { name: 'mc_thunder',    path: '/sprites/DefineSprite_5_mc_thunder/1.png' },
+  { name: 'pet_fox',       path: '/sprites/DefineSprite_111_pet_fox/1.png' },
+  { name: 'pet_dragon',    path: '/sprites/DefineSprite_113_pet_dragon/1.png' },
+  { name: 'pet_bear',      path: '/sprites/DefineSprite_115_pet_bear/1.png' },
+  { name: 'pet_goblin',    path: '/sprites/DefineSprite_107_pet_goblin/1.png' },
+  { name: 'pet_spider',    path: '/sprites/DefineSprite_101_pet_spider/1.png' },
+  { name: 'pet_ghost',     path: '/sprites/DefineSprite_109_pet_ghost/1.png' },
+  { name: 'pet_rat',       path: '/sprites/DefineSprite_105_pet_rat/1.png' },
+  { name: 'pet_magic',     path: '/sprites/DefineSprite_117_pet_magic/1.png' },
+  { name: 'pet_attack',    path: '/sprites/DefineSprite_125_pet_attack/1.png' },
+  { name: 'boss_icon',     path: '/sprites/DefineSprite_121_boss_icon/1.png' },
+  { name: 'buff_poison',   path: '/sprites/DefineSprite_263_buff_poison/1.png' },
+  { name: 'buff_frozen',   path: '/sprites/DefineSprite_265_buff_frozen/1.png' },
+  { name: 'mc_sword',      path: '/sprites/DefineSprite_143_mc_sword/1.png' },
+  { name: 'mc_axe',        path: '/sprites/DefineSprite_169_mc_axe/1.png' },
+  { name: 'mc_bow',        path: '/sprites/DefineSprite_167_mc_bow/1.png' },
+]
+
+const grid = document.getElementById('grid')
+const status = document.getElementById('status')
+let loaded = 0
+let failed = 0
+
+const total = sprites.length
+
+for (const { name, path } of sprites) {
+  const cell = document.createElement('div')
+  cell.className = 'cell loading'
+  cell.innerHTML = `
+    <img src="${path}" alt="${name}" onload="this.parentElement.classList.remove('loading'); this.dispatchEvent(new CustomEvent('sprite-loaded'))" onerror="this.parentElement.classList.add('error'); this.parentElement.classList.remove('loading'); this.dispatchEvent(new CustomEvent('sprite-error'))" />
+    <div class="label">${name}</div>
+  `
+
+  cell.querySelector('img').addEventListener('sprite-loaded', () => {
+    loaded++
+    updateStatus()
+  })
+  cell.querySelector('img').addEventListener('sprite-error', () => {
+    failed++
+    updateStatus()
+  })
+
+  grid.appendChild(cell)
+}
+
+function updateStatus() {
+  if (loaded + failed >= total) {
+    if (failed === 0) {
+      status.innerHTML = `<span class="ok">✅ 全部 ${total} 个精灵加载成功！</span>`
+    } else {
+      status.innerHTML = `<span class="ok">✅ ${loaded} 个成功</span>，<span class="fail">❌ ${failed} 个失败</span>`
+    }
+  } else {
+    status.innerHTML = `加载中... <span class="ok">${loaded}</span> / ${total}`
+  }
+}
+</script>
+</body>
+</html>
