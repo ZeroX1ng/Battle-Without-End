@@ -1,0 +1,108 @@
+/* ═══ 视觉特效动画 ═══ */
+/* AS3 原始: tool.Effect.as (fadeIn/fadeOut/gradientIn/gradientInOutsideFirst) */
+
+/* ── 淡入淡出 ── */
+
+@keyframes effect-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes effect-fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.effect-fade-in {
+  animation: effect-fadeIn 167ms steps(10, end) forwards;
+}
+
+.effect-fade-out {
+  animation: effect-fadeOut 167ms steps(10, end) forwards;
+}
+
+/* ── 径向渐变展开 (gradientIn) ── */
+/* 从屏幕中心向外扩展的圆形渐变，最后完全消失 */
+
+.effect-gradient-in {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 0%,
+    rgba(26, 26, 46, 0.98) var(--gradient-in-pct, 0%)
+  );
+  animation: effect-gradient-in-expand 500ms steps(30, end) forwards;
+}
+
+@keyframes effect-gradient-in-expand {
+  0%   { background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(26, 26, 46, 0.98) 0%); }
+  100% { background: radial-gradient(circle at 50% 50%, transparent 99%, rgba(26, 26, 46, 0.98) 100%); }
+}
+
+/* ── 径向渐变收缩 (gradientInOutsideFirst) ── */
+/* 从外向内收缩的圆形渐变，从指定位置开始 */
+
+.effect-gradient-outside {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--gradient-ox, 50%) var(--gradient-oy, 50%),
+    transparent 0%,
+    rgba(26, 26, 46, 0.98) var(--gradient-out-pct, 100%)
+  );
+}
+
+.effect-gradient-outside-active {
+  animation: effect-gradient-outside-shrink 500ms steps(var(--gradient-count), end) forwards;
+}
+
+@keyframes effect-gradient-outside-shrink {
+  0%   { background: radial-gradient(circle at var(--gradient-ox, 50%) var(--gradient-oy, 50%), transparent 0%, rgba(26, 26, 46, 0.98) 100%); }
+  100% { background: radial-gradient(circle at var(--gradient-ox, 50%) var(--gradient-oy, 50%), transparent 99%, rgba(26, 26, 46, 0.98) 100%); }
+}
+
+/* ── 粒子爆炸 (explodeOut) ── */
+/* 由 Canvas 组件实现，此处仅提供容器 */
+
+.effect-explode-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+/* ── FPS 帧率显示 ── */
+/* AS3 原始: tool.FPSShow.as */
+
+.fps-display {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  color: #ff0000;
+  font-size: 12px;
+  font-family: monospace;
+  pointer-events: none;
+  user-select: none;
+  z-index: 100;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+}
+
+/* ── FlickerButton 闪烁呼吸按钮 ── */
+/* AS3 原始: iPanel.iScene.FlickerButton.as
+ * GlowFilter(0x4D4D4D, 0.66, 13+count, 13+count) count: 0↔30
+ * 即 box-shadow blur 从 13px → 43px → 13px 循环 */
+
+@keyframes flicker-breath {
+  0%   { box-shadow: 0 0 13px var(--flicker-color, rgba(120, 120, 130, 0.4)); }
+  50%  { box-shadow: 0 0 43px var(--flicker-color, rgba(120, 120, 130, 0.55)), 0 0 65px var(--flicker-color, rgba(120, 120, 130, 0.15)); }
+  100% { box-shadow: 0 0 13px var(--flicker-color, rgba(120, 120, 130, 0.4)); }
+}
+
+.flicker-button {
+  animation: flicker-breath 2s ease-in-out infinite;
+}

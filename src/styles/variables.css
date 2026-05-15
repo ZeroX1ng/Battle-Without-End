@@ -1,0 +1,44 @@
+:root {
+  --color-bg: #1a1a2e;
+  --color-bg-panel: #16213e;
+  --color-bg-dark: #0f0f23;
+  --color-border: #2a2a4a;
+  --color-text: #c8c8d4;
+  --color-text-bright: #ffffff;
+  --color-text-dim: #6a6a7a;
+
+  --color-red: #ff4040;
+  --color-blue: #4a60d7;
+  --color-yellow: #FFA640;
+  --color-green: #4BB814;
+  --color-brown: #bf7130;
+  --color-purple: #BC38d3;
+  --color-pink: #EE6b9c;
+  --color-teal: #21c4af;
+  --color-orange: #ff7100;
+
+  --color-hp: #7AEE3C;
+  --color-mp: #4a60d7;
+  --color-exp: #4a60d7;
+
+  --color-quality-0: #c8c8d4;
+  --color-quality-1: #4a60d7;
+  --color-quality-2: #a6a500;
+  --color-quality-3: #ff7100;
+  --color-quality-4: #9840be;
+  --color-quality-5: #ff4040;
+
+  --font-game: 'RTWS YueGothic Trial Regular', 'Nesobrite Cd', sans-serif;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 24px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --shadow-panel: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-button: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

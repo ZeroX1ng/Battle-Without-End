@@ -1,0 +1,37 @@
+{
+  "name": "boe-refactor",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "assert:other-panel": "node scripts/assertOtherPanelParity.mjs",
+    "assert:system-window": "node scripts/assertSystemWindowParity.mjs",
+    "assert:item-window": "node scripts/assertItemWindowParity.mjs",
+    "assert:equip-window": "node scripts/assertEquipWindowParity.mjs",
+    "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
+    "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
+    "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
+    "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
+    "assert:forge-logic": "node scripts/assertForgeLogicParity.mjs",
+    "assert:pet-window": "node scripts/assertPetWindowParity.mjs",
+    "assert:scroll-panel": "node scripts/assertScrollPanelParity.mjs",
+    "assert:text-resources": "node scripts/assertTextResourceEncoding.mjs",
+    "assert:common-cell": "node scripts/assertCommonCellParity.mjs",
+    "assert:effects": "node scripts/assertEffectParity.mjs",
+    "assert:asset-modules": "node scripts/assertAssetModuleParity.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.0"
+  }
+}

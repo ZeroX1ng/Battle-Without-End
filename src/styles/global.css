@@ -1,0 +1,41 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--color-text, #c8c8d4);
+  background: var(--color-bg, #1a1a2e);
+}
+
+body {
+  font-family: var(--font-game);
+  font-size: var(--font-size-base);
+  color: var(--color-text, #c8c8d4);
+  background: var(--color-bg, #1a1a2e);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
