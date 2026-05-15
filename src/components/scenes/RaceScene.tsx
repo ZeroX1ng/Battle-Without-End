@@ -21,6 +21,10 @@ const statLabels: Record<string, string> = {
   intelligence: '智力', will: '意志', luck: '幸运'
 }
 
+const growStatLabels: Record<string, string> = {
+  str: '力量', dex: '敏捷', intelligence: '智力', will: '意志', luck: '幸运'
+}
+
 export function RaceScene() {
   const { state, dispatch } = useGameContext();
   const [selected, setSelected] = React.useState<Race | null>(null);
@@ -28,6 +32,7 @@ export function RaceScene() {
 
   const isRebirth = state.isRebirth;
   const stats = selected?.caculateStat(age);
+  const growStats = selected?.ageupList[age - 10];
 
   const handleConfirm = () => {
     if (!selected) return;
@@ -109,6 +114,22 @@ export function RaceScene() {
                     {label}: <span style={{ color: 'var(--color-yellow)' }}>{(stats as any)[key]}</span>
                   </div>
                 ))}
+
+                {growStats && (
+                  <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--color-border)' }}>
+                    <div style={{ color: 'var(--color-yellow)', fontSize: 14, fontWeight: 'bold', marginBottom: 8 }}>
+                      年龄增长
+                    </div>
+                    {Object.entries(growStatLabels).map(([key, label]) => (
+                      <div key={key} style={{ color: 'var(--color-text)', fontSize: 14, margin: '3px 0' }}>
+                        {label}: <span style={{ color: 'var(--color-green)' }}>+{(growStats as any)[key]}</span>
+                      </div>
+                    ))}
+                    <div style={{ color: 'var(--color-text-dim)', fontSize: 12, marginTop: 6 }}>
+                      (升级时增长属性是当前年龄增长的1/4)
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
