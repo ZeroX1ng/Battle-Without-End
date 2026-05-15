@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'RTWS YueGothic Trial Regular';
+  src: url('/fonts/1_font_nesb_RTWS%20YueGothic%20Trial%20Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nesobrite Cd';
+  src: url('/fonts/271_Nesobrite%20Cd.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

@@ -34,28 +34,34 @@ export function MainScene() {
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 12, gap: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 10, left: 10 }}>
         <PlayerInfoPanel />
-        <MonsterInfoPanel />
-        <PetInfoPanel />
-        <LootPanel />
       </div>
 
-      <BattleSkillPanel />
+      <div style={{ position: 'absolute', top: 10, left: 400 }}>
+        <MonsterInfoPanel />
+      </div>
 
-      <div style={{
-        flex: 1,
-        minHeight: 0,
-        background: 'var(--color-bg-dark)',
-        borderRadius: 'var(--radius-md)',
-        padding: 12,
-        display: 'flex',
-      }}>
+      <div style={{ position: 'absolute', top: 150, left: 400 }}>
+        <PetInfoPanel />
+      </div>
+
+      <div style={{ position: 'absolute', top: 10, left: 590 }}>
         <OtherPanel />
       </div>
 
-      <AllInfoPanel />
+      <div style={{ position: 'absolute', top: 235, left: 415 }}>
+        <BattleSkillPanel />
+      </div>
+
+      <div style={{ position: 'absolute', top: 235, left: 10 }}>
+        <AllInfoPanel />
+      </div>
+
+      <div style={{ position: 'absolute', top: 405, left: 415 }}>
+        <LootPanel />
+      </div>
     </div>
   )
 }
