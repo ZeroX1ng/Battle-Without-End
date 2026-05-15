@@ -7,10 +7,10 @@ export function useWindowSize() {
   })
 
   useEffect(() => {
-    let rafId: number
+    let rafId = 0
 
     const handleResize = () => {
-      cancelAnimationFrame(rafId)
+      if (rafId) cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
         setSize({
           width: window.innerWidth,
@@ -22,7 +22,7 @@ export function useWindowSize() {
     window.addEventListener('resize', handleResize)
     return () => {
       window.removeEventListener('resize', handleResize)
-      cancelAnimationFrame(rafId)
+      if (rafId) cancelAnimationFrame(rafId)
     }
   }, [])
 
