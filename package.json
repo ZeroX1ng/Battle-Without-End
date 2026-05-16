@@ -10,6 +10,8 @@
     "assert:system-window": "node scripts/assertSystemWindowParity.mjs",
     "assert:item-window": "node scripts/assertItemWindowParity.mjs",
     "assert:equip-window": "node scripts/assertEquipWindowParity.mjs",
+    "assert:equipment-data": "node scripts/assertEquipmentDataParity.mjs",
+    "assert:stat-list": "node scripts/assertStatListParity.mjs",
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",

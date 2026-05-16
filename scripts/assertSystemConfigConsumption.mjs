@@ -66,7 +66,7 @@ const config: GlobalConfig = {
 const item = (patch: Record<string, unknown>) => ({
   name: 'sword',
   position: 'body',
-  type: 'Light',
+  type: 'light',
   quality: 2,
   category: undefined,
   getMoney: () => 10,
@@ -81,9 +81,9 @@ assertEqual(shouldDisplayLog({ ...config, other_toggle: false }, undefined), fal
 
 assertEqual(shouldKeepDroppedItem({ ...config, item2_toggle: false }, item({ quality: 2 })), false, 'quality toggle rejects matching drops');
 assertEqual(shouldKeepDroppedItem({ ...config, sword_toggle: false }, item({ category: 'melee', name: 'sword' })), false, 'weapon name toggle rejects weapon drops');
-assertEqual(shouldKeepDroppedItem({ ...config, body_light_toggle: false }, item({ position: 'body', type: 'Light' })), false, 'armor position/type toggle rejects armor drops');
-assertEqual(shouldKeepDroppedItem({ ...config, ring_toggle: false }, item({ position: 'ring', type: 'Accesory', name: 'ring' })), false, 'accessory name toggle rejects accessory drops');
-assertEqual(shouldKeepDroppedItem(config, item({ quality: 5, position: 'head', type: 'Heavy' })), true, 'enabled toggles keep eligible drops');
+assertEqual(shouldKeepDroppedItem({ ...config, body_light_toggle: false }, item({ position: 'body', type: 'light' })), false, 'armor position/type toggle rejects armor drops');
+assertEqual(shouldKeepDroppedItem({ ...config, ring_toggle: false }, item({ position: 'ring', type: 'accesory', name: 'ring' })), false, 'accessory name toggle rejects accessory drops');
+assertEqual(shouldKeepDroppedItem(config, item({ quality: 5, position: 'head', type: 'heavy' })), true, 'enabled toggles keep eligible drops');
 
 const lowValue = item({ name: 'low', getMoney: () => 1, getSellMoney: () => 10 });
 const highValue = item({ name: 'high', getMoney: () => 20, getSellMoney: () => 200 });

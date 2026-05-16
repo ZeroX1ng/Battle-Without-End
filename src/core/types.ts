@@ -128,10 +128,7 @@ export interface EquipmentData {
   type: string;
   position: string;
   stat: RangeStatData[];
-  qualityStat: RangeStatData[];
-  levelStat?: RangeStatData[];
   sortWeight: number;
-  price: number;
 }
 
 // ═══ 武器基础数据 ═══

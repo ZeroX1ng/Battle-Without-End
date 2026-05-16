@@ -3,7 +3,7 @@
 //
 // 管理装备实例：品质生成、属性随机、升级、存档。
 
-import type { EquipmentData, RangeStatData } from '../types';
+import type { EquipmentData, RangeStatData, StatData } from '../types';
 import { Stat, EquipType, EquipTypeBase, WeaponTypeBase } from '../constants';
 import { StatImpl } from './BasicStatus';
 import { balanceRandom, FirstLetterToUpper } from '../math/MyMath';
@@ -161,7 +161,7 @@ export class Equipment {
    */
   private generateQualityStat(ratio: number): void {
     let _loc3_: number = 0;
-    let _loc4_: RangeStatData;
+    let _loc4_: StatData;
     let _loc5_: number = 0;
     let _loc6_: StatImpl;
     this.qualityStat = [];
@@ -175,9 +175,9 @@ export class Equipment {
         _loc3_ = StatList.length * Math.random();
       }
       _loc4_ = StatList[Math.floor(_loc3_)];
-      _loc5_ = _loc4_.valueMin * Math.random() * Math.random() * ratio;
+      _loc5_ = _loc4_.value * Math.random() * Math.random() * ratio;
       if (this.quality === 5) {
-          _loc5_ = _loc4_.valueMin * (Math.random() * Math.random() * 0.85 + 0.15) * ratio;
+          _loc5_ = _loc4_.value * (Math.random() * Math.random() * 0.85 + 0.15) * ratio;
       }
       _loc5_++;
       _loc6_ = new StatImpl(_loc4_.name, _loc5_);

@@ -87,10 +87,10 @@ export const WeaponCategory = {
 // AS3 原始: iData.iItem.EquipType
 
 export const EquipType = {
-  LIGHT: 'Light' as const,
-  MEDIUM: 'Medium' as const,
-  HEAVY: 'Heavy' as const,
-  ACCESORY: 'Accesory' as const,
+  LIGHT: 'light' as const,
+  MEDIUM: 'medium' as const,
+  HEAVY: 'heavy' as const,
+  ACCESORY: 'accesory' as const,
 } as const;
 
 // ═══ 装备类型 BASE 升级加成向量 ═══
@@ -98,19 +98,19 @@ export const EquipType = {
 // 武器/护甲升级时按此基准值 × pow(系数, 等级-1) × (1 + 0.2*品质) 计算 levelStat
 
 export const EquipTypeBase: Record<string, Array<{ name: string; value: number }>> = {
-  Heavy: [
+  [EquipType.HEAVY]: [
     { name: Stat.defence, value: 2 },
     { name: Stat.protection, value: 1 },
   ],
-  Medium: [
+  [EquipType.MEDIUM]: [
     { name: Stat.hp, value: 5 },
     { name: Stat.protection, value: 1 },
   ],
-  Light: [
+  [EquipType.LIGHT]: [
     { name: Stat.hp, value: 5 },
     { name: Stat.defence, value: 2 },
   ],
-  Accesory: [],
+  [EquipType.ACCESORY]: [],
 };
 
 // ═══ 武器类型 BASE 升级加成向量 ═══
