@@ -46,17 +46,33 @@ assertIncludes(battleModel, 'public playerState: PlayerState', 'React Battle cur
 assertIncludes(gameContext, 'function withBattlePlayer', 'GameContext must provide a single active-battle player sync helper');
 
 for (const actionType of [
+  'PLAYER_SET_NAME',
+  'EQUIP_ITEM',
+  'UNEQUIP_ITEM',
   'ITEM_ADD',
   'ITEM_REMOVE',
+  'ITEM_SELL',
+  'ITEM_SORT',
   'BAG_EXPAND',
   'PET_EXPAND',
+  'SHOP_BUY_SELL',
+  'SHOP_BUY_GAMBLE',
+  'FORGE_EQUIPMENT',
+  'AUTO_FORGE_EQUIPMENT',
   'SKILL_LEARN',
+  'SKILL_LEVELUP',
+  'SKILL_EQUIP',
+  'SKILL_UNEQUIP',
   'PLAYER_AGEUP',
   'PLAYER_ADD_EXP',
   'PLAYER_ADD_GOLD',
   'PLAYER_LOSE_GOLD',
+  'PLAYER_LOSE_EXP',
   'PET_ADD',
+  'PET_SET',
+  'PET_REMOVE',
   'TITLE_ADD',
+  'TITLE_SET',
 ]) {
   assertCaseSyncsBattle(gameContext, actionType);
 }
