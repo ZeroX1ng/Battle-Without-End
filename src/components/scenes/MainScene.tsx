@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { useGameLoop } from '../../hooks/useGameLoop'
+import { gameTick } from '../../core/systems/GameLoop'
 import { Map } from '../../core/models/Map'
 import { MapList } from '../../core/data/mapData'
 import { PlayerInfoPanel } from '../panels/PlayerInfoPanel'
@@ -25,9 +26,7 @@ export function MainScene() {
 
   useGameLoop({
     callback: () => {
-      if (stateRef.current.battle) {
-        dispatch({ type: 'BATTLE_TICK' })
-      }
+      gameTick(stateRef.current, dispatch)
     },
     intervalMs: 500,
     enabled: true,

@@ -392,6 +392,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
+      applyTitleEvents(result.titleEvents);
+
       if (result.loot) {
         newState = { ...newState, loot: { ...newState.loot } };
         for (const key of Object.keys(result.loot) as Array<keyof LootState>) {
@@ -603,6 +605,13 @@ function addLog(state: GameState, text: string, category?: string): GameState {
   if (!shouldDisplayLog(state.config, category)) return state;
   const msg = { id: ++_msgId, text, category, timestamp: Date.now() };
   return { ...state, ui: { ...state.ui, infoMessages: [...state.ui.infoMessages.slice(-199), msg] } };
+}
+
+function applyTitleEvents(events?: Array<{ name: string; maxVal?: number; countVal?: number }>): void {
+  if (!events?.length) return;
+  for (const event of events) {
+    updateTitleInfo(event.name, event.maxVal ?? 0, event.countVal ?? 0);
+  }
 }
 
 // ═══ Context ═══

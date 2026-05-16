@@ -22,7 +22,6 @@ import { Weapon } from './Weapon';
 import { EquipmentList } from '../data/equipmentData';
 import type { WeaponData } from '../types';
 import { PetSkillDataMap } from '../data/petSkillData';
-import { updateTitleInfo } from '../data/titleData';
 import { getQualityLootKey, handleDroppedItem } from '../systems/SystemConfig';
 
 /** 暴击上限常量 */
@@ -37,6 +36,13 @@ export interface BattleRunResult {
   playerDied: boolean;
   logs: GameLog[];
   loot: Partial<LootState>;
+  titleEvents: BattleTitleEvent[];
+}
+
+export interface BattleTitleEvent {
+  name: string;
+  maxVal?: number;
+  countVal?: number;
 }
 
 /**
@@ -75,6 +81,7 @@ export class Battle {
   public config: GlobalConfig | null = null;
   private _playerDied: boolean = false;
   private _loot: Partial<LootState> = {};
+  private _titleEvents: BattleTitleEvent[] = [];
 
   constructor(playerState: PlayerState, map: Map, config?: GlobalConfig) {
     this.playerState = playerState;
@@ -173,7 +180,7 @@ export class Battle {
     this.processDrop();
 
     if (this.monster instanceof Boss) {
-      updateTitleInfo('kill', 0, 1);
+      this.addTitleEvent('kill', 0, 1);
     }
   }
 
@@ -263,8 +270,10 @@ export class Battle {
     this.playerState = { ...this.playerState, caculate };
     const playerDied = this._playerDied;
     const loot = this._loot;
+    const titleEvents = this._titleEvents;
     this._playerDied = false;
     this._loot = {};
+    this._titleEvents = [];
     return {
       caculate,
       shouldAgeup: caculate > 2400,
@@ -273,6 +282,7 @@ export class Battle {
       playerDied,
       logs,
       loot,
+      titleEvents,
     };
   }
 
@@ -316,6 +326,10 @@ export class Battle {
     this._loot[key] = (this._loot[key] ?? 0) + amount;
   }
 
+  private addTitleEvent(name: string, maxVal?: number, countVal?: number): void {
+    this._titleEvents.push({ name, maxVal, countVal });
+  }
+
   /** 玩家普攻伤害计算 */
   private playerAttack(): void {
     const player = this.playerState;
@@ -342,8 +356,8 @@ export class Battle {
 
     this.monsterHp -= finalDamage;
 
-    updateTitleInfo('damage', finalDamage, finalDamage);
-    updateTitleInfo('crit', 0, isCrit ? 1 : -1);
+    this.addTitleEvent('damage', finalDamage, finalDamage);
+    this.addTitleEvent('crit', 0, isCrit ? 1 : -1);
   }
 
   /** 怪物攻击回合 */
@@ -411,7 +425,7 @@ export class Battle {
 
     this.playerHp -= finalDamage;
 
-    updateTitleInfo('endure', finalDamage);
+    this.addTitleEvent('endure', finalDamage);
   }
 
   /** 怪物攻击宠物 */
