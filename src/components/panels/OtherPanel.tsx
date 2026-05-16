@@ -160,15 +160,15 @@ export function OtherPanel() {
         borderRadius: 'var(--radius-md)',
         overflow: 'hidden',
       }}>
-        {tabDefs.map(tab => (
+        {tabDefs.map(({ id, node }) => (
           <div
-            key={tab.id}
+            key={id}
             style={{
-              display: activeTab === tab.id ? 'block' : 'none',
+              display: activeTab === id ? 'block' : 'none',
               height: '100%',
             }}
           >
-            {tab.node}
+            {node}
           </div>
         ))}
       </div>

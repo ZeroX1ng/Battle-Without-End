@@ -1,0 +1,132 @@
+.main-scene {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(320px, 1.05fr) minmax(190px, 0.65fr) minmax(240px, 0.9fr);
+  grid-template-rows: minmax(150px, auto) minmax(0, 1fr);
+  grid-template-areas:
+    "player battle other"
+    "log    battle other";
+  gap: 10px;
+  overflow: hidden;
+}
+
+.main-scene__player,
+.main-scene__battle,
+.main-scene__other,
+.main-scene__log {
+  min-width: 0;
+  min-height: 0;
+}
+
+.main-scene__player {
+  grid-area: player;
+}
+
+.main-scene__battle {
+  grid-area: battle;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+.main-scene__battle-top,
+.main-scene__battle-bottom {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.main-scene__battle-top {
+  grid-template-rows: auto auto;
+}
+
+.main-scene__battle-bottom {
+  align-content: start;
+}
+
+.main-scene__other {
+  grid-area: other;
+  display: flex;
+}
+
+.main-scene__log {
+  grid-area: log;
+  display: flex;
+}
+
+.main-scene__player > div,
+.main-scene__battle-top > div,
+.main-scene__battle-bottom > div,
+.main-scene__log > div {
+  width: 100% !important;
+  max-width: none;
+}
+
+.main-scene__log > div {
+  height: 100% !important;
+}
+
+@media (max-width: 899px) {
+  .main-scene {
+    grid-template-columns: minmax(280px, 0.85fr) minmax(300px, 1.15fr);
+    grid-template-rows: auto minmax(280px, 1fr) minmax(180px, 0.55fr);
+    grid-template-areas:
+      "player battle"
+      "other  other"
+      "log    log";
+    overflow-y: auto;
+  }
+
+  .main-scene__battle {
+    grid-template-rows: auto auto;
+  }
+
+  .main-scene__battle-top,
+  .main-scene__battle-bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .main-scene {
+    padding: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(360px, 1fr) minmax(220px, 0.7fr);
+    grid-template-areas:
+      "player"
+      "battle"
+      "other"
+      "log";
+    gap: 8px;
+    overflow-y: auto;
+  }
+
+  .main-scene__battle {
+    grid-template-rows: auto auto;
+  }
+
+  .main-scene__battle-top,
+  .main-scene__battle-bottom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .main-scene {
+    grid-template-columns: minmax(260px, 0.9fr) minmax(240px, 1.1fr) minmax(260px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "player battle other";
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .main-scene__log {
+    display: none;
+  }
+}

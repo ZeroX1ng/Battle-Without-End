@@ -11,6 +11,7 @@ import { AllInfoPanel } from '../panels/AllInfoPanel'
 import { BattleSkillPanel } from '../panels/BattleSkillPanel'
 import { LootPanel } from '../panels/LootPanel'
 import { OtherPanel } from '../panels/OtherPanel'
+import '../../styles/main-scene.css'
 
 export function MainScene() {
   const { state, dispatch } = useGameContext()
@@ -33,34 +34,30 @@ export function MainScene() {
   })
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 10, left: 10 }}>
+    <div className="main-scene">
+      <section className="main-scene__player" aria-label="玩家状态">
         <PlayerInfoPanel />
-      </div>
+      </section>
 
-      <div style={{ position: 'absolute', top: 10, left: 400 }}>
-        <MonsterInfoPanel />
-      </div>
+      <section className="main-scene__battle" aria-label="战斗状态">
+        <div className="main-scene__battle-top">
+          <MonsterInfoPanel />
+          <PetInfoPanel />
+        </div>
 
-      <div style={{ position: 'absolute', top: 150, left: 400 }}>
-        <PetInfoPanel />
-      </div>
+        <div className="main-scene__battle-bottom">
+          <BattleSkillPanel />
+          <LootPanel />
+        </div>
+      </section>
 
-      <div style={{ position: 'absolute', top: 10, left: 590, width: 200, bottom: 10 }}>
+      <section className="main-scene__other" aria-label="功能窗口">
         <OtherPanel />
-      </div>
+      </section>
 
-      <div style={{ position: 'absolute', top: 235, left: 415 }}>
-        <BattleSkillPanel />
-      </div>
-
-      <div style={{ position: 'absolute', top: 235, left: 10 }}>
+      <section className="main-scene__log" aria-label="战斗日志">
         <AllInfoPanel />
-      </div>
-
-      <div style={{ position: 'absolute', top: 405, left: 415 }}>
-        <LootPanel />
-      </div>
+      </section>
     </div>
   )
 }
