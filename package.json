@@ -16,6 +16,7 @@
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
+    "assert:monster-reward": "node scripts/assertMonsterRewardParity.mjs",
     "assert:forge-logic": "node scripts/assertForgeLogicParity.mjs",
     "assert:architecture": "node scripts/assertArchitectureBoundaries.mjs",
     "assert:game-loop": "node scripts/assertGameLoopHeartbeatParity.mjs",

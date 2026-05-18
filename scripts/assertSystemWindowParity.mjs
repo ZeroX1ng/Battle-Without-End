@@ -22,6 +22,7 @@ const systemWindow = read('src/components/panels/SystemWindow.tsx');
 const systemConfig = read('src/core/systems/SystemConfig.ts');
 const gameContext = read('src/state/GameContext.tsx');
 const battle = read('src/core/models/Battle.ts');
+const monster = read('src/core/models/Monster.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 const toggleKeys = [
@@ -78,7 +79,8 @@ assertIncludes(gameContext, "case 'CONFIG_TOGGLE'", 'reducer must handle CONFIG_
 assertIncludes(gameContext, 'setSoundEnabled(newVal)', 'sound_toggle must update SoundSystem');
 assertIncludes(gameContext, 'shouldDisplayLog(state.config, action.category)', 'UI logs must respect config toggles');
 assertIncludes(gameContext, 'b.config = state.config', 'battle ticks must receive the latest config');
-assertIncludes(battle, 'handleDroppedItem(this.playerState, drop, this.config)', 'monster drops must respect config toggles');
+assertIncludes(battle, 'this.monster.dropItem(this.playerState, this.map.mapData.modifier, this.config)', 'battle must pass config into Monster/Boss dropItem');
+assertIncludes(monster, 'handleDroppedItem(playerState, drop, config)', 'monster drops must respect config toggles');
 
 if (packageJson.scripts?.['assert:system-window'] !== 'node scripts/assertSystemWindowParity.mjs') {
   throw new Error('package.json must expose assert:system-window');

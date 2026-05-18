@@ -3,10 +3,15 @@
 //
 // 管理怪物实例：BUFF、掉落、战斗属性。
 
-import type { MonsterData, PetData } from '../types';
+import type { GlobalConfig, LootState, MonsterData, PetData, PlayerState, WeaponData } from '../types';
 import { balanceRandom } from '../math/MyMath';
-import { MonsterTitleList } from '../data/monsterData';
+import { MonsterTitleList, REGION_BOSS_TITLE } from '../data/monsterData';
 import { Pet } from './Pet';
+import { Equipment } from './Equipment';
+import { Weapon } from './Weapon';
+import { getCombatPower, getLuck } from './Player';
+import { EquipmentList } from '../data/equipmentData';
+import { getQualityLootKey, handleDroppedItem } from '../systems/SystemConfig';
 
 // 怪物强度颜色
 const PINK = '#EE6b9c';
@@ -30,7 +35,7 @@ export class Monster {
    * 随机生成怪物标题（原 AS3: 20% 概率）
    * AS3 原始: Monster.generateTitle()
    */
-  private generateTitle(): void {
+  protected generateTitle(): void {
     if (Math.random() < 0.2 && MonsterTitleList.length > 0) {
       const idx = Math.floor(Math.random() * MonsterTitleList.length);
       this.title = MonsterTitleList[idx];
@@ -42,7 +47,7 @@ export class Monster {
    * 应用标题的属性加成
    * AS3 原始: Monster.addTitleStat()
    */
-  private addTitleStat(): void {
+  protected addTitleStat(): void {
     if (!this.title) return;
     const list = this.title.statMulList;
     for (let i = 0; i < list.length; i++) {
@@ -64,8 +69,72 @@ export class Monster {
    * 怪物掉落率
    * AS3 原始: Monster.get dropRate(): Number
    */
-  getDropRate(combatPower: number, mapModifier: number, luck: number): number {
-    return (this.CP / combatPower + mapModifier) * (1 + luck / 300);
+  getDropRate(playerState: PlayerState, mapModifier: number): number {
+    let _loc1_: number = (this.CP / getCombatPower(playerState) + mapModifier) * (1 + getLuck(playerState) / 300);
+    if (this.title) {
+      _loc1_ *= this.title.dropMul;
+    }
+    return _loc1_;
+  }
+
+  /**
+   * AS3 原始: Monster.get exp(): int
+   * 怪物称号的 xpMul 必须在模型层结算，Battle 只负责领取奖励。
+   */
+  getExp(playerState: PlayerState, mapModifier: number): number {
+    let _loc1_: number = (this.CP / getCombatPower(playerState) + mapModifier) * this.CP * (1 + getLuck(playerState) / 300);
+    if (this.title) {
+      _loc1_ *= this.title.xpMul;
+    }
+    return Math.floor(_loc1_);
+  }
+
+  /**
+   * AS3 原始: Monster.get money(): int
+   */
+  getMoney(playerState: PlayerState, mapModifier: number): number {
+    let _loc1_: number = (this.CP / getCombatPower(playerState) + mapModifier) * this.CP / 10 * (1 + getLuck(playerState) / 300);
+    if (this.title) {
+      _loc1_ *= this.title.goldMul;
+    }
+    return Math.floor(_loc1_);
+  }
+
+  dropItem(playerState: PlayerState, mapModifier: number, config: GlobalConfig): MonsterDropResult {
+    const dropRate = this.getDropRate(playerState, mapModifier);
+    if (Math.random() * 100 >= 20 * dropRate) {
+      return createNoDropResult(playerState);
+    }
+    return this.createDroppedItem(playerState, dropRate, config, false);
+  }
+
+  dropPet(_playerState: PlayerState, _mapModifier: number, _petList: PetData[]): Pet | null {
+    return null;
+  }
+
+  protected createDroppedItem(
+    playerState: PlayerState,
+    dropRate: number,
+    config: GlobalConfig,
+    isBoss: boolean,
+  ): MonsterDropResult {
+    const idx = Math.floor(Math.random() * EquipmentList.length);
+    const ed = EquipmentList[idx];
+    const combatPower = getCombatPower(playerState);
+    const drop = 'category' in ed
+      ? new Weapon(ed as WeaponData, dropRate, isBoss, combatPower)
+      : new Equipment(ed, dropRate, isBoss, combatPower);
+    const result = handleDroppedItem(playerState, drop, config);
+
+    return {
+      playerState: result.state,
+      dropped: true,
+      added: result.added,
+      soldItem: result.soldItem,
+      convertedToGold: result.convertedToGold,
+      drop,
+      lootKey: result.added ? getQualityLootKey(drop.quality) : undefined,
+    };
   }
 
   get CP(): number {
@@ -176,10 +245,21 @@ export class Boss extends Monster {
 
   constructor(data: MonsterData) {
     super(data);
+    this.hpleft = this.hp;
+  }
+
+  protected generateTitle(): void {
+    this.title = REGION_BOSS_TITLE;
+    this.addTitleStat();
   }
 
   get CP(): number {
     return this.data.CP * 2;
+  }
+
+  dropItem(playerState: PlayerState, mapModifier: number, config: GlobalConfig): MonsterDropResult {
+    const dropRate = this.getDropRate(playerState, mapModifier);
+    return this.createDroppedItem(playerState, dropRate, config, true);
   }
 
   /**
@@ -190,9 +270,10 @@ export class Boss extends Monster {
    *
    * @returns Pet | null — 掉落成功返回 Pet 实例，否则 null
    */
-  dropPet(luck: number, mapModifier: number, petList: PetData[]): Pet | null {
+  dropPet(playerState: PlayerState, mapModifier: number, petList: PetData[]): Pet | null {
     if (!petList || petList.length === 0) return null;
 
+    const luck = getLuck(playerState);
     let rate = 20 * (1 + luck / 200);
     if (rate > 40) rate = 40;
 
@@ -205,4 +286,23 @@ export class Boss extends Monster {
     }
     return null;
   }
+}
+
+export interface MonsterDropResult {
+  playerState: PlayerState;
+  dropped: boolean;
+  added: boolean;
+  soldItem?: Equipment;
+  convertedToGold: number;
+  drop?: Equipment;
+  lootKey?: keyof LootState;
+}
+
+function createNoDropResult(playerState: PlayerState): MonsterDropResult {
+  return {
+    playerState,
+    dropped: false,
+    added: false,
+    convertedToGold: 0,
+  };
 }
