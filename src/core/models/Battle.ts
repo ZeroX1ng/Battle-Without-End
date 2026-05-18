@@ -13,16 +13,11 @@ import {
   getAttack, getAttMin, getAttMax,
   getHp, getMp, getCrit, getCritMul,
   getDefence, getProtection, getProtectionReduce, getProtectionIgnore,
-  getSpellChance, getCombatPower, getLuck,
+  getSpellChance, getCombatPower,
   addExp as playerAddExp, addGold as playerAddGold,
   addPet as playerAddPet, loseExp
 } from './Player';
-import { Equipment } from './Equipment';
-import { Weapon } from './Weapon';
-import { EquipmentList } from '../data/equipmentData';
-import type { WeaponData } from '../types';
 import { PetSkillDataMap } from '../data/petSkillData';
-import { getQualityLootKey, handleDroppedItem } from '../systems/SystemConfig';
 
 /** 暴击上限常量 */
 const CR = 50;
@@ -163,69 +158,53 @@ export class Battle {
 
   private giveTrophy(): void {
     if (!this.monster) return;
-    const player = this.playerState;
-    const cp = getCombatPower(player);
+    const expGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);
     // 经验和金币（原 AS3 公式）
-    const expVal = (this.monster.CP / cp + this.map.mapData.modifier) * this.monster.CP * (1 + getLuck(player) / 300);
-    const expGain = Math.floor(expVal);
     this.playerState = playerAddExp(this.playerState, expGain);
     this.addLoot('exp', expGain);
     this.emitLogs([`Gained <font color='#4a60d7'>${expGain}</font> exp.`], 'exp');
-    const goldVal = (this.monster.CP / cp + this.map.mapData.modifier) * this.monster.CP / 10 * (1 + getLuck(player) / 300);
-    const goldGain = Math.floor(goldVal);
+    const goldGain = this.monster.getMoney(this.playerState, this.map.mapData.modifier);
     this.playerState = playerAddGold(this.playerState, goldGain);
     this.addLoot('money', goldGain);
     this.emitLogs([`Gained <font color='#FFA640'>$${goldGain}</font>.`], 'money');
     // 怪物掉落装备/宠物（原 AS3: 20% * dropRate 概率）
     this.processDrop();
 
-    if (this.monster instanceof Boss) {
+    if (this.monster.CP / getCombatPower(this.playerState) > 3) {
       this.addTitleEvent('kill', 0, 1);
+    }
+    if (this.pet) {
+      this.pet.addExp(expGain, this.playerState.lv);
     }
   }
 
   private processDrop(): void {
-    if (!this.monster) return;
-    const player = this.playerState;
-    const cp = getCombatPower(player);
-    const dropRate = this.monster.getDropRate(cp, this.map.mapData.modifier, getLuck(player));
-    if (Math.random() * 100 < 20 * dropRate) {
-      const idx = Math.floor(Math.random() * EquipmentList.length);
-      const ed = EquipmentList[idx];
-      let drop: Equipment;
-      if ('category' in ed) {
-        drop = new Weapon(ed as WeaponData, dropRate);
-      } else {
-        drop = new Equipment(ed, dropRate);
-      }
-      if (!this.config) return;
-      const result = handleDroppedItem(this.playerState, drop, this.config);
-      this.playerState = result.state;
+    if (!this.monster || !this.config) return;
+    const result = this.monster.dropItem(this.playerState, this.map.mapData.modifier, this.config);
+    this.playerState = result.playerState;
+    if (result.dropped && result.drop) {
       if (result.added) {
         if (result.soldItem) {
           this.emitLogs([`Auto sold ${result.soldItem.getNameHTML()} because the bag was full.`], 'item');
         }
-        this.emitLogs([`Gained ${drop.getNameHTML()}!`], 'item');
-        this.addLoot(getQualityLootKey(drop.quality), 1);
+        this.emitLogs([`Gained ${result.drop.getNameHTML()}!`], 'item');
+        if (result.lootKey) {
+          this.addLoot(result.lootKey, 1);
+        }
       } else if (result.convertedToGold > 0) {
         this.emitLogs([`Gained <font color='#FFA640'>$${result.convertedToGold}</font>.`], 'money');
         this.addLoot('money', result.convertedToGold);
       }
     }
-    if (this.monster instanceof Boss && this.boss) {
-      const pet = this.boss.dropPet(
-        getLuck(player),
-        this.map.mapData.modifier,
-        this.map.mapData.petList || []
-      );
-      if (pet) {
-        const result = playerAddPet(this.playerState, pet);
-        if (result.added) {
-          this.playerState = result.state;
-          this.emitLogs([`Gained ${pet.name}!`], 'item');
-        } else {
-          this.emitLogs(['Pet bag is full!'], 'item');
-        }
+
+    const pet = this.monster.dropPet(this.playerState, this.map.mapData.modifier, this.map.mapData.petList || []);
+    if (pet) {
+      const petResult = playerAddPet(this.playerState, pet);
+      if (petResult.added) {
+        this.playerState = petResult.state;
+        this.emitLogs([`Gained ${pet.name}!`], 'item');
+      } else {
+        this.emitLogs(['Pet bag is full!'], 'item');
       }
     }
   }

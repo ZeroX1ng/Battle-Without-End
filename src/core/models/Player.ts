@@ -273,7 +273,8 @@ export function ageup(state: PlayerState): PlayerState {
     s.basicStatus.hp += 1;
     s.basicStatus.mp += 1;
   }
-  const apGain = Math.max(1, 18 - s.age);
+  let apGain = 18 - s.age;
+  if (apGain < 1 && s.age <= 25) apGain = 1;
   if (apGain > 0) s.ap += apGain;
   return s;
 }

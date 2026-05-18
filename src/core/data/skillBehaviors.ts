@@ -37,14 +37,14 @@ function calcProtection(p: number): number {
 function monsterPro(battle: any): number {
   const m = battle.monster;
   if (!m) return 1;
-  const p = m.data.protection - getProtectionReduce(battle.playerState) - getProtectionIgnore(battle.playerState);
+  const p = m.protection - getProtectionReduce(battle.playerState) - getProtectionIgnore(battle.playerState);
   return 1 - calcProtection(p);
 }
 
 function skillGetCritMul(battle: any, extraCrit: number = 0): number {
   const player = battle.playerState;
   const mon = battle.monster;
-  let cr = getCrit(player) - (mon ? mon.data.protection - getProtectionReduce(player) : 0) * 2;
+  let cr = getCrit(player) - (mon ? mon.protection - getProtectionReduce(player) : 0) * 2;
   if (cr < 0 && extraCrit > 0) {
     cr = extraCrit;
   } else {
@@ -174,7 +174,7 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
   }
   let retCritMul = skillGetCritMul(battle, params[2]);
   let retDamage = Math.floor((getAttack(player) * retCritMul * params[1] / 100 + takenDamage * params[0] / 100 - mon.defence) *
-    (1 - calcProtection(mon.data.protection - getProtectionReduce(player) - getProtectionIgnore(player) - params[2] * 3)));
+    (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - params[2] * 3)));
   if (retDamage < 1) retDamage = 1;
   battle.monsterHp -= retDamage;
   updateTitleInfo('damage', retDamage, retDamage);
@@ -214,7 +214,7 @@ export function behave_thunder(skill: any, battle: any): BattleBehaviorResult {
   const critMul = skillGetCritMul(battle, params[3]);
   const baseDmg = Math.floor(balanceRandom(getMagicBalance(player)) * (params[1] - params[0]) + params[0]);
   let damage = Math.floor(baseDmg * critMul * (100 + getMagicDamage(player)) / 100 *
-    (1 - calcProtection(mon.data.protection - getProtectionReduce(player) - getProtectionIgnore(player) - extraIgnore)));
+    (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - extraIgnore)));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   updateTitleInfo('damage', damage, damage);
