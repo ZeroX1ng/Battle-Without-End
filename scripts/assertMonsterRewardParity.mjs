@@ -101,6 +101,7 @@ assertIncludes(as3Battle, 'Player.addExp(this.monster.exp);', 'AS3 Battle delega
 assertIncludes(as3Battle, 'Player.addMoney(this.monster.money);', 'AS3 Battle delegates gold reward to monster.money');
 assertIncludes(as3Battle, 'this.monster.dropItem();', 'AS3 Battle delegates item drops to Monster/Boss.dropItem');
 assertIncludes(as3Battle, 'this.monster.dropPet();', 'AS3 Battle delegates pet drops to Monster/Boss.dropPet');
+assertIncludes(as3Battle, 'this.pet.addExp(this.monster.exp);', 'AS3 Battle gives the active pet the defeated monster exp');
 assertIncludes(as3Monster, 'public function get exp()', 'AS3 Monster owns exp reward formula');
 assertIncludes(as3Monster, 'public function get money()', 'AS3 Monster owns gold reward formula');
 assertIncludes(as3Boss, 'this.title = MonsterTitleList.REGION_BOSS;', 'AS3 Boss always uses the fixed region boss title');
@@ -111,6 +112,7 @@ assertIncludes(battleModel, 'this.monster.getExp(', 'React Battle must read exp 
 assertIncludes(battleModel, 'this.monster.getMoney(', 'React Battle must read gold through Monster');
 assertIncludes(battleModel, 'this.monster.dropItem(', 'React Battle must delegate item drops to Monster/Boss');
 assertIncludes(battleModel, 'this.monster.dropPet(', 'React Battle must delegate pet drops to Monster/Boss');
+assertIncludes(battleModel, 'this.pet.addExp(expGain, this.playerState.lv);', 'React Battle.giveTrophy must feed defeated-monster exp into the active pet');
 assertIncludes(battleModel, 'this.monster.CP / getCombatPower(this.playerState) > 3', 'React Battle must keep AS3 kill title trigger based on CP ratio');
 assertNotIncludes(battleModel, 'EquipmentList', 'Battle must not pick equipment directly; Monster/Boss owns dropItem');
 assertNotIncludes(battleModel, 'handleDroppedItem', 'Battle must not apply drop filtering directly; Monster/Boss owns dropItem');
@@ -135,6 +137,11 @@ const monsterModule = await importTsModule({
   root,
   outRoot,
 });
+const battleModule = await importTsModule({
+  entry: join(root, 'src/core/models/Battle.ts'),
+  root,
+  outRoot,
+});
 const dataModule = await importTsModule({
   entry: join(root, 'src/core/data/monsterData.ts'),
   root,
@@ -147,6 +154,7 @@ const petDataModule = await importTsModule({
 });
 
 const { Monster, Boss } = monsterModule;
+const { Battle } = battleModule;
 const { MonsterList, REGION_BOSS_TITLE } = dataModule;
 const { PetDataList } = petDataModule;
 const sampleMonsterData = { ...MonsterList[0], CP: 100 };
@@ -182,6 +190,41 @@ await withRandom(0, async () => {
   const pet = boss.dropPet(createPlayerState({ luck: 500 }), 1, [PetDataList[0]]);
   assert(pet, 'Boss dropPet uses AS3 luck-based chance and map pet list');
 });
+
+{
+  const expGain = 1;
+  const player = createPlayerState();
+  const map = { mapData: { modifier: 1, petList: [] } };
+  const battle = new Battle(player, map, config);
+  const pet = {
+    expReceived: 0,
+    playerLevelReceived: 0,
+    addExp(exp, playerLevel) {
+      this.expReceived += exp;
+      this.playerLevelReceived = playerLevel;
+    },
+  };
+  battle.monster = {
+    CP: 1,
+    getExp() {
+      return expGain;
+    },
+    getMoney() {
+      return 0;
+    },
+    dropItem(playerState) {
+      return { playerState, dropped: false, added: false, convertedToGold: 0 };
+    },
+    dropPet() {
+      return null;
+    },
+  };
+  battle.pet = pet;
+  battle.giveTrophy();
+
+  assertEqual(pet.expReceived, expGain, 'Battle.giveTrophy must award defeated-monster exp to the active pet');
+  assertEqual(pet.playerLevelReceived, player.lv, 'Pet exp gating must receive the current player level');
+}
 
 await cleanupTranspileOutput(outRoot);
 
