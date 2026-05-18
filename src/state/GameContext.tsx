@@ -135,7 +135,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const qualityKeys = ['basic', 'magic', 'rare', 'perfect', 'epic', 'legendary'] as const;
       const key = qualityKeys[q] || 'basic';
       const stateWithLoot = { ...state, loot: { ...state.loot, [key]: state.loot[key] + 1 } };
-      return addLog(withBattlePlayer(stateWithLoot, newPlayer), `浣犺幏寰椾簡${item.getNameHTML()}!`, 'item');
+      return addLog(withBattlePlayer(stateWithLoot, newPlayer), `你获得了${item.getNameHTML()}!`, 'item');
     }
     case 'ITEM_REMOVE': {
       const newPlayer = removeItem(state.player, action.item);
@@ -578,12 +578,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'LOAD_GAME': {
       const saveData = localLoad(action.slot);
       if (!saveData) {
-        return addLog(state, `Save slot ${action.slot} does not exist`);
+        return addLog(state, `存档 ${action.slot} 不存在`);
       }
       const { player, config, playerName } = deserializeSave(saveData.info, saveData.userName);
       return addLog(
         { ...state, player, config, scene: 'main', battle: null, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
-        `Welcome back, ${playerName}. Save slot ${action.slot} loaded.`
+        `欢迎回来，${playerName}。存档 ${action.slot} 已读取。`
       );
     }
     default:

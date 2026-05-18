@@ -186,9 +186,11 @@ export function Button({ variant = 'normal', size = 'md', style, children, ...pr
 interface MenuButtonProps extends Omit<ButtonCellProps, 'before' | 'after'> {
   label: string
   info?: string
+  before?: React.ReactNode
+  after?: React.ReactNode
 }
 
-export function MenuButton({ label, info, selected, disabled, onMouseEnter, onMouseLeave, style, ...props }: MenuButtonProps) {
+export function MenuButton({ label, info, before, after, selected, disabled, onMouseEnter, onMouseLeave, style, ...props }: MenuButtonProps) {
   const { showStringInfo, hideStringInfo, updateMouse } = useInfoWindow()
 
   const renderFace = (active: boolean) => (
@@ -210,7 +212,7 @@ export function MenuButton({ label, info, selected, disabled, onMouseEnter, onMo
         userSelect: 'none',
       }}
     >
-      {label}
+      {(active ? after : before) ?? label}
     </BasicCell>
   )
 

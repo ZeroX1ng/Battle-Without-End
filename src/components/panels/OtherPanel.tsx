@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ButtonCell } from '../common/Common'
+import { ButtonCell, MenuButton } from '../common/Common'
 import { SpriteImage } from '../shared/SpriteImage'
 import { TitleWindow } from './TitleWindow'
 import { SystemWindow } from './SystemWindow'
@@ -56,6 +56,33 @@ const ARROW_FACE_DIM: React.CSSProperties = {
   opacity: 0.3,
 }
 
+function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
+  return (
+    <div style={{
+      width: TAB_SIZE,
+      height: 40,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    }}>
+      <SpriteImage
+        name={selected ? tab.afterKey : tab.beforeKey}
+        autoPlay={false}
+        style={{ width: 40, height: 30, imageRendering: 'pixelated' }}
+      />
+      <span style={{
+        fontSize: 9,
+        color: selected ? '#fff' : 'var(--color-text-dim)',
+        fontWeight: selected ? 'bold' : 'normal',
+        lineHeight: '10px',
+      }}>
+        {tab.label}
+      </span>
+    </div>
+  )
+}
+
 export function OtherPanel() {
   const [activeTab, setActiveTab] = useState<OtherPanelTabId>('item')
   const [scrollOffset, setScrollOffset] = useState(0)
@@ -106,36 +133,20 @@ export function OtherPanel() {
             {tabDefs.map(tab => {
               const selected = activeTab === tab.id
               return (
-                <button
+                <MenuButton
                   key={tab.id}
-                  type="button"
+                  label={tab.label}
+                  info={tab.label}
+                  selected={selected}
                   onClick={() => handleTabClick(tab.id)}
+                  before={renderTabFace(tab, false)}
+                  after={renderTabFace(tab, true)}
                   style={{
                     width: TAB_SIZE,
-                    height: 44,
-                    padding: 0,
-                    border: 0,
-                    background: 'transparent',
-                    cursor: 'pointer',
+                    height: 40,
                     flexShrink: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
                   }}
-                >
-                  <SpriteImage
-                    name={selected ? tab.afterKey : tab.beforeKey}
-                    autoPlay={false}
-                    style={{ width: 40, height: 30, imageRendering: 'pixelated' }}
-                  />
-                  <span style={{
-                    fontSize: 9,
-                    color: selected ? '#fff' : 'var(--color-text-dim)',
-                    fontWeight: selected ? 'bold' : 'normal',
-                  }}>
-                    {tab.label}
-                  </span>
-                </button>
+                />
               )
             })}
           </div>

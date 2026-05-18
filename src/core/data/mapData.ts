@@ -3,7 +3,7 @@
 
 import type { MapData, MonsterData, PetData } from '../types';
 import { MonsterList } from './monsterData';
-import { PetDataList } from './petData';
+import { getPetDataByLegacyId } from './petData';
 
 function getMonster(name: string): MonsterData {
   const monster = MonsterList.find(item => item.name === name);
@@ -14,11 +14,7 @@ function getMonster(name: string): MonsterData {
 }
 
 function getPet(name: string): PetData {
-  const pet = PetDataList.find(item => item.name === name);
-  if (!pet) {
-    throw new Error(`Unknown pet data: ${name}`);
-  }
-  return pet;
+  return getPetDataByLegacyId(name);
 }
 
 function monsters(names: string[]): MonsterData[] {

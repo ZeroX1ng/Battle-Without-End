@@ -4,7 +4,7 @@
 // 管理宠物实例：属性成长、技能生成、升级。
 
 import type { PetData, PetSkillData, PetStatsData } from '../types';
-import { PetDataList } from '../data/petData';
+import { getPetDataByLegacyId } from '../data/petData';
 import { PetSkillDataList, PetSkillDataMap } from '../data/petSkillData';
 import { PetStats } from './PetStats';
 import { PetSkill } from './PetSkill';
@@ -29,7 +29,7 @@ export class Pet {
   constructor(data: PetData, ratio: number) {
     this._name = data.name;
     this.type = data.type.type;
-    this.mc_name = data.mc;
+    this.mc_name = data.mc.startsWith('pet_') ? data.mc : `pet_${data.mc}`;
     this.realName = data.realName;
 
     this.startStat = PetStats.generatePetStats(data.type.startMin, data.type.startRange, ratio);
@@ -56,16 +56,7 @@ export class Pet {
 
   static load(data: string): Pet {
     const parts = data.split('#');
-    let pet: Pet | null = null;
-    let i = 0;
-    while (i < PetDataList.length) {
-      if (parts[0] === PetDataList[i].name) {
-        pet = new Pet(PetDataList[i], 1);
-        break;
-      }
-      i++;
-    }
-    if (!pet) pet = new Pet(PetDataList[0], 1);
+    const pet = new Pet(getPetDataByLegacyId(parts[0]), 1);
     pet._exp = encryptInt(Number(parts[2]));
     pet.startStat = PetStats.load(parts[3]);
     pet.growStat = PetStats.load(parts[4]);

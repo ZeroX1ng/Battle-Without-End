@@ -162,11 +162,11 @@ export class Battle {
     // 经验和金币（原 AS3 公式）
     this.playerState = playerAddExp(this.playerState, expGain);
     this.addLoot('exp', expGain);
-    this.emitLogs([`Gained <font color='#4a60d7'>${expGain}</font> exp.`], 'exp');
+    this.emitLogs([`你获得了<font color='#4a60d7'>${expGain}</font>经验.`], 'exp');
     const goldGain = this.monster.getMoney(this.playerState, this.map.mapData.modifier);
     this.playerState = playerAddGold(this.playerState, goldGain);
     this.addLoot('money', goldGain);
-    this.emitLogs([`Gained <font color='#FFA640'>$${goldGain}</font>.`], 'money');
+    this.emitLogs([`你获得了<font color='#FFA640'>$${goldGain}</font>.`], 'money');
     // 怪物掉落装备/宠物（原 AS3: 20% * dropRate 概率）
     this.processDrop();
 
@@ -185,14 +185,14 @@ export class Battle {
     if (result.dropped && result.drop) {
       if (result.added) {
         if (result.soldItem) {
-          this.emitLogs([`Auto sold ${result.soldItem.getNameHTML()} because the bag was full.`], 'item');
+          this.emitLogs([`背包已满，自动出售了${result.soldItem.getNameHTML()}.`], 'item');
         }
-        this.emitLogs([`Gained ${result.drop.getNameHTML()}!`], 'item');
+        this.emitLogs([`你获得了${result.drop.getNameHTML()}!`], 'item');
         if (result.lootKey) {
           this.addLoot(result.lootKey, 1);
         }
       } else if (result.convertedToGold > 0) {
-        this.emitLogs([`Gained <font color='#FFA640'>$${result.convertedToGold}</font>.`], 'money');
+        this.emitLogs([`你获得了<font color='#FFA640'>$${result.convertedToGold}</font>.`], 'money');
         this.addLoot('money', result.convertedToGold);
       }
     }
@@ -202,9 +202,9 @@ export class Battle {
       const petResult = playerAddPet(this.playerState, pet);
       if (petResult.added) {
         this.playerState = petResult.state;
-        this.emitLogs([`Gained ${pet.name}!`], 'item');
+        this.emitLogs([`你获得了${pet.name}!`], 'item');
       } else {
-        this.emitLogs(['Pet bag is full!'], 'item');
+        this.emitLogs(['宠物栏满了!'], 'item');
       }
     }
   }

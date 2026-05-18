@@ -18,6 +18,7 @@
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
     "assert:monster-reward": "node scripts/assertMonsterRewardParity.mjs",
     "assert:growth-skill-protection": "node scripts/assertPlayerGrowthAndSkillProtectionParity.mjs",
+    "assert:pet-data": "node scripts/assertPetDataParity.mjs",
     "assert:forge-logic": "node scripts/assertForgeLogicParity.mjs",
     "assert:architecture": "node scripts/assertArchitectureBoundaries.mjs",
     "assert:game-loop": "node scripts/assertGameLoopHeartbeatParity.mjs",

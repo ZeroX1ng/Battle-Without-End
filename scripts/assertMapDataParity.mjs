@@ -27,6 +27,46 @@ const expectedMaps = [
   ['???', '???', 395, 265, 6, ['Prairie_Dragon', 'Giant_Lion', 'Arc_Lich', 'Desert_Dragon'], ['att_dragon', 'mag_dragon', 'def_unicorn', 'bal_unicorn']],
 ];
 
+const petNamesByLegacyId = {
+  att_fox: 'Red Fox',
+  def_fox: 'Brown Fox',
+  bal_fox: 'Gray Fox',
+  att_rat: 'Town Rat',
+  def_rat: 'Black Rat',
+  mag_rat: 'Rat Mage',
+  att_spider: 'Red Spider',
+  def_spider: 'Giant Spider',
+  att_wolf: 'Wild Wolf',
+  mag_wolf: 'Werewolf',
+  att_bear: 'Red Bear',
+  def_bear: 'Brown Bear',
+  bal_bear: 'Gray Bear',
+  att_goblin: 'Goblin Warrior',
+  def_goblin: 'Goblin Protector',
+  bal_goblin: 'Goblin Archer',
+  mag_goblin: 'Goblin Mage',
+  att_skeleton: 'Skeleton Warrior',
+  def_skeleton: 'Skeleton Protector',
+  bal_skeleton: 'Skeleton Archer',
+  mag_skeleton: 'Skeleton Mage',
+  att_ghost: 'Fire Sprite',
+  def_ghost: 'Stone Sprite',
+  bal_ghost: 'Wind Sprite',
+  mag_ghost: 'Lightning Sprite',
+  att_zombie: 'Zombie Warrior',
+  def_zombie: 'Zombie Protector',
+  bal_zombie: 'Zombie Archer',
+  mag_zombie: 'Zombie Mage',
+  att_ruin: 'Warrior of Ruins',
+  def_ruin: 'Protector of Ruins',
+  bal_ruin: 'Archer of Ruins',
+  mag_ruin: 'Mage of Ruins',
+  def_unicorn: 'Holy Unicorn',
+  bal_unicorn: 'Prairie Unicorn',
+  att_dragon: 'Dark Dragon',
+  mag_dragon: 'Shining Dragon',
+};
+
 const seen = new Set();
 
 async function transpileFile(filePath) {
@@ -81,7 +121,7 @@ for (const [index, expected] of expectedMaps.entries()) {
   assertEqual(actual.realName, realName, `Map ${name} realName`);
   assertEqual([actual.x, actual.y, actual.modifier], [x, y, modifier], `Map ${name} coordinates/modifier`);
   assertEqual(actual.monsterList.map(monster => monster.name), monsters, `Map ${name} monster pool`);
-  assertEqual((actual.petList ?? []).map(pet => pet.name), pets, `Map ${name} pet pool`);
+  assertEqual((actual.petList ?? []).map(pet => pet.name), pets.map(pet => petNamesByLegacyId[pet]), `Map ${name} pet pool`);
 }
 
 await rm(outRoot, { recursive: true, force: true });

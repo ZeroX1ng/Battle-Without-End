@@ -39,67 +39,131 @@ export const PetTypeList: Record<string, PetTypeData> = {
 };
 
 // ═══ 宠物列表 ═══
-// AS3 原始: iData.iPet.PetDataList — 37 种宠物（12品种 × 多类型变体）
+// AS3 原始: PetData.name 是英文存档名，PetDataList.list 保留重复项作为随机权重。
+
+const att_fox: PetData = { name: 'Red Fox', realName: '红狐狸', mc: 'fox', type: PetTypeList.attack };
+const def_fox: PetData = { name: 'Brown Fox', realName: '棕狐狸', mc: 'fox', type: PetTypeList.defence };
+const bal_fox: PetData = { name: 'Gray Fox', realName: '灰狐狸', mc: 'fox', type: PetTypeList.balance };
+const att_rat: PetData = { name: 'Town Rat', realName: '白鼠', mc: 'rat', type: PetTypeList.attack };
+const def_rat: PetData = { name: 'Black Rat', realName: '黑鼠', mc: 'rat', type: PetTypeList.defence };
+const mag_rat: PetData = { name: 'Rat Mage', realName: '魔鼠', mc: 'rat', type: PetTypeList.magic };
+const att_spider: PetData = { name: 'Red Spider', realName: '红蜘蛛', mc: 'spider', type: PetTypeList.attack };
+const def_spider: PetData = { name: 'Giant Spider', realName: '巨蜘蛛', mc: 'spider', type: PetTypeList.defence };
+const att_wolf: PetData = { name: 'Wild Wolf', realName: '野狼', mc: 'wolf', type: PetTypeList.attack };
+const mag_wolf: PetData = { name: 'Werewolf', realName: '狼人', mc: 'wolf', type: PetTypeList.magic };
+const att_bear: PetData = { name: 'Red Bear', realName: '红熊', mc: 'bear', type: PetTypeList.attack };
+const def_bear: PetData = { name: 'Brown Bear', realName: '棕熊', mc: 'bear', type: PetTypeList.defence };
+const bal_bear: PetData = { name: 'Gray Bear', realName: '灰熊', mc: 'bear', type: PetTypeList.balance };
+const att_goblin: PetData = { name: 'Goblin Warrior', realName: '哥布林战士', mc: 'goblin', type: PetTypeList.attack };
+const def_goblin: PetData = { name: 'Goblin Protector', realName: '哥布林卫士', mc: 'goblin', type: PetTypeList.defence };
+const bal_goblin: PetData = { name: 'Goblin Archer', realName: '哥布林弓手', mc: 'goblin', type: PetTypeList.balance };
+const mag_goblin: PetData = { name: 'Goblin Mage', realName: '哥布林法师', mc: 'goblin', type: PetTypeList.magic };
+const att_skeleton: PetData = { name: 'Skeleton Warrior', realName: '骷髅战士', mc: 'skeleton', type: PetTypeList.attack };
+const def_skeleton: PetData = { name: 'Skeleton Protector', realName: '骷髅卫士', mc: 'skeleton', type: PetTypeList.defence };
+const bal_skeleton: PetData = { name: 'Skeleton Archer', realName: '骷髅弓手', mc: 'skeleton', type: PetTypeList.balance };
+const mag_skeleton: PetData = { name: 'Skeleton Mage', realName: '骷髅法师', mc: 'skeleton', type: PetTypeList.magic };
+const att_ghost: PetData = { name: 'Fire Sprite', realName: '火焰幽灵', mc: 'ghost', type: PetTypeList.attack };
+const def_ghost: PetData = { name: 'Stone Sprite', realName: '岩石幽灵', mc: 'ghost', type: PetTypeList.defence };
+const bal_ghost: PetData = { name: 'Wind Sprite', realName: '风幽灵', mc: 'ghost', type: PetTypeList.balance };
+const mag_ghost: PetData = { name: 'Lightning Sprite', realName: '雷幽灵', mc: 'ghost', type: PetTypeList.magic };
+const att_zombie: PetData = { name: 'Zombie Warrior', realName: '僵尸武士', mc: 'zombie', type: PetTypeList.attack };
+const def_zombie: PetData = { name: 'Zombie Protector', realName: '僵尸卫士', mc: 'zombie', type: PetTypeList.defence };
+const bal_zombie: PetData = { name: 'Zombie Archer', realName: '僵尸弓手', mc: 'zombie', type: PetTypeList.balance };
+const mag_zombie: PetData = { name: 'Zombie Mage', realName: '僵尸法师', mc: 'zombie', type: PetTypeList.magic };
+const att_ruin: PetData = { name: 'Warrior of Ruins', realName: '毁灭战士', mc: 'attack', type: PetTypeList.attack };
+const def_ruin: PetData = { name: 'Protector of Ruins', realName: '毁灭卫士', mc: 'defence', type: PetTypeList.defence };
+const bal_ruin: PetData = { name: 'Archer of Ruins', realName: '毁灭弓手', mc: 'balance', type: PetTypeList.balance };
+const mag_ruin: PetData = { name: 'Mage of Ruins', realName: '毁灭法师', mc: 'magic', type: PetTypeList.magic };
+const def_unicorn: PetData = { name: 'Holy Unicorn', realName: '神圣独角兽', mc: 'unicorn', type: PetTypeList.defence };
+const bal_unicorn: PetData = { name: 'Prairie Unicorn', realName: '自然独角兽', mc: 'unicorn', type: PetTypeList.balance };
+const att_dragon: PetData = { name: 'Dark Dragon', realName: '暗黑龙', mc: 'dragon', type: PetTypeList.attack };
+const mag_dragon: PetData = { name: 'Shining Dragon', realName: '光明龙', mc: 'dragon', type: PetTypeList.magic };
+
+const PetDataByLegacyId: Record<string, PetData> = {
+  att_fox,
+  def_fox,
+  bal_fox,
+  att_rat,
+  def_rat,
+  mag_rat,
+  att_spider,
+  def_spider,
+  att_wolf,
+  mag_wolf,
+  att_bear,
+  def_bear,
+  bal_bear,
+  att_goblin,
+  def_goblin,
+  bal_goblin,
+  mag_goblin,
+  att_skeleton,
+  def_skeleton,
+  bal_skeleton,
+  mag_skeleton,
+  att_ghost,
+  def_ghost,
+  bal_ghost,
+  mag_ghost,
+  att_zombie,
+  def_zombie,
+  bal_zombie,
+  mag_zombie,
+  att_ruin,
+  def_ruin,
+  bal_ruin,
+  mag_ruin,
+  def_unicorn,
+  bal_unicorn,
+  att_dragon,
+  mag_dragon,
+};
 
 export const PetDataList: PetData[] = [
-  // fox — 狐狸 (3种变体)
-  { name: 'att_fox',    realName: '红狐狸',   mc: 'pet_fox',    type: PetTypeList.attack },
-  { name: 'def_fox',    realName: '棕狐狸',   mc: 'pet_fox',    type: PetTypeList.defence },
-  { name: 'bal_fox',    realName: '灰狐狸',   mc: 'pet_fox',    type: PetTypeList.balance },
-
-  // rat — 老鼠 (3种变体)
-  { name: 'att_rat',    realName: '白鼠',     mc: 'pet_rat',    type: PetTypeList.attack },
-  { name: 'def_rat',    realName: '黑鼠',     mc: 'pet_rat',    type: PetTypeList.defence },
-  { name: 'mag_rat',    realName: '魔鼠',     mc: 'pet_rat',    type: PetTypeList.magic },
-
-  // spider — 蜘蛛 (2种变体)
-  { name: 'att_spider', realName: '红蜘蛛',   mc: 'pet_spider', type: PetTypeList.attack },
-  { name: 'def_spider', realName: '巨蜘蛛',   mc: 'pet_spider', type: PetTypeList.defence },
-
-  // wolf — 狼 (2种变体)
-  { name: 'att_wolf',   realName: '野狼',     mc: 'pet_wolf',   type: PetTypeList.attack },
-  { name: 'mag_wolf',   realName: '狼人',     mc: 'pet_wolf',   type: PetTypeList.magic },
-
-  // bear — 熊 (3种变体)
-  { name: 'att_bear',   realName: '红熊',     mc: 'pet_bear',   type: PetTypeList.attack },
-  { name: 'def_bear',   realName: '棕熊',     mc: 'pet_bear',   type: PetTypeList.defence },
-  { name: 'bal_bear',   realName: '灰熊',     mc: 'pet_bear',   type: PetTypeList.balance },
-
-  // goblin — 哥布林 (4种变体)
-  { name: 'att_goblin', realName: '哥布林战士', mc: 'pet_goblin', type: PetTypeList.attack },
-  { name: 'def_goblin', realName: '哥布林卫士', mc: 'pet_goblin', type: PetTypeList.defence },
-  { name: 'bal_goblin', realName: '哥布林弓手', mc: 'pet_goblin', type: PetTypeList.balance },
-  { name: 'mag_goblin', realName: '哥布林法师', mc: 'pet_goblin', type: PetTypeList.magic },
-
-  // skeleton — 骷髅 (4种变体)
-  { name: 'att_skeleton', realName: '骷髅战士', mc: 'pet_skeleton', type: PetTypeList.attack },
-  { name: 'def_skeleton', realName: '骷髅卫士', mc: 'pet_skeleton', type: PetTypeList.defence },
-  { name: 'bal_skeleton', realName: '骷髅弓手', mc: 'pet_skeleton', type: PetTypeList.balance },
-  { name: 'mag_skeleton', realName: '骷髅法师', mc: 'pet_skeleton', type: PetTypeList.magic },
-
-  // ghost — 幽灵 (4种变体)
-  { name: 'att_ghost',  realName: '火焰幽灵', mc: 'pet_ghost',  type: PetTypeList.attack },
-  { name: 'def_ghost',  realName: '岩石幽灵', mc: 'pet_ghost',  type: PetTypeList.defence },
-  { name: 'bal_ghost',  realName: '风幽灵',   mc: 'pet_ghost',  type: PetTypeList.balance },
-  { name: 'mag_ghost',  realName: '雷幽灵',   mc: 'pet_ghost',  type: PetTypeList.magic },
-
-  // zombie — 僵尸 (4种变体)
-  { name: 'att_zombie', realName: '僵尸武士', mc: 'pet_zombie', type: PetTypeList.attack },
-  { name: 'def_zombie', realName: '僵尸卫士', mc: 'pet_zombie', type: PetTypeList.defence },
-  { name: 'bal_zombie', realName: '僵尸弓手', mc: 'pet_zombie', type: PetTypeList.balance },
-  { name: 'mag_zombie', realName: '僵尸法师', mc: 'pet_zombie', type: PetTypeList.magic },
-
-  // ruin — 遗迹守卫 (4种变体)
-  { name: 'att_ruin',   realName: '毁灭战士', mc: 'pet_ruin',   type: PetTypeList.attack },
-  { name: 'def_ruin',   realName: '毁灭卫士', mc: 'pet_ruin',   type: PetTypeList.defence },
-  { name: 'bal_ruin',   realName: '毁灭弓手', mc: 'pet_ruin',   type: PetTypeList.balance },
-  { name: 'mag_ruin',   realName: '毁灭法师', mc: 'pet_ruin',   type: PetTypeList.magic },
-
-  // unicorn — 独角兽 (2种变体)
-  { name: 'def_unicorn', realName: '神圣独角兽', mc: 'pet_unicorn', type: PetTypeList.defence },
-  { name: 'bal_unicorn', realName: '自然独角兽', mc: 'pet_unicorn', type: PetTypeList.balance },
-
-  // dragon — 龙 (2种变体)
-  { name: 'att_dragon', realName: '暗黑龙',   mc: 'pet_dragon', type: PetTypeList.attack },
-  { name: 'mag_dragon', realName: '光明龙',   mc: 'pet_dragon', type: PetTypeList.magic },
+  att_bear,
+  att_dragon,
+  att_fox,
+  att_ghost,
+  att_goblin,
+  att_rat,
+  att_ruin,
+  att_skeleton,
+  att_spider,
+  att_wolf,
+  att_zombie,
+  def_bear,
+  def_fox,
+  def_ghost,
+  def_goblin,
+  def_rat,
+  def_ruin,
+  def_skeleton,
+  def_spider,
+  def_unicorn,
+  def_zombie,
+  bal_bear,
+  bal_fox,
+  bal_ghost,
+  bal_goblin,
+  bal_ruin,
+  bal_skeleton,
+  bal_unicorn,
+  bal_zombie,
+  mag_dragon,
+  mag_ghost,
+  mag_ghost,
+  mag_goblin,
+  mag_rat,
+  mag_ruin,
+  mag_skeleton,
+  mag_wolf,
+  mag_zombie,
 ];
+
+export function getPetDataByLegacyId(name: string): PetData {
+  const pet = PetDataByLegacyId[name] ?? PetDataList.find(item => item.name === name);
+  if (!pet) {
+    throw new Error(`Unknown pet data: ${name}`);
+  }
+  return pet;
+}
