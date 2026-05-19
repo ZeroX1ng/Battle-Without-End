@@ -379,6 +379,8 @@ export function addSkill(state: PlayerState, skillData: any): PlayerState {
 
 export function equipSkill(state: PlayerState, skill: Skill): PlayerState {
   if (state.equipSkillList.includes(skill)) return state;
+  if (skill.skillData.type !== SkillType.ATTACK && skill.skillData.type !== SkillType.DEFENCE) return state;
+  if (!state.skillList.includes(skill)) return state;
   return { ...state, equipSkillList: [...state.equipSkillList, skill] };
 }
 
@@ -398,6 +400,27 @@ export function unequipSkill(state: PlayerState, skill: Skill): PlayerState {
  * 重新计算技能属性加成
  * AS3 原始: Player.updateSkillInfo()
  */
+function getCurrentWeaponCategory(state: PlayerState): string {
+  return state.leftHand?.category ?? WeaponCategory.MELEE;
+}
+
+function isBattleSkillEligible(state: PlayerState, skill: Skill, type: string): boolean {
+  const data = skill.skillData;
+  if (data.type !== type) return false;
+  const weaponCategory = getCurrentWeaponCategory(state);
+  return data.category === SkillCategory.ALL ||
+    data.category === SkillCategory.MAGIC ||
+    data.category === weaponCategory;
+}
+
+export function getAttackSkillList(state: PlayerState): Skill[] {
+  return state.equipSkillList.filter(skill => isBattleSkillEligible(state, skill, SkillType.ATTACK));
+}
+
+export function getDefenceSkillList(state: PlayerState): Skill[] {
+  return state.equipSkillList.filter(skill => isBattleSkillEligible(state, skill, SkillType.DEFENCE));
+}
+
 export function updateSkillInfo(state: PlayerState): PlayerState {
   const skillStatus = new BasicStatus(0,0,0,0,0,0,0);
   let _loc4_: number = 0;
@@ -412,7 +435,13 @@ export function updateSkillInfo(state: PlayerState): PlayerState {
     if (_loc2_.effectList && state.leftHand && state.leftHand.category === _loc2_.category) {
       _loc5_ = 0;
       while (_loc5_ < _loc2_.effectList[_loc3_].length) {
-        (skillStatus as any)[_loc2_.effectList[_loc3_][_loc5_].name] += _loc2_.effectList[_loc3_][_loc5_].value;
+        if (_loc2_.effectList[_loc3_][_loc5_].name === Stat.attackMin) {
+          skillStatus.attack.min += _loc2_.effectList[_loc3_][_loc5_].value;
+        } else if (_loc2_.effectList[_loc3_][_loc5_].name === Stat.attackMax) {
+          skillStatus.attack.max += _loc2_.effectList[_loc3_][_loc5_].value;
+        } else {
+          (skillStatus as any)[_loc2_.effectList[_loc3_][_loc5_].name] += _loc2_.effectList[_loc3_][_loc5_].value;
+        }
         _loc5_++;
       }
     }

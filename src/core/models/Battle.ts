@@ -5,7 +5,7 @@
 // 核心公式：护甲减伤、暴击判定、伤害计算。
 
 import type { GameLog, GlobalConfig, LootState, PlayerState } from '../types';
-import { Stat, SkillType, SkillCategory } from '../constants';
+import { Stat } from '../constants';
 import { Monster, Boss } from './Monster';
 import { Map } from './Map';
 import { balanceRandom } from '../math/MyMath';
@@ -15,7 +15,8 @@ import {
   getDefence, getProtection, getProtectionReduce, getProtectionIgnore,
   getSpellChance, getCombatPower,
   addExp as playerAddExp, addGold as playerAddGold,
-  addPet as playerAddPet, loseExp
+  addPet as playerAddPet, loseExp,
+  getAttackSkillList, getDefenceSkillList
 } from './Player';
 import { PetSkillDataMap } from '../data/petSkillData';
 
@@ -567,19 +568,10 @@ export class Battle {
   }
 
   private getAttackSkills(): any[] {
-    return this.playerState.equipSkillList.filter(s => 
-      s.skillData.type === SkillType.ATTACK
-    );
+    return getAttackSkillList(this.playerState);
   }
 
   private getDefenceSkills(): any[] {
-    const weaponCategory = this.playerState.leftHand?.category || SkillCategory.MELEE;
-    return this.playerState.equipSkillList.filter(s => {
-      const data = s.skillData;
-      if (data.type !== SkillType.DEFENCE) return false;
-      return data.category === SkillCategory.ALL ||
-        data.category === SkillCategory.MAGIC ||
-        data.category === weaponCategory;
-    });
+    return getDefenceSkillList(this.playerState);
   }
 }

@@ -3,15 +3,26 @@
 // 原版尺寸: 170 × 165
 
 import { useGameContext } from '../../state/GameContext'
-import { SkillType } from '../../core/constants'
+import { getAttackSkillList, getDefenceSkillList, getSpellChance } from '../../core/models/Player'
+
+function getSkillChance(player: any, skillCount: number, kind: 'attack' | 'defence'): string {
+  if (skillCount <= 0) return '0%'
+  let chance = kind === 'attack'
+    ? getSpellChance(player) + 20 + skillCount * 5
+    : getSpellChance(player) + skillCount * 20
+  if (chance > 95) chance = 95
+  return `${Math.trunc((chance / skillCount) * 100) / 100}%`
+}
 
 export function BattleSkillPanel() {
   const { state } = useGameContext();
   const battle = state.battle as any;
   if (!battle) return null;
 
-  const attackSkills = state.player.equipSkillList.filter(s => s.skillData.type === SkillType.ATTACK);
-  const defenceSkills = state.player.equipSkillList.filter(s => s.skillData.type === SkillType.DEFENCE);
+  const attackSkills = getAttackSkillList(state.player);
+  const defenceSkills = getDefenceSkillList(state.player);
+  const attackChance = getSkillChance(state.player, attackSkills.length, 'attack')
+  const defenceChance = getSkillChance(state.player, defenceSkills.length, 'defence')
 
   return (
     <div style={{
@@ -32,8 +43,8 @@ export function BattleSkillPanel() {
             fontSize: 10, color: 'var(--color-text)', marginBottom: 1,
             display: 'flex', justifyContent: 'space-between'
           }}>
-            <span>{skill.skillData.name} Lv.{skill.level}</span>
-            <span style={{ color: 'var(--color-text-dim)' }}>{skill.useRate}%</span>
+            <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>
+            <span style={{ color: 'var(--color-text-dim)' }}>{attackChance}</span>
           </div>
         ))
       )}
@@ -47,8 +58,8 @@ export function BattleSkillPanel() {
             fontSize: 10, color: 'var(--color-text)', marginBottom: 1,
             display: 'flex', justifyContent: 'space-between'
           }}>
-            <span>{skill.skillData.name} Lv.{skill.level}</span>
-            <span style={{ color: 'var(--color-text-dim)' }}>{skill.useRate}%</span>
+            <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>
+            <span style={{ color: 'var(--color-text-dim)' }}>{defenceChance}</span>
           </div>
         ))
       )}

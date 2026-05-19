@@ -16,6 +16,7 @@
     "assert:equipment-data": "node scripts/assertEquipmentDataParity.mjs",
     "assert:stat-list": "node scripts/assertStatListParity.mjs",
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
+    "assert:skill-eligibility-effects": "node scripts/assertSkillEligibilityEffectsParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
