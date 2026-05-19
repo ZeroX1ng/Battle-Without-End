@@ -54,16 +54,16 @@ Last updated: 2026-05-19
 `assert:start-character-age` 应覆盖：
 
 - `RaceList` 数量、顺序、名称和每个年龄的属性预览。
-- 10 到 25 岁边界。
+- 10 到 17 岁边界。
 - 选择某个种族/年龄后，玩家基础属性、年龄、种族名、初始装备和场景切换符合 AS3。
 
 ### Manual Smoke Scenario
 
 1. 新开游戏，进入角色选择。
 2. 逐个切换种族，确认顺序、名称和属性预览。
-3. 调整年龄到 10、18、25 岁，确认属性变化。
+3. 调整年龄到 10、14、17 岁，确认属性变化。
 4. 开始游戏，检查玩家年龄、种族、初始装备和第一场战斗状态。
-
+5. 检查玩家的年龄成长是否生效
 ## English
 
 ### AS3 Source of Truth
@@ -116,12 +116,13 @@ The character and age selection screen differs from the original. Age selection,
 `assert:start-character-age` should cover:
 
 - `RaceList` count, order, names, and stat previews for each age.
-- Age boundaries from 10 to 25.
+- Age boundaries from 10 to 17.
 - After choosing a race and age, player base stats, age, race name, starter equipment, and scene transition match AS3.
 
 ### Manual Smoke Scenario
 
 1. Start a new game and enter character selection.
 2. Switch through every race and confirm order, names, and stat preview.
-3. Move age to 10, 18, and 25, then confirm stat changes.
+3. Move age to 10, 14, and 17, then confirm stat changes.
 4. Start the game and inspect player age, race, starter equipment, and first battle state.
+5. Check if the player's age growth is in effect.

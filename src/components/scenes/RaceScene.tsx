@@ -82,7 +82,7 @@ export function RaceScene() {
           <div style={{ marginBottom: 15 }}>
             <label style={{ color: 'var(--color-text-dim)', marginRight: 10 }}>年龄:</label>
             <input
-              type="range" min={10} max={25} value={age}
+              type="range" min={10} max={17} value={age}
               onChange={e => setAge(Number(e.target.value))}
               style={{ width: 200, verticalAlign: 'middle' }}
             />

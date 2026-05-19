@@ -16,6 +16,7 @@
     "assert:equipment-data": "node scripts/assertEquipmentDataParity.mjs",
     "assert:stat-list": "node scripts/assertStatListParity.mjs",
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
+    "assert:start-character-age": "node scripts/assertStartCharacterAgeParity.mjs",
     "assert:skill-eligibility-effects": "node scripts/assertSkillEligibilityEffectsParity.mjs",
     "assert:map-selection": "node scripts/assertMapSelectionParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
