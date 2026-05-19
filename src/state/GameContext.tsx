@@ -9,7 +9,8 @@ import type { GameAction } from './actions';
 import { createInitialPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
 import { TitleList, updateTitleInfo, getPendingSkillUnlocks } from '../core/data/titleData';
 import { Battle } from '../core/models/Battle';
-import type { Map as GameMap } from '../core/models/Map';
+import { Map as GameMap } from '../core/models/Map';
+import { MapList, getMapByName } from '../core/data/mapData';
 import { Equipment } from '../core/models/Equipment';
 import { Weapon } from '../core/models/Weapon';
 import { EquipmentList } from '../core/data/equipmentData';
@@ -71,6 +72,25 @@ function generateShopState(playerState: PlayerState) {
 
 function createInitialShopState(playerState: PlayerState) {
   return generateShopState(playerState);
+}
+
+function getCurrentMapName(state: GameState): string {
+  return (state.battle as any)?.map?.mapData?.name ?? MapList[0].name;
+}
+
+function switchBattleMap(state: GameState, map: GameMap): any {
+  const battle: any = state.battle
+    ? Object.create(
+        Object.getPrototypeOf(state.battle),
+        Object.getOwnPropertyDescriptors(state.battle)
+      )
+    : new Battle(state.player, map, state.config);
+  battle.playerState = state.player;
+  battle.config = state.config;
+  battle.map = map;
+  battle.boss = null;
+  battle.init();
+  return battle;
 }
 
 function createInitialState(): GameState {
@@ -444,7 +464,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // 自动存档：每 60 tick (30秒) 自动保存到 'auto' 槽位
       if (result.shouldSave) {
-        const mapName = b.map?.mapData?.name ?? 'unknown';
+        const mapName = b.map?.mapData?.name ?? MapList[0].name;
         const saveStr = serializeSave(playerState, newState.config, mapName, 'auto');
         localSave(playerState.playerName, 'auto', saveStr);
       }
@@ -538,12 +558,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'MAP_SWITCH': {
-      if (!state.battle) return state;
-      const b: any = state.battle;
-      b.map = action.map;
-      b.boss = null;
-      b.init();
-      return { ...state, loot: createInitialLoot(), ui: { ...state.ui, activeWindow: null } };
+      const battle = switchBattleMap(state, action.map);
+      return addLog(
+        { ...state, battle, loot: createInitialLoot(), ui: { ...state.ui, activeWindow: null } },
+        `地图切换到 ${action.map.mapData.realName || action.map.mapData.name}.`,
+        'battle'
+      );
     }
 
     case 'LOOT_RESET':
@@ -563,14 +583,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SAVE_GAME': {
-      const mapName = (state.battle as any)?.map?.mapData?.name ?? 'unknown';
+      const mapName = getCurrentMapName(state);
       const saveStr = serializeSave(state.player, state.config, mapName, action.slot);
       localSave(state.player.playerName, action.slot, saveStr);
       return addLog(state, `游戏已保存至 ${action.slot}!`);
     }
 
     case 'MANUAL_SAVE': {
-      const mapName = (state.battle as any)?.map?.mapData?.name ?? 'unknown';
+      const mapName = getCurrentMapName(state);
       manuallySave(state.player, state.config, mapName, action.slot);
       return addLog(state, `存档已导出至 ${action.slot}.boe 文件!`);
     }
@@ -580,9 +600,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (!saveData) {
         return addLog(state, `存档 ${action.slot} 不存在`);
       }
-      const { player, config, playerName } = deserializeSave(saveData.info, saveData.userName);
+      const { player, config, mapName, playerName } = deserializeSave(saveData.info, saveData.userName);
+      const mapData = getMapByName(mapName) ?? MapList[0];
+      const battle = new Battle(player, new GameMap(mapData), config) as any;
+      battle.init();
       return addLog(
-        { ...state, player, config, scene: 'main', battle: null, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
+        { ...state, player, config, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
         `欢迎回来，${playerName}。存档 ${action.slot} 已读取。`
       );
     }

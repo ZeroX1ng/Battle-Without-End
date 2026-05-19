@@ -7,6 +7,9 @@ import { useGameContext } from '../../state/GameContext'
 import { Map } from '../../core/models/Map'
 import { MapList } from '../../core/data/mapData'
 
+const MAP_WIDTH = 800;
+const MAP_HEIGHT = 560;
+
 export function MapWindow() {
   const { state, dispatch } = useGameContext();
   const currentMapName = (state.battle as any)?.map?.mapData?.name ?? MapList[0].name;
@@ -17,10 +20,6 @@ export function MapWindow() {
   };
 
   // 按坐标分组，计算网格范围
-  const maxX = Math.max(...MapList.map(m => m.x), 3);
-  const maxY = Math.max(...MapList.map(m => m.y), 3);
-  const cols = maxX + 1;
-
   // 辅助：获取地图难度颜色
   const getDifficultyColor = (cp: number) => {
     if (cp <= 100) return { text: 'var(--color-green)', bg: 'rgba(75, 184, 20, 0.15)' };
@@ -55,12 +54,19 @@ export function MapWindow() {
       </div>
 
       <div style={{
-        flex: 1, overflowY: 'auto',
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: 6,
-        alignContent: 'start',
+        flex: 1,
+        overflow: 'auto',
+        minHeight: 0,
       }}>
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          minWidth: 280,
+          aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}`,
+          minHeight: 360,
+          border: '1px solid var(--color-border)',
+          background: 'var(--color-bg-dark)',
+        }}>
         {MapList.map((mapData) => {
           const map = new Map(mapData);
           const cp = Math.floor(map.averageCp);
@@ -75,9 +81,12 @@ export function MapWindow() {
               onClick={() => !isCurrent && handleSwitch(mapData)}
               title={isCurrent ? '当前所在地图' : `点击前往 ${mapData.realName}\n平均战力: ${cp}\n怪物种类: ${monsterCount}`}
               style={{
-                gridColumn: mapData.x + 1,
-                gridRow: mapData.y + 1,
-                padding: '8px 10px',
+                position: 'absolute',
+                left: `${(mapData.x / MAP_WIDTH) * 100}%`,
+                top: `${(mapData.y / MAP_HEIGHT) * 100}%`,
+                transform: 'translate(-50%, -50%)',
+                width: 96,
+                padding: '5px 7px',
                 cursor: isCurrent ? 'default' : 'pointer',
                 borderRadius: 'var(--radius-md)',
                 border: isCurrent
@@ -87,11 +96,12 @@ export function MapWindow() {
                   ? 'rgba(255, 166, 64, 0.15)'
                   : 'var(--color-bg-panel)',
                 opacity: isCurrent ? 1 : 0.85,
-                transition: 'all 0.15s ease',
+                transition: 'background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2,
-                minWidth: 0,
+                boxSizing: 'border-box',
+                boxShadow: isCurrent ? '0 0 0 2px rgba(255, 166, 64, 0.18)' : 'none',
               }}
               onMouseEnter={(e) => {
                  if (!isCurrent) {
@@ -134,6 +144,7 @@ export function MapWindow() {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );

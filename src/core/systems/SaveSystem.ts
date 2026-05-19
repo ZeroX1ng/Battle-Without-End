@@ -502,12 +502,17 @@ function parseTogglePairs(data: string): [string, string][] {
 function parseSelection(data: string): { mapName: string; selectedTitleName: string | null } {
   let mapName = '';
   let selectedTitleName: string | null = null;
-  const parts = data.split('#');
-  for (let i = 0; i + 1 < parts.length; i += 2) {
-    if (parts[i] === 'map') {
-      mapName = parts[i + 1];
-    } else if (parts[i] === 'title') {
-      selectedTitleName = parts[i + 1] || null;
+  const entries = data.split('#');
+  for (const entry of entries) {
+    if (!entry) continue;
+    const commaIndex = entry.indexOf(',');
+    if (commaIndex < 0) continue;
+    const key = entry.substring(0, commaIndex);
+    const value = entry.substring(commaIndex + 1);
+    if (key === 'map') {
+      mapName = value;
+    } else if (key === 'title') {
+      selectedTitleName = value || null;
     }
   }
   return { mapName, selectedTitleName };
