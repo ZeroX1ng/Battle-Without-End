@@ -301,38 +301,64 @@ export function removeItem(state: PlayerState, item: Equipment): PlayerState {
 const EQUIP_SLOTS = ['leftHand', 'rightHand', 'feet', 'head', 'necklace', 'ring', 'body'];
 
 export function equipItem(state: PlayerState, item: Equipment): PlayerState {
-  let s = { ...state };
+  const target = getEquipTarget(item, state);
+  if (!target) return state;
+
+  const itemWasInInventory = state.itemList.includes(item);
+  const base = itemWasInInventory ? removeItem(state, item) : state;
+  const displaced = target.clearSlots
+    .map(slot => (base as any)[slot] as Equipment | null)
+    .filter((equip): equip is Equipment => !!equip && equip !== item);
+
+  if (base.itemList.length + displaced.length > base.BAGMAX) {
+    return state;
+  }
+
+  let s: PlayerState = {
+    ...base,
+    itemList: [...base.itemList, ...displaced],
+  };
+  for (const slot of target.clearSlots) {
+    s = { ...s, [slot]: null };
+  }
+
   if (item instanceof Weapon) {
     switch (item.position) {
       case Weapon.ONEHAND:
-        s = unequipSlot(s, 'leftHand');
         s = { ...s, leftHand: item as Weapon };
         break;
       case Weapon.OFFHAND:
-        s = unequipSlot(s, 'rightHand');
         s = { ...s, rightHand: item as Weapon };
         break;
       case Weapon.TWOHAND:
-        s = unequipSlot(s, 'leftHand');
-        s = unequipSlot(s, 'rightHand');
         s = { ...s, leftHand: item as Weapon };
         break;
     }
   } else {
-    s = unequipSlot(s, item.position);
     (s as any)[item.position] = item;
   }
   s = updateAllInfo(s);
   return s;
 }
 
-function unequipSlot(state: PlayerState, slot: string): PlayerState {
-  const item = (state as any)[slot];
-  if (item) {
-    const { state: newState } = addItem(state, item);
-    return { ...newState, [slot]: null };
+function getEquipTarget(item: Equipment, state: PlayerState): { equipSlot: string; clearSlots: string[] } | null {
+  if (item instanceof Weapon) {
+    switch (item.position) {
+      case Weapon.ONEHAND:
+        return { equipSlot: 'leftHand', clearSlots: ['leftHand'] };
+      case Weapon.OFFHAND:
+        return {
+          equipSlot: 'rightHand',
+          clearSlots: state.leftHand?.position === Weapon.TWOHAND ? ['rightHand', 'leftHand'] : ['rightHand'],
+        };
+      case Weapon.TWOHAND:
+        return { equipSlot: 'leftHand', clearSlots: ['leftHand', 'rightHand'] };
+      default:
+        return null;
+    }
   }
-  return state;
+  if (!EQUIP_SLOTS.includes(item.position)) return null;
+  return { equipSlot: item.position, clearSlots: [item.position] };
 }
 
 export function unequipItem(state: PlayerState, slot: string): PlayerState {

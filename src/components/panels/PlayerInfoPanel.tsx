@@ -9,6 +9,8 @@ import { Bar } from '../common/Common'
 export function PlayerInfoPanel() {
   const { state } = useGameContext();
   const s = selectPlayerStats(state.player);
+  const battleHp = state.battle?.playerHp ?? s.hp;
+  const battleMp = state.battle?.playerMp ?? s.mp;
 
   return (
     <div style={{
@@ -23,8 +25,8 @@ export function PlayerInfoPanel() {
         {s.raceName} · {s.age}岁
       </div>
 
-      <Bar value={s.hp} max={s.hp} color='var(--color-hp)' label={`HP ${Math.floor(s.hp)}`} height={8} />
-      <Bar value={s.mp} max={s.mp} color='var(--color-mp)' label={`MP ${Math.floor(s.mp)}`} height={8} />
+      <Bar value={battleHp} max={s.hp} color='var(--color-hp)' label={`HP ${Math.floor(battleHp)}/${Math.floor(s.hp)}`} height={8} />
+      <Bar value={battleMp} max={s.mp} color='var(--color-mp)' label={`MP ${Math.floor(battleMp)}/${Math.floor(s.mp)}`} height={8} />
       <Bar value={s.xp} max={s.maxXp} color='var(--color-exp)' label={`XP ${s.xp}/${s.maxXp}`} height={6} />
 
       <div style={{ marginTop: 4, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 6px' }}>

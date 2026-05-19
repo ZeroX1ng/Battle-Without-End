@@ -403,6 +403,14 @@ export class Battle {
     const finalDamage = Math.floor(damage);
 
     this.playerHp -= finalDamage;
+    const monsterName = typeof (mon as any).getNameHtml === 'function'
+      ? (mon as any).getNameHtml(getCombatPower(player))
+      : ((mon as any).nameHtml ?? (mon as any).data?.realName ?? 'Monster');
+    this.emitLogs([
+      critMul > 1
+        ? `${monsterName}对你造成了<font color='#ff4040' size='20'>${finalDamage}!</font>伤害`
+        : `${monsterName}对你造成了<font color='#ff4040'>${finalDamage}</font>伤害`,
+    ]);
 
     this.addTitleEvent('endure', finalDamage);
   }
