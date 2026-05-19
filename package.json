@@ -4,12 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --config vite.config.mjs --configLoader native",
+    "build": "tsc -b && vite build --config vite.config.mjs --configLoader native",
     "assert:other-panel": "node scripts/assertOtherPanelParity.mjs",
+    "assert:other-window-children": "node scripts/assertOtherWindowChildrenParity.mjs",
     "assert:system-window": "node scripts/assertSystemWindowParity.mjs",
     "assert:item-window": "node scripts/assertItemWindowParity.mjs",
     "assert:equip-window": "node scripts/assertEquipWindowParity.mjs",
+    "assert:map-data": "node scripts/assertMapDataParity.mjs",
     "assert:equipment-data": "node scripts/assertEquipmentDataParity.mjs",
     "assert:stat-list": "node scripts/assertStatListParity.mjs",
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
@@ -30,7 +32,7 @@
     "assert:asset-modules": "node scripts/assertAssetModuleParity.mjs",
     "assert:responsive-layout": "node scripts/assertResponsiveMainLayoutParity.mjs",
     "smoke:responsive-layout": "node scripts/smokeResponsiveLayout.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview --config vite.config.mjs --configLoader native"
   },
   "dependencies": {
     "react": "^18.3.1",
