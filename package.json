@@ -28,6 +28,8 @@
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
     "assert:monster-data-immutable": "node scripts/assertMonsterDataImmutable.mjs",
     "assert:monster-reward": "node scripts/assertMonsterRewardParity.mjs",
+    "assert:battle-pet-exp-reward": "node scripts/assertBattlePetExpRewardParity.mjs",
+    "assert:battle-pet-flow-logs": "node scripts/assertBattlePetFlowLogsParity.mjs",
     "assert:battle-damage-log-death": "node scripts/assertBattleDamageLogDeathParity.mjs",
     "assert:battle-death-penalty": "node scripts/assertBattleDeathPenaltyParity.mjs",
     "assert:battle-numeric-coercion": "node scripts/assertBattleNumericCoercionParity.mjs",

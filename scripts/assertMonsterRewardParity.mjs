@@ -112,7 +112,8 @@ assertIncludes(battleModel, 'this.monster.getExp(', 'React Battle must read exp 
 assertIncludes(battleModel, 'this.monster.getMoney(', 'React Battle must read gold through Monster');
 assertIncludes(battleModel, 'this.monster.dropItem(', 'React Battle must delegate item drops to Monster/Boss');
 assertIncludes(battleModel, 'this.monster.dropPet(', 'React Battle must delegate pet drops to Monster/Boss');
-assertIncludes(battleModel, 'this.pet.addExp(expGain, this.playerState.lv);', 'React Battle.giveTrophy must feed defeated-monster exp into the active pet');
+assertIncludes(battleModel, 'const petExpGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);', 'React Battle.giveTrophy must recalculate defeated-monster exp for the active pet after player exp settlement');
+assertIncludes(battleModel, 'this.pet.addExp(petExpGain, this.playerState.lv);', 'React Battle.giveTrophy must feed defeated-monster exp into the active pet');
 assertIncludes(battleModel, 'this.monster.CP / getCombatPower(this.playerState) > 3', 'React Battle must keep AS3 kill title trigger based on CP ratio');
 assertNotIncludes(battleModel, 'EquipmentList', 'Battle must not pick equipment directly; Monster/Boss owns dropItem');
 assertNotIncludes(battleModel, 'handleDroppedItem', 'Battle must not apply drop filtering directly; Monster/Boss owns dropItem');

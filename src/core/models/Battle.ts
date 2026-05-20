@@ -180,7 +180,8 @@ export class Battle {
       this.addTitleEvent('kill', 0, 1);
     }
     if (this.pet) {
-      this.pet.addExp(expGain, this.playerState.lv);
+      const petExpGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);
+      this.pet.addExp(petExpGain, this.playerState.lv);
     }
   }
 
@@ -440,14 +441,6 @@ export class Battle {
     const mon = this.monster!;
     if (!this.pet) return;
 
-    const dodgeSkill = this.pet.getSkill(PetSkillDataMap['Dodge']);
-    if (dodgeSkill) {
-      if (Math.random() * 100 < dodgeSkill.getSetArray()[0]) {
-        this.emitLogs([`你的宠物回避了${mon.getNameHtml(getCombatPower(this.playerState))}的攻击!`]);
-        return;
-      }
-    }
-
     let critChance = mon.crit - this.pet.pro * 2;
     if (critChance > CR) critChance = CR;
     let critMul = 1;
@@ -459,14 +452,30 @@ export class Battle {
     let damage = (mon.attack * critMul - this.pet.defence) * (1 - protection);
     if (damage < 1) damage = 1;
 
-    this.petHp -= Math.floor(damage);
+    const finalDamage = Math.floor(damage);
+    const monsterName = this.getMonsterNameHtml();
+
+    const dodgeSkill = this.pet.getSkill(PetSkillDataMap['Dodge']);
+    if (dodgeSkill) {
+      if (Math.random() * 100 < dodgeSkill.getSetArray()[0]) {
+        this.emitLogs([`你的宠物回避了${monsterName}的攻击!`]);
+        return;
+      }
+    }
+
+    this.petHp -= finalDamage;
+    this.emitLogs([
+      critMul > 1
+        ? `${monsterName}对你的宠物造成了<font color='#ff4040' size='20'>${finalDamage}!</font>伤害`
+        : `${monsterName}对你的宠物造成了<font color='#ff4040'>${finalDamage}</font>伤害`,
+    ]);
 
     const irSkill = this.pet.getSkill(PetSkillDataMap['Injury Resile']);
     if (irSkill) {
       if (Math.random() * 100 < irSkill.getSetArray()[0]) {
-        const reflectDamage = Math.floor(damage * irSkill.getSetArray()[1] / 100);
+        const reflectDamage = Math.floor(finalDamage * irSkill.getSetArray()[1] / 100);
         this.monsterHp -= reflectDamage;
-        this.emitLogs([`你的宠物反弹了<font color='#ff4040'>${reflectDamage}</font>伤害给${mon.getNameHtml(getCombatPower(this.playerState))}`]);
+        this.emitLogs([`你的宠物反弹了<font color='#ff4040'>${reflectDamage}</font>伤害给${monsterName}`]);
       }
     }
 
@@ -484,7 +493,7 @@ export class Battle {
         caDamage *= caSkill.getSetArray()[1] / 100;
         if (caDamage < 1) caDamage = 1;
         this.monsterHp -= Math.floor(caDamage);
-        this.emitLogs([`你的宠物成功反击了<font color='#ff4040'>${Math.floor(caDamage)}</font>伤害给${mon.getNameHtml(getCombatPower(this.playerState))}`]);
+        this.emitLogs([`你的宠物成功反击了<font color='#ff4040'>${Math.floor(caDamage)}</font>伤害给${monsterName}`]);
       }
     }
   }
@@ -526,6 +535,7 @@ export class Battle {
   private petAttack(): void {
     if (!this.pet || !this.monster) return;
     const mon = this.monster;
+    const monsterName = this.getMonsterNameHtml();
 
     let critChance = this.pet.cri - mon.protection * 2;
     if (critChance > CR) critChance = CR;
@@ -545,17 +555,25 @@ export class Battle {
         if (this.monsterHp > this.monster.hp) {
           this.monsterHp = this.monster.hp;
         }
-        this.emitLogs([`你的宠物给${mon.getNameHtml(getCombatPower(this.playerState))}回复了<font color='#7AEE3C' size='16'>${Math.floor(damage)}</font> hp`]);
+        this.emitLogs([`你的宠物给${monsterName}回复了<font color='#7AEE3C' size='16'>${Math.floor(damage)}</font> hp`]);
         return;
       }
       critMul *= 2;
     }
 
-    this.monsterHp -= Math.floor(damage);
+    const finalDamage = Math.floor(damage);
+    this.monsterHp -= finalDamage;
+    this.emitLogs([
+      critMul > 1
+        ? `你的宠物对${monsterName}造成了<font color='#ff4040' size='20'>${finalDamage}!</font> 伤害`
+        : `你的宠物对${monsterName}造成了<font color='#ff4040'>${finalDamage}</font> 伤害${monsterName}`,
+    ]);
 
     const ldSkill = this.pet.getSkill(PetSkillDataMap['Life Drain']);
     if (ldSkill) {
-      this.petHp += Math.floor(damage * ldSkill.getSetArray()[0] / 100);
+      const lifeDrainHeal = Math.floor(finalDamage * ldSkill.getSetArray()[0] / 100);
+      this.petHp += lifeDrainHeal;
+      this.emitLogs([`你的宠物恢复了<font color='#7AEE3C' size='16'>${finalDamage}</font> hp`]);
     }
   }
 
