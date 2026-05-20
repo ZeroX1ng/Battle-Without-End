@@ -12,6 +12,7 @@
     "assert:item-window": "node scripts/assertItemWindowParity.mjs",
     "assert:equip-window": "node scripts/assertEquipWindowParity.mjs",
     "assert:equipment-ownership": "node scripts/assertEquipmentOwnershipParity.mjs",
+    "assert:equipment-api": "node scripts/assertEquipmentApiParity.mjs",
     "assert:quality-color": "node scripts/assertQualityColorParity.mjs",
     "assert:weapon-load-category": "node scripts/assertWeaponLoadCategoryParity.mjs",
     "assert:weapon-quality-stat": "node scripts/assertWeaponQualityStatParity.mjs",

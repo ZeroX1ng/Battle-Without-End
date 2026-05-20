@@ -15,6 +15,12 @@ const BLUE = '#4a60d7';
 const YELLOW = '#a6a500';
 const ORANGE = '#ff7100';
 const PURPLE = '#9840be';
+const GREEN_H = 4962324;
+const BLUE_H = 4874455;
+const YELLOW_H = 10921216;
+const ORANGE_H = 16740608;
+const GRAY_H = 7631988;
+const PURPLE_H = 9978046;
 
 export class Equipment {
   public sortWeight!: number;
@@ -328,6 +334,28 @@ export class Equipment {
     return `${html}<p align='right'>$ ${this.getMoney()}</p>`;
   }
 
+  getSellDesciption(): string {
+    let html = `<p align='center'>${this.getNameHTML()}`;
+    if (this.level) {
+      html += ` +${this.level}`;
+    }
+    html += '</p>';
+    html += "<p align='center' ><font color='#ff4040'>FOR SALE</font></p>";
+    html += `<p align='center'><font size='16'>${FirstLetterToUpper(this.getPositionLabel())},${FirstLetterToUpper(this.getTypeLabel())}`;
+    if (this.category) {
+      html += `,${FirstLetterToUpper(this.category)}`;
+    }
+    html += '</font></p>';
+    html += "<font size='20'>";
+    html += this.appendStatLines(this.basicStat);
+    html += "<font color='#00AF64'>";
+    html += this.appendStatLines(this.qualityStat, '+');
+    html += "</font><font color='#4b5ed7'>";
+    html += this.appendStatLines(this.levelStat, '+');
+    html += '</font></font>';
+    return `${html}<p align='right'>$ ${this.getSellMoney()}</p>`;
+  }
+
   /** 装备售价（升级消耗基准） */
   getMoney(): number {
     return (this.ratio * 30 >> 0) * (this.level + 1);
@@ -349,6 +377,31 @@ export class Equipment {
       case 5: _loc1_ = PURPLE; break;
     }
     return `<font color='${_loc1_}'>${FirstLetterToUpper(this.realName)}</font>`;
+  }
+
+  getColor(): string | null {
+    let _loc1_: string | null = null;
+    switch (this.quality) {
+      case 1: _loc1_ = GREEN; break;
+      case 2: _loc1_ = BLUE; break;
+      case 3: _loc1_ = YELLOW; break;
+      case 4: _loc1_ = ORANGE; break;
+      case 5: _loc1_ = PURPLE; break;
+    }
+    return _loc1_;
+  }
+
+  getColorInHex(): number {
+    let _loc1_: number = 0;
+    switch (this.quality) {
+      case 0: _loc1_ = GRAY_H; break;
+      case 1: _loc1_ = GREEN_H; break;
+      case 2: _loc1_ = BLUE_H; break;
+      case 3: _loc1_ = YELLOW_H; break;
+      case 4: _loc1_ = ORANGE_H; break;
+      case 5: _loc1_ = PURPLE_H; break;
+    }
+    return _loc1_;
   }
 
   /** 存档序列化 */
