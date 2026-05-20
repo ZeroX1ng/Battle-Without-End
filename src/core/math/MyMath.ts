@@ -21,7 +21,12 @@
  * @param param1 - 平衡值(0-100)，原始属性中的 balance 字段
  * @returns 0-1 之间的随机系数，乘以 (attMax - attMin) 后加到 attMin 上得到实际攻击值
  */
+export function as3Int(value: number): number {
+  return Number.isFinite(value) ? Math.trunc(value) : 0;
+}
+
 export function balanceRandom(param1: number): number {
+  param1 = as3Int(param1);
   let _loc9_: number = 0;
   let _loc11_: number = NaN;
   // 参数预处理：balance < 50 时取 100-b，使概率分布反转（倾向低值端）

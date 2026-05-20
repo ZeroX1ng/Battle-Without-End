@@ -8,7 +8,7 @@ import { getPetDataByLegacyId } from '../data/petData';
 import { PetSkillDataList, PetSkillDataMap } from '../data/petSkillData';
 import { PetStats } from './PetStats';
 import { PetSkill } from './PetSkill';
-import { balanceRandom, encryptInt, decryptInt } from '../math/MyMath';
+import { as3Int, balanceRandom, encryptInt, decryptInt } from '../math/MyMath';
 
 const STAT_NAMES: (keyof PetStatsData)[] = [
   'hp', 'mp', 'attmin', 'attmax', 'def', 'pro', 'balance', 'cri', 'criMul', 'magAtt'
@@ -147,7 +147,7 @@ export class Pet {
 
   /** 宠物攻击力 = attmin + (attmax - attmin) * balanceRandom(balance) */
   get attack(): number {
-    return this.attmin + (this.attmax - this.attmin) * balanceRandom(this.balance);
+    return as3Int(this.attmin + (this.attmax - this.attmin) * balanceRandom(this.balance));
   }
 
   // ═══ 属性 getter（含被动技能加成） ═══
@@ -158,68 +158,68 @@ export class Pet {
     let v = this.currentStat.hp;
     const sk = this.getSkill(PetSkillDataMap['Strong']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get mp(): number {
     let v = this.currentStat.mp;
     const sk = this.getSkill(PetSkillDataMap['Wisdom']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get attmin(): number {
     let v = this.currentStat.attmin;
     const sk = this.getSkill(PetSkillDataMap['Aggressive']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get attmax(): number {
     let v = this.currentStat.attmax;
     const sk = this.getSkill(PetSkillDataMap['Aggressive']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get defence(): number {
     let v = this.currentStat.def;
     const sk = this.getSkill(PetSkillDataMap['Defensive']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get pro(): number {
     let v = this.currentStat.pro;
     const sk = this.getSkill(PetSkillDataMap['Protective']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get balance(): number {
     const v = this.currentStat.balance;
-    return v > 100 ? 100 : v;
+    return as3Int(v > 100 ? 100 : v);
   }
 
   get cri(): number {
     let v = this.currentStat.cri;
     const sk = this.getSkill(PetSkillDataMap['Slayer']);
     if (sk) v += sk.getSetArray()[0];
-    return v;
+    return as3Int(v);
   }
 
   get crimul(): number {
     let v = this.currentStat.criMul;
     const sk = this.getSkill(PetSkillDataMap['Slayer']);
     if (sk) v *= sk.getSetArray()[1];
-    return v;
+    return as3Int(v);
   }
 
   get magicatt(): number {
     let v = 100 + this.currentStat.magAtt;
     const sk = this.getSkill(PetSkillDataMap['Wise']);
     if (sk) v += sk.getSetArray()[0] * this.level;
-    return v;
+    return as3Int(v);
   }
 
   get name(): string { return this._name; }

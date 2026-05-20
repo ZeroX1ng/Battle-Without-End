@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
 
 ## 中文
 
@@ -19,10 +19,20 @@ Last updated: 2026-05-19
 ### 后续推进顺序建议
 
 1. 浏览器 smoke：逐项确认 P0 玩家可见流程，不改代码，只记录问题。
-2. Battle review queue：从 `p0-battle-fix-deepseek260519.md` 选择一个 B-R 条目。
-3. Equipment review queue：从 `p0-equipment-deepseek.md` 选择一个 E-R 条目。
-4. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
-5. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+2. Battle core formula cards：从下面“战斗核心公式复核卡”选择一个条目。
+3. Battle review queue：从 `p0-battle-fix-deepseek260519.md` 选择一个 B-R 条目。
+4. Equipment review queue：从 `p0-equipment-deepseek.md` 选择一个 E-R 条目。
+5. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+6. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+
+### 战斗核心公式复核卡
+
+| Card | Priority | Topic | Current Status | Acceptance |
+| --- | --- | --- | --- | --- |
+| `p0-battle-numeric-coercion.md` | P0 | AS3 `int` 截断边界与 React 浮点数漂移 | Guarded | Existing: `assert:battle-numeric-coercion`; Adjacent: `assert:growth-skill-protection`, `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
+| `p1-battle-active-skill-single-roll.md` | P1 | 玩家攻击技能每回合只随机尝试一个 | Guarded | Existing: `assert:battle-active-skill-single-roll`; Adjacent: `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-exp-reward.md` | P1 | 玩家升级后宠物经验应按 AS3 再次读取怪物经验 | Guard needed | Needed: `assert:battle-pet-exp-reward`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-flow-logs.md` | P1 | 宠物战斗日志、插值和随机消耗顺序 | Guard needed | Needed: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources` |
 
 ### 状态含义
 
@@ -48,10 +58,20 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 ### Recommended Next Order
 
 1. Browser smoke: confirm P0 player-visible flows without changing code.
-2. Battle review queue: pick one B-R item from `p0-battle-fix-deepseek260519.md`.
-3. Equipment review queue: pick one E-R item from `p0-equipment-deepseek.md`.
-4. New issue review: write a short audit before adding a new parity card.
-5. Refactor work: only make small refactors under existing guard coverage.
+2. Battle core formula cards: pick one item from the "Battle Core Formula Review Cards" table below.
+3. Battle review queue: pick one B-R item from `p0-battle-fix-deepseek260519.md`.
+4. Equipment review queue: pick one E-R item from `p0-equipment-deepseek.md`.
+5. New issue review: write a short audit before adding a new parity card.
+6. Refactor work: only make small refactors under existing guard coverage.
+
+### Battle Core Formula Review Cards
+
+| Card | Priority | Topic | Current Status | Acceptance |
+| --- | --- | --- | --- | --- |
+| `p0-battle-numeric-coercion.md` | P0 | AS3 `int` coercion boundaries versus React floating-point drift | Guarded | Existing: `assert:battle-numeric-coercion`; Adjacent: `assert:growth-skill-protection`, `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
+| `p1-battle-active-skill-single-roll.md` | P1 | Player attack skills should try only one random skill per turn | Guarded | Existing: `assert:battle-active-skill-single-roll`; Adjacent: `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-exp-reward.md` | P1 | Pet exp should re-read monster exp after player reward settlement | Guard needed | Needed: `assert:battle-pet-exp-reward`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-flow-logs.md` | P1 | Pet combat logs, interpolation, and random-consumption order | Guard needed | Needed: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources` |
 
 ### Status Meaning
 

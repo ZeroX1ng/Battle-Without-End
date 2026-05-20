@@ -12,7 +12,7 @@ import { Equipment } from './Equipment';
 import { Weapon } from './Weapon';
 import { Skill } from './Skill';
 import type { TitleData } from '../types';
-import { balanceRandom } from '../math/MyMath';
+import { as3Int, balanceRandom } from '../math/MyMath';
 import { EquipmentList } from '../data/equipmentData';
 import type { WeaponData } from '../types';
 import { SkillDataList } from '../data/skillData';
@@ -102,18 +102,19 @@ export function getLevelExp(state: PlayerState): number {
 
 /** 三项属性汇总：基础 + 技能 + 装备 */
 export function formula_StatAddUp(state: PlayerState, name: string): number {
-  return (state.basicStatus as any)[name] + (state.skillStatus as any)[name] + (state.equipStatus as any)[name];
+  return as3Int((state.basicStatus as any)[name] + (state.skillStatus as any)[name] + (state.equipStatus as any)[name]);
 }
 
 /** 称号加成 */
 export function formula_title_stat(state: PlayerState, value: number, name: string): number {
+  value = as3Int(value);
   if (state.title) {
     const _loc3_: number = state.title.statMulList.length;
     let _loc4_: number = 0;
     while (_loc4_ < _loc3_) {
       if (state.title.statMulList[_loc4_].name === name) {
         value *= state.title.statMulList[_loc4_].mul;
-        return Math.floor(value + state.title.statMulList[_loc4_].add);
+        return as3Int(value + state.title.statMulList[_loc4_].add);
       }
       _loc4_++;
     }
@@ -148,8 +149,8 @@ export function getAttMax(state: PlayerState): number {
 export function getAttack(state: PlayerState): number {
   const min = getAttMin(state);
   const max = getAttMax(state);
-  if (min > max) return max + (min - max) * balanceRandom(getBalance(state));
-  return min + (max - min) * balanceRandom(getBalance(state));
+  if (min > max) return as3Int(max + (min - max) * balanceRandom(getBalance(state)));
+  return as3Int(min + (max - min) * balanceRandom(getBalance(state)));
 }
 
 export function getHp(state: PlayerState): number { return formula_title_stat(state, formula_StatAddUp(state, Stat.hp), Stat.hp); }
@@ -194,7 +195,7 @@ export function getMagicDamage(state: PlayerState): number {
 
 /** 魔法平衡值 = (int - 10)/4 + 30，上限 99 */
 export function getMagicBalance(state: PlayerState): number {
-  let _loc1_: number = (getIntelligence(state) - 10) / 4 + 30;
+  let _loc1_: number = as3Int((getIntelligence(state) - 10) / 4 + 30);
   if (_loc1_ > 99) _loc1_ = 99;
   return _loc1_;
 }

@@ -4,7 +4,7 @@
 // 管理怪物实例：BUFF、掉落、战斗属性。
 
 import type { GlobalConfig, LootState, MonsterData, PetData, PlayerState, WeaponData } from '../types';
-import { balanceRandom } from '../math/MyMath';
+import { as3Int, balanceRandom } from '../math/MyMath';
 import { MonsterTitleList, REGION_BOSS_TITLE } from '../data/monsterData';
 import { Pet } from './Pet';
 import { Equipment } from './Equipment';
@@ -142,25 +142,25 @@ export class Monster {
   }
 
   get hp(): number {
-    return this.data.hp;
+    return as3Int(this.data.hp);
   }
 
   get balance(): number {
     if (this.data.balance > 100) return 100;
     if (this.data.balance < 0) return 0;
-    return this.data.balance;
+    return as3Int(this.data.balance);
   }
 
   get crit(): number {
-    return this.data.crit;
+    return as3Int(this.data.crit);
   }
 
   get crit_mul(): number {
-    return this.data.crit_mul;
+    return as3Int(this.data.crit_mul);
   }
 
   get defence(): number {
-    return this.data.defence;
+    return as3Int(this.data.defence);
   }
 
   get protection(): number {
@@ -169,7 +169,7 @@ export class Monster {
     if (_loc2_) {
       _loc1_ -= _loc2_.count;
     }
-    return _loc1_;
+    return as3Int(_loc1_);
   }
 
   /**
@@ -177,7 +177,7 @@ export class Monster {
    * AS3 原始: Monster.get attack(): int
    */
   get attack(): number {
-    return this.data.attack.min + (this.data.attack.max - this.data.attack.min) * balanceRandom(this.balance);
+    return as3Int(this.data.attack.min + (this.data.attack.max - this.data.attack.min) * balanceRandom(this.balance));
   }
 
   /**

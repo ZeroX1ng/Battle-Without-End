@@ -283,17 +283,13 @@ export class Battle {
       if (chance > 95) chance = 95;
       if (Math.random() * 100 < chance) {
         // 随机选一个技能尝试施放
-        const shuffled = [...skills].sort(() => Math.random() - 0.5);
-        for (let i = 0; i < shuffled.length; i++) {
-          const skill = shuffled[i];
-          const behaveFn = skill.skillData.behaveFunction;
-          if (behaveFn) {
-            const result = behaveFn(skill, this);
-            if (result.success) {
-              usedSkill = true;
-              this.emitLogs(result.logs);
-              break;
-            }
+        const skill = skills[Math.floor(Math.random() * skills.length)];
+        const behaveFn = skill.skillData.behaveFunction;
+        if (behaveFn) {
+          const result = behaveFn(skill, this);
+          if (result.success) {
+            usedSkill = true;
+            this.emitLogs(result.logs);
           }
         }
       }
