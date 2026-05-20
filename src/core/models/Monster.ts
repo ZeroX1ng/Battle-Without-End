@@ -27,7 +27,7 @@ export class Monster {
   public buffList: any[] = [];
 
   constructor(data: MonsterData) {
-    this.data = { ...data };
+    this.data = { ...data, attack: { ...data.attack } };
     this.generateTitle();
   }
 

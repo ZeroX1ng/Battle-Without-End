@@ -148,6 +148,7 @@ async function withRandom(value, fn) {
 }
 
 const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
+const as3MainScene = read('../BOE-O/scripts/iPanel/iScene/MainScene.as');
 const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
 const as3PlayerInfoPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
 const battleModelSource = read('src/core/models/Battle.ts');
@@ -156,11 +157,15 @@ const playerInfoPanelSource = read('src/components/panels/PlayerInfoPanel.tsx');
 const packageJson = JSON.parse(read('package.json'));
 
 assertIncludes(as3Battle, 'this.monsterAttack();', 'AS3 monsterAttackPlayer must fall back to normal monsterAttack');
+assertIncludes(as3Battle, 'MainScene.allInfoPanel.addText("你遇到了" + this.monster.nameHtml', 'AS3 Battle.init emits encounter intro log');
 assertIncludes(as3Battle, 'this.playerHp -= _loc3_;', 'AS3 monsterAttack reduces Battle.playerHp before death checks');
 assertIncludes(as3Battle, 'MainScene.allInfoPanel.addText(this.monster.nameHtml', 'AS3 monsterAttack emits a player-visible damage log');
 assertIncludes(as3Battle, "<font color=\\'#ff4040\\'>\" + _loc3_", 'AS3 monsterAttack includes the damage amount in the visible log');
 assertIncludes(as3Battle, 'this.changeTurn();', 'AS3 fight performs death checks after turn resolution');
 assertIncludes(as3Battle, 'this.playerDie();', 'AS3 checkDead triggers playerDie after playerHp reaches zero');
+assertIncludes(as3Battle, 'MainScene.allInfoPanel.addText(this.monster.nameHtml + "<font color=', 'AS3 giveTrophy emits monster defeated log before rewards');
+assertIncludes(as3Battle, 'MainScene.allInfoPanel.addText("你对" + this.monster.nameHtml', 'AS3 playerAttack emits player damage log');
+assertIncludes(as3MainScene, 'battle.init();', 'AS3 MainScene starts battle immediately during scene setup');
 assertIncludes(as3Player, 'public static function loseExp()', 'AS3 Player.loseExp owns death exp penalty semantics');
 assertIncludes(as3PlayerInfoPanel, 'this.hp.Value = MainScene.battle.playerHp;', 'AS3 PlayerInfoPanel displays live Battle.playerHp');
 assertIncludes(battleModelSource, 'this.playerHp -= finalDamage;', 'React Battle must reduce live battle playerHp during monsterAttack');
@@ -210,9 +215,65 @@ await withRandom(0.99, async () => {
   assert(damageIndex >= 0, 'Death tick should still include the damage amount before death');
   assert(deathIndex >= 0, 'Death tick should include AS3-equivalent defeat log');
   assert(damageIndex < deathIndex, 'Damage log should be emitted before the death log in the same tick');
-  assertEqual(battle.playerState.xp, 990, 'Death flow should apply AS3 Player.loseExp one-percent penalty');
+  assertEqual(battle.playerState.xp, 1000, 'Death flow should match AS3 Battle.playerDie without automatic exp penalty');
+  assert(!/失去了|失去/.test(logText), 'Death tick should not emit an experience-loss log');
+});
+
+await withRandom(0.99, async () => {
+  const player = createPlayerState();
+  player.basicStatus.attack = { min: 12, max: 12 };
+  const battle = new Battle(player, createMap());
+  battle.init();
+  battle.turn = 1;
+  battle.monster = createMonster({ attack: 1 });
+  battle.monsterHp = 100;
+
+  const result = battle.run();
+  const logText = result.logs.map(log => log.text).join('\n');
+
+  assertEqual(battle.monsterHp, 88, 'Player attack should reduce live Battle.monsterHp by calculated damage');
+  assertMatch(logText, /遇到.*Test Monster/, 'Battle init should emit AS3 encounter log before the first tick resolves');
+  assertMatch(logText, /你对.*Test Monster.*12.*伤害/, 'Player normal attack should emit same-tick damage log with attacker, target, and damage');
+});
+
+await withRandom(0.99, async () => {
+  const player = createPlayerState();
+  player.basicStatus.attack = { min: 12, max: 12 };
+  const battle = new Battle(player, createMap());
+  battle.turn = 1;
+  battle.playerHp = 100;
+  battle.playerMp = 10;
+  battle.monsterHp = 12;
+  battle.monster = {
+    ...createMonster({ attack: 1 }),
+    CP: 1,
+    getExp() {
+      return 1;
+    },
+    getMoney() {
+      return 0;
+    },
+    dropItem(playerState) {
+      return { playerState, dropped: false, added: false, convertedToGold: 0 };
+    },
+    dropPet() {
+      return null;
+    },
+  };
+
+  const result = battle.run();
+  const logText = result.logs.map(log => log.text).join('\n');
+  const damageIndex = logText.indexOf('12');
+  const defeatedIndex = logText.indexOf('被击败');
+  const expIndex = logText.indexOf('经验');
+
+  assert(damageIndex >= 0, 'Kill tick should include player damage amount');
+  assert(defeatedIndex >= 0, 'Kill tick should include AS3-equivalent monster defeated log');
+  assert(expIndex >= 0, 'Kill tick should still include reward log');
+  assert(damageIndex < defeatedIndex, 'Player damage log should be emitted before defeated log');
+  assert(defeatedIndex < expIndex, 'Monster defeated log should be emitted before reward logs');
 });
 
 await cleanupTranspileOutput(outRoot);
 
-console.log('Battle damage log, death flow, and live HP parity checks passed.');
+console.log('Battle encounter, damage log, death flow, and live HP parity checks passed.');

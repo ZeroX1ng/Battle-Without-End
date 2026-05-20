@@ -458,7 +458,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (result.playerDied) {
         newState = addLog(
           newState,
-          `<font color='#ff4040'>你在战斗中被击败，失去了部分经验...</font>`
+          `<font color='#ff4040'>你在战斗中被击败。</font>`
         );
       }
 

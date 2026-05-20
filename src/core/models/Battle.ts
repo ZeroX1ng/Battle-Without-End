@@ -15,7 +15,7 @@ import {
   getDefence, getProtection, getProtectionReduce, getProtectionIgnore,
   getSpellChance, getCombatPower,
   addExp as playerAddExp, addGold as playerAddGold,
-  addPet as playerAddPet, loseExp,
+  addPet as playerAddPet,
   getAttackSkillList, getDefenceSkillList
 } from './Player';
 import { PetSkillDataMap } from '../data/petSkillData';
@@ -110,6 +110,12 @@ export class Battle {
       this.petHp = this.pet.hp;
       this.petMp = this.pet.mp;
     }
+    const monsterName = this.getMonsterNameHtml();
+    this.emitLogs([
+      this.monster?.title
+        ? `你遇到了${monsterName} ${this.monster.title.name}!`
+        : `你遇到了${monsterName}!`,
+    ], 'battleIntro');
     this.turn = 1;
   }
 
@@ -151,14 +157,13 @@ export class Battle {
   }
 
   private playerDie(): void {
-    const lost = Math.floor(this.playerState.xp / 100);
-    this.playerState = loseExp(this.playerState);
     this._playerDied = true;
-    this.emitLogs([`<font color='#ff4040'>你被击败了！失去了 ${lost} 点经验...</font>`]);
+    this.emitLogs([`<font color='#ff4040'>你被击败了!</font>`], 'battleIntro');
   }
 
   private giveTrophy(): void {
     if (!this.monster) return;
+    this.emitLogs([`${this.getMonsterNameHtml()}<font color='#21c4af'>被击败了!</font>`], 'battleIntro');
     const expGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);
     // 经验和金币（原 AS3 公式）
     this.playerState = playerAddExp(this.playerState, expGain);
@@ -302,6 +307,15 @@ export class Battle {
     this.playerState._logs = msgs;
   }
 
+  private getMonsterNameHtml(): string {
+    if (!this.monster) return '';
+    const monster = this.monster as any;
+    if (typeof monster.getNameHtml === 'function') {
+      return monster.getNameHtml(getCombatPower(this.playerState));
+    }
+    return monster.data?.realName ?? monster.name ?? monster.realName ?? '';
+  }
+
   private addLoot(key: keyof LootState, amount: number): void {
     this._loot[key] = (this._loot[key] ?? 0) + amount;
   }
@@ -335,6 +349,12 @@ export class Battle {
     const finalDamage = Math.floor(damage);
 
     this.monsterHp -= finalDamage;
+    const monsterName = this.getMonsterNameHtml();
+    this.emitLogs([
+      isCrit
+        ? `你对${monsterName}造成了<font color='#ff4040' size='20'>${finalDamage}!</font>伤害${monsterName}`
+        : `你对${monsterName}造成了<font color='#ff4040'>${finalDamage}</font>伤害`,
+    ]);
 
     this.addTitleEvent('damage', finalDamage, finalDamage);
     this.addTitleEvent('crit', 0, isCrit ? 1 : -1);
