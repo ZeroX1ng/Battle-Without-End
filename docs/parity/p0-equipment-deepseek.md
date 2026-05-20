@@ -13,6 +13,9 @@ Last updated: 2026-05-20
 ### 当前结论
 
 - P0-EQUIP 主问题已由 `assert:equipment-ownership` 守住。
+- E-R1 已由 `assert:weapon-load-category` 守住：`Equipment.load()` 读回武器后保留 `category`，远程攻击加成继续生效。
+- E-R2 已由 `assert:weapon-quality-stat` 守住：新生成武器的品质属性池可以随机到 AS3 `StatList` 末尾的 `balance`。
+- E-R3 已由 `assert:quality-color` 守住：`QualityColor` 的品质 1-5 与 AS3 `Equipment` 静态颜色一致，装备槽颜色不再与 `getNameHTML()` 分叉。
 - 后续工作不应再围绕“装备复制”展开，而应转为装备子系统审阅：存档加载、武器品质属性池、颜色 API、出售描述、窗口职责。
 - 部分 DeepSeek 结论可能已经被后续修复覆盖；执行前必须重新检查当前代码。
 
@@ -20,9 +23,9 @@ Last updated: 2026-05-20
 
 | ID | 优先级 | 主题 | 可能影响 | 先读 AS3 | React 目标 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- |
-| E-R1 | P0 | `Equipment.load()` 是否保留武器 `category` | 读档后远程/近战判断、攻击加成、技能过滤可能错误 | `Equipment.as`, `Weapon.as`, `Player.as` | `src/core/models/Equipment.ts`, `src/core/models/Player.ts` | 新增 `assert:weapon-load-category` |
-| E-R2 | P0 | 武器品质属性池是否能随机到 `balance` | 新生成武器少一种 AS3 属性结果 | `Equipment.as`, `Weapon.as`, `StatList.as` | `src/core/models/Equipment.ts`, `src/core/data/equipmentData.ts` | 新增 `assert:weapon-quality-stat` |
-| E-R3 | P1 | `QualityColor` 是否与 AS3 品质颜色一致 | 装备槽颜色和描述颜色不一致 | `Equipment.as` | `src/core/constants.ts`, `src/core/models/Equipment.ts` | 新增 `assert:quality-color` |
+| E-R1 | P0 | `Equipment.load()` 是否保留武器 `category` | 读档后远程/近战判断、攻击加成、技能过滤可能错误 | `Equipment.as`, `Weapon.as`, `Player.as` | `src/core/models/Equipment.ts`, `src/core/models/Player.ts` | 已守住：`assert:weapon-load-category` |
+| E-R2 | P0 | 武器品质属性池是否能随机到 `balance` | 新生成武器少一种 AS3 属性结果 | `Equipment.as`, `Weapon.as`, `StatList.as` | `src/core/models/Equipment.ts`, `src/core/data/equipmentData.ts` | 已守住：`assert:weapon-quality-stat` |
+| E-R3 | P1 | `QualityColor` 是否与 AS3 品质颜色一致 | 装备槽颜色和描述颜色不一致 | `Equipment.as` | `src/core/constants.ts`, `src/core/models/Equipment.ts` | 已守住：`assert:quality-color` |
 | E-R4 | P2 | `getColor()` / `getColorInHex()` / `getSellDesciption()` 是否需要补齐 | 商店/出售弹窗描述和 AS3 API 不完整 | `Equipment.as` | `src/core/models/Equipment.ts` | focused API assertion + `npx tsc -b` |
 | E-R5 | P2 | `EquipWindow` 混入宠物信息是否要拆分 | 职责边界不清，但不是装备所有权 bug | `EquipWindow.as`, Pet 相关窗口 | `src/components/windows/EquipWindow.tsx` | 先做只读审阅，不默认改 |
 | E-R6 | Note | 背包满时拒绝卸下/替换装备 | React 可能有意修复 AS3 丢装备 bug | `Player.as` | `src/core/models/Player.ts` | 不默认改；在主卡记录 intentional divergence |
@@ -62,6 +65,9 @@ This file is a compact follow-up review queue distilled from a DeepSeek review. 
 ### Current Conclusion
 
 - The main P0-EQUIP issue is guarded by `assert:equipment-ownership`.
+- E-R1 is guarded by `assert:weapon-load-category`: weapons loaded through `Equipment.load()` preserve `category`, so the ranged attack bonus remains active.
+- E-R2 is guarded by `assert:weapon-quality-stat`: newly generated weapons can roll the AS3 `balance` entry at the end of `StatList`.
+- E-R3 is guarded by `assert:quality-color`: `QualityColor` entries 1-5 match the AS3 `Equipment` static colors, so slot colors no longer diverge from `getNameHTML()`.
 - Future work should move from equipment duplication to subsystem review: save/load, weapon quality stat pools, color APIs, sell descriptions, and window responsibilities.
 - Some DeepSeek findings may already be fixed; always inspect current code first.
 
@@ -69,9 +75,9 @@ This file is a compact follow-up review queue distilled from a DeepSeek review. 
 
 | ID | Priority | Topic | Potential Impact | Read AS3 First | React Targets | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- |
-| E-R1 | P0 | Whether `Equipment.load()` preserves weapon `category` | Ranged/melee checks, attack bonus, and skill filtering may break after load | `Equipment.as`, `Weapon.as`, `Player.as` | `src/core/models/Equipment.ts`, `src/core/models/Player.ts` | Add `assert:weapon-load-category` |
-| E-R2 | P0 | Whether weapon quality stat pool can roll `balance` | Newly generated weapons may miss one AS3 stat outcome | `Equipment.as`, `Weapon.as`, `StatList.as` | `src/core/models/Equipment.ts`, `src/core/data/equipmentData.ts` | Add `assert:weapon-quality-stat` |
-| E-R3 | P1 | Whether `QualityColor` matches AS3 quality colors | Slot color and description color may diverge | `Equipment.as` | `src/core/constants.ts`, `src/core/models/Equipment.ts` | Add `assert:quality-color` |
+| E-R1 | P0 | Whether `Equipment.load()` preserves weapon `category` | Ranged/melee checks, attack bonus, and skill filtering may break after load | `Equipment.as`, `Weapon.as`, `Player.as` | `src/core/models/Equipment.ts`, `src/core/models/Player.ts` | Guarded: `assert:weapon-load-category` |
+| E-R2 | P0 | Whether weapon quality stat pool can roll `balance` | Newly generated weapons may miss one AS3 stat outcome | `Equipment.as`, `Weapon.as`, `StatList.as` | `src/core/models/Equipment.ts`, `src/core/data/equipmentData.ts` | Guarded: `assert:weapon-quality-stat` |
+| E-R3 | P1 | Whether `QualityColor` matches AS3 quality colors | Slot color and description color may diverge | `Equipment.as` | `src/core/constants.ts`, `src/core/models/Equipment.ts` | Guarded: `assert:quality-color` |
 | E-R4 | P2 | Whether `getColor()`, `getColorInHex()`, and `getSellDesciption()` are needed | Shop/sell descriptions and AS3 API parity may be incomplete | `Equipment.as` | `src/core/models/Equipment.ts` | Focused API assertion + `npx tsc -b` |
 | E-R5 | P2 | Whether pet info should be split out of `EquipWindow` | Responsibility boundary issue, not ownership bug | `EquipWindow.as`, pet windows | `src/components/windows/EquipWindow.tsx` | Read-only review first |
 | E-R6 | Note | Rejecting unequip/replace when bag is full | React may intentionally fix an AS3 item-loss bug | `Player.as` | `src/core/models/Player.ts` | Do not change by default; document intentional divergence |

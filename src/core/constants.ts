@@ -186,11 +186,11 @@ export const PetTypes = [
 
 export const QualityColor: Record<number, string> = {
   0: '#c8c8d4',
-  1: '#4a60d7',
-  2: '#a6a500',
-  3: '#ff7100',
-  4: '#9840be',
-  5: '#ff4040',
+  1: '#4BB814',
+  2: '#4a60d7',
+  3: '#a6a500',
+  4: '#ff7100',
+  5: '#9840be',
 };
 
 // ═══ 装备品质名称 ═══

@@ -99,6 +99,7 @@ export class Equipment {
     this.name = data.name;
     this.realName = data.realName;
     this.sortWeight = data.sortWeight;
+    this.category = 'category' in data ? (data as { category: string }).category : undefined;
   }
 
   /**
