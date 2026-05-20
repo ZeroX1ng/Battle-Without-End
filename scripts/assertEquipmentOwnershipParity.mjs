@@ -112,6 +112,24 @@ try {
   assertEqual(fullBagReplaceResult.itemList.length, 1, 'Full-bag replacement must keep inventory within BAGMAX');
   assertUniqueOwnership(fullBagReplaceResult, 'after full-bag replacement');
 
+  const externalReplaceOld = makeWeapon(0, 7);
+  const externalReplaceNew = makeWeapon(1, 8);
+  const externalReplaceFiller = makeWeapon(0, 9);
+  const externalReplacePlayer = {
+    ...createInitialPlayerState(),
+    BAGMAX: 1,
+    leftHand: externalReplaceOld,
+    itemList: [externalReplaceFiller],
+  };
+  const externalReplaceResult = equipItem(externalReplacePlayer, externalReplaceNew);
+  assert(
+    externalReplaceResult.leftHand === externalReplaceOld,
+    'Full inventory must reject replacement when the incoming equipment is not already in the bag',
+  );
+  assert(!externalReplaceResult.itemList.includes(externalReplaceNew), 'Rejected replacement must not add the incoming equipment');
+  assertEqual(externalReplaceResult.itemList.length, 1, 'Rejected replacement must leave the full bag unchanged');
+  assertUniqueOwnership(externalReplaceResult, 'after blocked external replacement');
+
   console.log('Equipment ownership parity checks passed.');
 } finally {
   await cleanupTranspileOutput(outRoot);
