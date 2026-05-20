@@ -6,23 +6,23 @@ Last updated: 2026-05-19
 
 ### 使用方式
 
-这是 AI 修复顺序的总表。每次只选一个 `Needs repair` 的 P0 条目，打开对应行为规格卡，先读 AS3，再补 guard，再做最小修复。
+这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果继续修复，只选一个 `Needs repair` 或 review queue 条目，先读 AS3，再补 guard，再做最小修复。
 
 | ID | 优先级 | 模块 | 状态 | 规格卡 | AS3 源 | React 目标 | 当前症状 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| P0-START | P0 | 角色与年龄选择 | Needs repair | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | 进入游戏后的角色和年龄选择界面/流程与原作不同 | Existing: `assert:growth-skill-protection`; Needed: `assert:start-character-age` |
-| P0-BATTLE | P0 | 战斗伤害、日志、死亡 | Needs repair | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | 战斗日志缺少玩家受到伤害记录，玩家看起来直接死亡 | Existing: `assert:battle-player-state`, `assert:monster-reward`; Needed: `assert:battle-damage-log-death` |
+| P0-START | P0 | 角色与年龄选择 | Guarded | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | 进入游戏后的角色和年龄选择界面/流程与原作不同 | Existing: `assert:growth-skill-protection`, `assert:start-character-age`; Next: browser smoke |
+| P0-BATTLE | P0 | 战斗伤害、日志、死亡 | Guarded | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | 战斗日志缺少玩家受到伤害记录，玩家看起来直接死亡 | Existing: `assert:battle-player-state`, `assert:monster-reward`, `assert:battle-damage-log-death`; Next: review queue |
 | P0-EQUIP | P0 | 装备所有权 | Guarded | `p0-equipment-ownership.md` | `Player.as`, `Equipment.as`, `EquipWindow.as`, `EquipCell.as` | `Player.ts`, `Equipment.ts`, `EquipWindow.tsx`, `GameContext.tsx` | 切换装备后，脱下装备像是复制了一份进仓库 | Existing: `assert:equip-window`, `assert:equipment-data`, `assert:stat-list`, `assert:equipment-ownership`; Next: browser smoke |
-| P0-MAP | P0 | 地图默认值与切换 | Needs repair | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | 地图选择不可见或不可确认，默认地图来源不清楚 | Existing: `assert:map-data`; Needed: `assert:map-selection` |
-| P0-SKILL | P0 | 技能装备限制与战斗生效 | Needs repair | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | 技能可以随意装备且不生效，没有远程武器也能使用远程技能 | Existing: `assert:skill-window`, `assert:growth-skill-protection`; Needed: `assert:skill-eligibility-effects` |
+| P0-MAP | P0 | 地图默认值与切换 | Guarded | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | 地图选择不可见或不可确认，默认地图来源不清楚 | Existing: `assert:map-data`, `assert:map-selection`; Next: browser smoke |
+| P0-SKILL | P0 | 技能装备限制与战斗生效 | Guarded | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | 技能可以随意装备且不生效，没有远程武器也能使用远程技能 | Existing: `assert:skill-window`, `assert:growth-skill-protection`, `assert:skill-eligibility-effects`; Next: browser smoke |
 
-### 修复顺序建议
+### 后续推进顺序建议
 
-1. `P0-BATTLE`：先让玩家生死、伤害和日志可追踪，否则其他系统难验证。
-2. `P0-EQUIP`：修正装备移动/替换，避免背包数据污染。
-3. `P0-SKILL`：技能限制和装备生效依赖装备类别，放在装备所有权之后。
-4. `P0-MAP`：固定地图来源，保证战斗怪物池和奖励倍率可追溯。
-5. `P0-START`：修正开局选择流程和年龄/种族成长展示。
+1. 浏览器 smoke：逐项确认 P0 玩家可见流程，不改代码，只记录问题。
+2. Battle review queue：从 `p0-battle-fix-deepseek260519.md` 选择一个 B-R 条目。
+3. Equipment review queue：从 `p0-equipment-deepseek.md` 选择一个 E-R 条目。
+4. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+5. 重构工作：只做已有 guard 覆盖范围内的小步重构。
 
 ### 状态含义
 
@@ -35,23 +35,23 @@ Last updated: 2026-05-19
 
 ### How To Use
 
-This is the repair order for AI work. Pick one P0 item marked `Needs repair`, open its parity card, read AS3 first, add or confirm the guard, then make the smallest repair.
+This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one `Needs repair` item or one review queue row, read AS3 first, add or confirm the guard, then make the smallest repair.
 
 | ID | Priority | Module | Status | Card | AS3 Sources | React Targets | Current Symptom | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| P0-START | P0 | Character and age selection | Needs repair | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | The in-game character and age selection flow differs from the original | Existing: `assert:growth-skill-protection`; Needed: `assert:start-character-age` |
-| P0-BATTLE | P0 | Battle damage, logs, and death | Needs repair | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | Battle logs do not show player damage, and the player appears to die directly | Existing: `assert:battle-player-state`, `assert:monster-reward`; Needed: `assert:battle-damage-log-death` |
+| P0-START | P0 | Character and age selection | Guarded | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | The in-game character and age selection flow differs from the original | Existing: `assert:growth-skill-protection`, `assert:start-character-age`; Next: browser smoke |
+| P0-BATTLE | P0 | Battle damage, logs, and death | Guarded | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | Battle logs do not show player damage, and the player appears to die directly | Existing: `assert:battle-player-state`, `assert:monster-reward`, `assert:battle-damage-log-death`; Next: review queue |
 | P0-EQUIP | P0 | Equipment ownership | Guarded | `p0-equipment-ownership.md` | `Player.as`, `Equipment.as`, `EquipWindow.as`, `EquipCell.as` | `Player.ts`, `Equipment.ts`, `EquipWindow.tsx`, `GameContext.tsx` | Switching equipment appears to duplicate the unequipped item into inventory | Existing: `assert:equip-window`, `assert:equipment-data`, `assert:stat-list`, `assert:equipment-ownership`; Next: browser smoke |
-| P0-MAP | P0 | Default map and map switching | Needs repair | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | Map selection is not visible or confirmed, and the default map source is unclear | Existing: `assert:map-data`; Needed: `assert:map-selection` |
-| P0-SKILL | P0 | Skill eligibility and battle effects | Needs repair | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | Skills can be equipped freely, do not reliably take effect, and ranged skills work without ranged weapons | Existing: `assert:skill-window`, `assert:growth-skill-protection`; Needed: `assert:skill-eligibility-effects` |
+| P0-MAP | P0 | Default map and map switching | Guarded | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | Map selection is not visible or confirmed, and the default map source is unclear | Existing: `assert:map-data`, `assert:map-selection`; Next: browser smoke |
+| P0-SKILL | P0 | Skill eligibility and battle effects | Guarded | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | Skills can be equipped freely, do not reliably take effect, and ranged skills work without ranged weapons | Existing: `assert:skill-window`, `assert:growth-skill-protection`, `assert:skill-eligibility-effects`; Next: browser smoke |
 
-### Recommended Repair Order
+### Recommended Next Order
 
-1. `P0-BATTLE`: make damage, death, and logs traceable first.
-2. `P0-EQUIP`: fix item movement/replacement before dependent systems.
-3. `P0-SKILL`: skill eligibility depends on equipment category.
-4. `P0-MAP`: lock down map source, monster pools, and reward modifiers.
-5. `P0-START`: restore start selection and age/race growth display.
+1. Browser smoke: confirm P0 player-visible flows without changing code.
+2. Battle review queue: pick one B-R item from `p0-battle-fix-deepseek260519.md`.
+3. Equipment review queue: pick one E-R item from `p0-equipment-deepseek.md`.
+4. New issue review: write a short audit before adding a new parity card.
+5. Refactor work: only make small refactors under existing guard coverage.
 
 ### Status Meaning
 
