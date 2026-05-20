@@ -241,7 +241,10 @@ export class Battle {
    *
    * @returns BattleRunResult — caculate 值和触发信号
    */
-  run(): BattleRunResult {
+  run(config?: GlobalConfig): BattleRunResult {
+    if (config) {
+      this.config = config;
+    }
     const logs: GameLog[] = [];
     if (this.monster) {
       this.fight();

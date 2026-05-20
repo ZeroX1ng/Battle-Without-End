@@ -391,11 +391,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BATTLE_TICK': {
       if (!state.battle) return state;
-      const b: any = state.battle;
-      b.config = state.config;
-      const result = b.run();
+      const battle = state.battle as Battle;
+      const result = battle.run(state.config);
 
-      let playerState = b.playerState as PlayerState;
+      let playerState = battle.playerState as PlayerState;
       let newState = { ...state, tick: state.tick + 1 };
       if (result.shouldRefreshShop) {
         newState = { ...newState, shop: generateShopState(playerState) };
@@ -464,7 +463,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // 自动存档：每 60 tick (30秒) 自动保存到 'auto' 槽位
       if (result.shouldSave) {
-        const mapName = b.map?.mapData?.name ?? MapList[0].name;
+        const mapName = battle.map?.mapData?.name ?? MapList[0].name;
         const saveStr = serializeSave(playerState, newState.config, mapName, 'auto');
         localSave(playerState.playerName, 'auto', saveStr);
       }

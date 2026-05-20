@@ -83,5 +83,8 @@ assertIncludes(
   'return withBattlePlayer(newState, playerState);',
   'BATTLE_TICK must write post-run ageup/unlock changes back to the active Battle.playerState before the next tick'
 );
+if (/\bb(?:attle)?\.config\s*=/.test(battleTick)) {
+  throw new Error('BATTLE_TICK must not directly assign Battle.config inside the reducer');
+}
 
 console.log('Battle player state parity checks passed.');
