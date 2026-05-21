@@ -44,6 +44,7 @@
     "assert:pet-window": "node scripts/assertPetWindowParity.mjs",
     "assert:scroll-panel": "node scripts/assertScrollPanelParity.mjs",
     "assert:text-resources": "node scripts/assertTextResourceEncoding.mjs",
+    "assert:source-encoding": "node scripts/assertSourceTextEncoding.mjs",
     "assert:common-cell": "node scripts/assertCommonCellParity.mjs",
     "assert:effects": "node scripts/assertEffectParity.mjs",
     "assert:asset-modules": "node scripts/assertAssetModuleParity.mjs",

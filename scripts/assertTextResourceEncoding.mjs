@@ -28,25 +28,26 @@ const playerVisibleSources = [
   ['src/core/models/Battle.ts', battle],
 ];
 
+// Keep bad text samples as code points so this guard does not visibly contain mojibake.
 const mojibakeFragments = [
-  '浣犺',
-  '鑳屽',
-  '瀹犵墿',
-  '閿婚',
-  '鍗囩',
-  '绉板',
-  '瑙ｉ',
-  '鐐圭',
-  '缁忛',
-  '娓告',
-  '瀛樻',
-  '涓嶅',
-  '娑堝',
-  '宀',
-  '鏍?',
-  '鐨勬',
-  '鍥炲',
-];
+  [0x6d63, 0x72ba],
+  [0x9473, 0x5c7d],
+  [0x7039, 0x72b5, 0x58bf],
+  [0x95bf, 0x5a5a],
+  [0x9357, 0x56e9],
+  [0x7ec9, 0x677f],
+  [0x7459, 0xff49],
+  [0x9410, 0x572d],
+  [0x7f01, 0x5fdb],
+  [0x5a13, 0x544a],
+  [0x701b, 0x6a3b],
+  [0x6d93, 0x5d85],
+  [0x5a11, 0x581d],
+  [0x5b80],
+  [0x93cd, 0x3f],
+  [0x9428, 0x52ec],
+  [0x9365, 0x70b2],
+].map(codes => String.fromCodePoint(...codes));
 
 for (const [file, source] of playerVisibleSources) {
   for (const fragment of mojibakeFragments) {

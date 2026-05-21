@@ -1,0 +1,189 @@
+# P0 Skill Data Values Parity
+
+Last updated: 2026-05-21
+
+## 中文
+
+### 卡片范围
+
+这张卡只处理技能静态数据和 `Skill.load()` 类型还原，不处理技能窗口交互、战斗技能装备限制、技能触发概率或 battle 行为重构。后续修复时一次只修这张卡，不要顺手改 `p0-skill-eligibility-effects.md` 覆盖的 UI/装备语义。
+
+### AS3 Source of Truth
+
+- `../BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18 个技能的 `list` 顺序、`statList`、`effectList`、`lvupCostList`、`setList` 硬编码值
+- `../BOE-O/scripts/iData/iSkill/SkillData.as` - 技能数据基类字段
+- `../BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - 被动技能数据类型
+- `../BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - 主动技能数据类型和 `setList`
+- `../BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` 根据 AS3 数据类型创建 `PassiveSkill` / `ActiveSkill`
+- `../BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` 消费 `statList` / `effectList`
+
+### React Targets
+
+- `src/core/data/skillData.ts` - 当前技能静态表和公式生成逻辑
+- `src/core/models/Skill.ts` - `Skill.load()` 存档反序列化
+- `src/core/models/Player.ts` - `updateSkillInfo()` 消费技能数据并生成 `skillStatus`
+- `package.json` - 新增/注册本卡片的可执行 guard
+- `scripts/assertSkillDataValuesParity.mjs` - 建议新增的 guard 文件
+
+### Current Symptom
+
+多个技能的等级属性和效果值由 React 公式推导，而 AS3 使用逐级硬编码表。玩家升级技能后，近战、远程、魔法、暴击和锻造成长数值会偏离原作；部分效果还丢失 `balance` 维度，主动技能 `setList` 的数据形状也可能不一致。
+
+### Red Guard Contract
+
+修复代码前先新增并注册 `npm run assert:skill-data-values`。首次运行应至少暴露当前这些错误：
+
+- `COMBAT_MASTERY` L14 `statList` 应为 `hp=150,str=42,dex=10`，且 `effectList` 应含 `attackMin=8,attackMax=18,balance=15`。
+- `RANGE_MASTERY` L14 `statList` 应为 `dex=50,str=6,will=10`，且 `effectList` 应含 `attackMin=10,attackMax=25,balance=15`。
+- `CRITICAL_HIT` L14 `crit_mul` 应为 `150`。
+- `BLACKSMITHING` L14 `dex=21,intelligence=21`。
+- `MAGIC_MASTERY` L10 `intelligence=6`。
+- `SMASH.setList` 应是 AS3 的扁平数值数组 `[200,210,...,500]`，不是每级单元素嵌套数组。
+- `Skill.load()` 应根据目标 `skillData` 创建 `PassiveSkill` 或 `ActiveSkill`。
+
+### Expected Behavior
+
+- `SkillDataList` 的 18 个技能顺序与 AS3 `SkillDataList.as` 完全一致：`COMBAT_MASTERY, SMASH, CRITICAL_HIT, BLACKSMITHING, DEFENCE, COUNTERATTACK, MAGIC_MASTERY, FIREBOLT, ICEBOLT, LIGHTNINGBOLT, FIREBALL, ICE_SPEAR, THUNDER, RANGE_MASTERY, MIRAGE_MISSILE, CORROSIVE_SHOT, LIFE_DRAIN, MANA_SHIELD`。
+- 每个技能的 15 级 `statList`、`effectList`、`lvupCostList` 和主动技能 `setList` 都直接镜像 AS3 硬编码值。
+- 不用 `Array.from`、线性公式、条件公式或“看起来等价”的推导替代 AS3 表。
+- `COMBAT_MASTERY` 和 `RANGE_MASTERY` 的 `effectList` 必须保留 `balance`。
+- `Skill.load()` 反序列化后的实例类型与 AS3 一致，避免主动/被动技能在后续逻辑里失去类型语义。
+
+### Forbidden Behavior
+
+- 用公式重新生成 AS3 已给出的逐级表。
+- 用当前 React 行为反推“合理值”。
+- 只修几个示例等级，不完整覆盖 18 个技能和 15 个等级。
+- 为了让 guard 通过而删除 `balance`、降级 `setList` 数据形状，或跳过 `Skill.load()` 类型检查。
+- 在同一次修复里改技能窗口 UI、战斗触发规则或装备限制逻辑。
+
+### State Ownership
+
+- `skillData.ts` 是技能静态数据的唯一 React 来源，应逐项镜像 AS3。
+- `Skill.ts` 负责存档字符串到技能实例的类型化恢复。
+- `Player.updateSkillInfo()` 只消费技能数据，不应补偿错误静态表。
+- `Battle.ts` 消费主动技能参数，但本卡不改变 battle 行为。
+
+### Acceptance Tests
+
+- Needed: `npm run assert:skill-data-values`
+- Adjacent: `npm run assert:skill-eligibility-effects`
+- Adjacent: `npm run assert:growth-skill-protection`
+- Encoding guard: `npm run assert:source-encoding`
+- Always run: `npx tsc -b`
+
+`assert:skill-data-values` 至少应覆盖：
+
+- 18 个技能顺序和数量。
+- 每个技能 15 级 `statList`、`effectList`、`lvupCostList` 完整性。
+- 所有主动技能 `setList` 数据形状和值。
+- `COMBAT_MASTERY` / `RANGE_MASTERY` 的 `balance` 维度。
+- `Skill.load()` 对主动/被动技能的实例类型恢复。
+
+### Manual Smoke Scenario
+
+1. 新开游戏，打开技能窗口。
+2. 将 `COMBAT_MASTERY` 升到 L10 以上，确认属性面板出现 AS3 对应的 str/dex 成长。
+3. 将 `RANGE_MASTERY` 升到 L14，装备远程武器，确认攻击/平衡值变化与 AS3 表一致。
+4. 将 `CRITICAL_HIT` 升到 L14，确认暴击倍率来源是 150 而非公式生成的 215。
+5. 保存并读取角色，确认主动/被动技能仍按类型参与后续逻辑。
+
+### 修复完成报告要求
+
+- 列出实际读取的 AS3 文件。
+- 列出修改的 React/脚本文件。
+- 说明 red guard 的失败点和修复后的通过结果。
+- 明确哪些 smoke 检查已完成，哪些受环境限制。
+
+## English
+
+### Card Scope
+
+This card only covers static skill data and typed `Skill.load()` restoration. It does not cover skill window interaction, battle-skill eligibility, trigger probability, or battle behavior refactors. Future repair work should keep this card separate from `p0-skill-eligibility-effects.md`.
+
+### AS3 Source of Truth
+
+- `../BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18-skill `list` order, `statList`, `effectList`, `lvupCostList`, and `setList`
+- `../BOE-O/scripts/iData/iSkill/SkillData.as` - base skill-data fields
+- `../BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - passive skill data type
+- `../BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - active skill data type and `setList`
+- `../BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` creating `PassiveSkill` / `ActiveSkill`
+- `../BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` consuming `statList` / `effectList`
+
+### React Targets
+
+- `src/core/data/skillData.ts` - current static skill table and formula-generated values
+- `src/core/models/Skill.ts` - save deserialization through `Skill.load()`
+- `src/core/models/Player.ts` - `updateSkillInfo()` consuming skill data into `skillStatus`
+- `package.json` - register this card's executable guard
+- `scripts/assertSkillDataValuesParity.mjs` - suggested new guard file
+
+### Current Symptom
+
+Several skill level stats and effects are generated by React formulas, while AS3 uses hard-coded per-level tables. After skill upgrades, melee, ranged, magic, critical, and blacksmithing growth values deviate from the original. Some effects also lose the `balance` dimension, and active-skill `setList` shapes may differ.
+
+### Red Guard Contract
+
+Before production edits, add and register `npm run assert:skill-data-values`. Its first run should expose at least these current failures:
+
+- `COMBAT_MASTERY` L14 `statList` should be `hp=150,str=42,dex=10`, and `effectList` should include `attackMin=8,attackMax=18,balance=15`.
+- `RANGE_MASTERY` L14 `statList` should be `dex=50,str=6,will=10`, and `effectList` should include `attackMin=10,attackMax=25,balance=15`.
+- `CRITICAL_HIT` L14 `crit_mul` should be `150`.
+- `BLACKSMITHING` L14 should be `dex=21,intelligence=21`.
+- `MAGIC_MASTERY` L10 should be `intelligence=6`.
+- `SMASH.setList` should be the AS3 flat numeric array `[200,210,...,500]`, not nested one-item arrays per level.
+- `Skill.load()` should create `PassiveSkill` or `ActiveSkill` from the target `skillData`.
+
+### Expected Behavior
+
+- `SkillDataList` preserves the exact AS3 order: `COMBAT_MASTERY, SMASH, CRITICAL_HIT, BLACKSMITHING, DEFENCE, COUNTERATTACK, MAGIC_MASTERY, FIREBOLT, ICEBOLT, LIGHTNINGBOLT, FIREBALL, ICE_SPEAR, THUNDER, RANGE_MASTERY, MIRAGE_MISSILE, CORROSIVE_SHOT, LIFE_DRAIN, MANA_SHIELD`.
+- Every skill's 15-level `statList`, `effectList`, `lvupCostList`, and active-skill `setList` mirror AS3 hard-coded values directly.
+- Do not replace AS3 tables with `Array.from`, linear formulas, conditionals, or values that only look equivalent.
+- `COMBAT_MASTERY` and `RANGE_MASTERY` `effectList` values preserve `balance`.
+- `Skill.load()` restores instance types consistently with AS3.
+
+### Forbidden Behavior
+
+- Regenerating per-level AS3 tables with formulas.
+- Deriving "reasonable" values from current React behavior.
+- Fixing only sample levels instead of all 18 skills and 15 levels.
+- Dropping `balance`, weakening `setList` shape checks, or skipping `Skill.load()` type restoration to make the guard pass.
+- Editing skill-window UI, battle trigger rules, or eligibility logic in the same repair.
+
+### State Ownership
+
+- `skillData.ts` is the only React source for static skill data and should mirror AS3 exactly.
+- `Skill.ts` owns typed restoration from save strings to skill instances.
+- `Player.updateSkillInfo()` consumes skill data and should not compensate for bad static tables.
+- `Battle.ts` consumes active-skill parameters, but this card does not change battle behavior.
+
+### Acceptance Tests
+
+- Needed: `npm run assert:skill-data-values`
+- Adjacent: `npm run assert:skill-eligibility-effects`
+- Adjacent: `npm run assert:growth-skill-protection`
+- Encoding guard: `npm run assert:source-encoding`
+- Always run: `npx tsc -b`
+
+`assert:skill-data-values` should cover at least:
+
+- 18-skill order and count.
+- All 15 levels of each skill's `statList`, `effectList`, and `lvupCostList`.
+- All active-skill `setList` shapes and values.
+- `balance` on `COMBAT_MASTERY` / `RANGE_MASTERY`.
+- `Skill.load()` active/passive instance restoration.
+
+### Manual Smoke Scenario
+
+1. Start a new game and open the skill window.
+2. Upgrade `COMBAT_MASTERY` above L10 and confirm the stat panel shows AS3 str/dex growth.
+3. Upgrade `RANGE_MASTERY` to L14, equip a ranged weapon, and confirm attack/balance changes match AS3.
+4. Upgrade `CRITICAL_HIT` to L14 and confirm the critical multiplier source is 150, not formula-generated 215.
+5. Save and reload, then confirm active/passive skills still participate in later logic by type.
+
+### Completion Report Requirements
+
+- List the AS3 files actually read.
+- List React/script files changed.
+- Report the red guard failure and post-fix passing result.
+- State which smoke checks passed and which were environment-limited.
