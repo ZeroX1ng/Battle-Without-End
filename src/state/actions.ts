@@ -17,7 +17,7 @@ export type GameAction =
 
   // ── 玩家初始化 ──
   | { type: 'PLAYER_BURN'; age: number; race: Race }
-  | { type: 'PLAYER_SET_NAME'; name: string }
+  | { type: 'PLAYER_SET_NAME'; name: string; slot?: string }
 
   // ── 装备操作 ──
   | { type: 'EQUIP_ITEM'; item: Equipment }

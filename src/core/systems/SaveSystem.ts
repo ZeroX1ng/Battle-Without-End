@@ -14,7 +14,7 @@ import { Equipment as EquipmentClass } from '../models/Equipment';
 import { Skill as SkillClass } from '../models/Skill';
 import { Pet as PetClass } from '../models/Pet';
 import { BasicStatus } from '../models/BasicStatus';
-import { list as RaceList } from '../data/raceData';
+import { list as RaceList, UNDEATH } from '../data/raceData';
 import { TitleList } from '../data/titleData';
 import { updateAllInfo } from '../models/Player';
 
@@ -310,7 +310,7 @@ export function deserializeSave(
   }
 
   // 查找种族
-  const race = RaceList.find(r => r.name === raceName) ?? RaceList[0];
+  const race = resolveRace(raceName);
 
   // 构建基础属性
   const basicStatus = new BasicStatus(
@@ -377,7 +377,7 @@ export function deserializeSave(
   for (const [key, val] of togglePairs) {
     const configKey = (key + '_toggle') as keyof GlobalConfig;
     if (configKey in config) {
-      (config as any)[configKey] = val === '1';
+      (config as any)[configKey] = parseToggleValue(val);
     }
   }
 
@@ -519,6 +519,21 @@ function parseSelection(data: string): { mapName: string; selectedTitleName: str
 }
 
 /** 创建默认配置 */
+function resolveRace(raceName: string) {
+  if (raceName === 'undeath') {
+    return UNDEATH;
+  }
+  const race = RaceList.find(r => r.name === raceName);
+  if (!race) {
+    throw new Error(`Unknown race in save: ${raceName}`);
+  }
+  return race;
+}
+
+function parseToggleValue(val: string): boolean {
+  return val === 'true' || val === '1';
+}
+
 function createDefaultConfig(): GlobalConfig {
   return {
     battle_toggle: true, battleIntro_toggle: true,

@@ -100,6 +100,7 @@ function createInitialState(): GameState {
     player,
     battle: null,
     config: createInitialConfig(),
+    activeSaveSlot: null,
     ui: { activeWindow: null, infoMessages: [] },
     loot: createInitialLoot(),
     shop: createInitialShopState(player),
@@ -139,7 +140,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
     case 'PLAYER_SET_NAME':
-      return withBattlePlayer(state, { ...state.player, playerName: action.name });
+      return withBattlePlayer(
+        { ...state, activeSaveSlot: action.slot ?? state.activeSaveSlot },
+        { ...state.player, playerName: action.name }
+      );
 
     case 'EQUIP_ITEM': {
       const newPlayer = equipItem(state.player, action.item);
@@ -461,11 +465,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         );
       }
 
-      // 自动存档：每 60 tick (30秒) 自动保存到 'auto' 槽位
+      // Auto-save follows the current SaveScene slot.
       if (result.shouldSave) {
+        const activeSaveSlot = newState.activeSaveSlot;
+        if (!activeSaveSlot) {
+          return withBattlePlayer(newState, playerState);
+        }
         const mapName = battle.map?.mapData?.name ?? MapList[0].name;
-        const saveStr = serializeSave(playerState, newState.config, mapName, 'auto');
-        localSave(playerState.playerName, 'auto', saveStr);
+        const saveStr = serializeSave(playerState, newState.config, mapName, activeSaveSlot);
+        localSave(playerState.playerName, activeSaveSlot, saveStr);
       }
 
       return withBattlePlayer(newState, playerState);
@@ -585,13 +593,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const mapName = getCurrentMapName(state);
       const saveStr = serializeSave(state.player, state.config, mapName, action.slot);
       localSave(state.player.playerName, action.slot, saveStr);
-      return addLog(state, `游戏已保存至 ${action.slot}!`);
+      return addLog({ ...state, activeSaveSlot: action.slot }, `游戏已保存至 ${action.slot}!`);
     }
 
     case 'MANUAL_SAVE': {
       const mapName = getCurrentMapName(state);
       manuallySave(state.player, state.config, mapName, action.slot);
-      return addLog(state, `存档已导出至 ${action.slot}.boe 文件!`);
+      return addLog({ ...state, activeSaveSlot: action.slot }, `存档已导出至 ${action.slot}.boe 文件!`);
     }
 
     case 'LOAD_GAME': {
@@ -604,7 +612,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const battle = new Battle(player, new GameMap(mapData), config) as any;
       battle.init();
       return addLog(
-        { ...state, player, config, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
+        { ...state, player, config, activeSaveSlot: action.slot, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
         `欢迎回来，${playerName}。存档 ${action.slot} 已读取。`
       );
     }

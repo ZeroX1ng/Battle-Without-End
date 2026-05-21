@@ -466,6 +466,7 @@ export interface GameState {
   player: PlayerState;
   battle: BattleState | null;
   config: GlobalConfig;
+  activeSaveSlot: string | null;
   ui: UIState;
   loot: LootState;
   shop: ShopState;

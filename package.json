@@ -23,6 +23,7 @@
     "assert:start-character-age": "node scripts/assertStartCharacterAgeParity.mjs",
     "assert:skill-eligibility-effects": "node scripts/assertSkillEligibilityEffectsParity.mjs",
     "assert:map-selection": "node scripts/assertMapSelectionParity.mjs",
+    "assert:save-load-runtime-continuity": "node scripts/assertSaveLoadRuntimeContinuityParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",

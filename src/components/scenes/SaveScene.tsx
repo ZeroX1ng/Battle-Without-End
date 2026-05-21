@@ -44,7 +44,7 @@ export function SaveScene() {
     const name = names[slot].trim()
     if (!name || loading) return
     setLoading(true)
-    dispatch({ type: 'PLAYER_SET_NAME', name })
+    dispatch({ type: 'PLAYER_SET_NAME', name, slot })
     dispatch({ type: 'SET_SCENE', scene: 'race' })
   }
 

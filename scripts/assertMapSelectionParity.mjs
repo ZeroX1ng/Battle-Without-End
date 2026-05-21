@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -136,6 +136,7 @@ const { Map } = mapModule;
 const { Battle } = battleModule;
 const { createInitialPlayerState } = playerModule;
 const { serializeSave, deserializeSave } = saveModule;
+const { list: RaceList } = await import(pathToFileURL(join(outRoot, 'core/data/raceData.js')));
 
 assertEqual(MapList[0].name, 'Town of Beginner', 'Initial default map must match AS3 MapList.list[0]');
 
@@ -153,7 +154,12 @@ await withRandom(0.5, async () => {
   );
 });
 
-const saveString = serializeSave(createInitialPlayerState(), createConfig(), targetMapData.name, 'slot1');
+const saveString = serializeSave(
+  { ...createInitialPlayerState(), race: RaceList[0] },
+  createConfig(),
+  targetMapData.name,
+  'slot1'
+);
 const loaded = deserializeSave(saveString, 'Jason');
 assertEqual(loaded.mapName, targetMapData.name, 'Save/load must preserve the AS3 map name in @SELECTION');
 

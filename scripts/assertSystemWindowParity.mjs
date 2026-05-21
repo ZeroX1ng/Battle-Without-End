@@ -78,7 +78,7 @@ assertIncludes(systemConfig, 'handleDroppedItem', 'system config must provide AS
 assertIncludes(gameContext, "case 'CONFIG_TOGGLE'", 'reducer must handle CONFIG_TOGGLE');
 assertIncludes(gameContext, 'setSoundEnabled(newVal)', 'sound_toggle must update SoundSystem');
 assertIncludes(gameContext, 'shouldDisplayLog(state.config, action.category)', 'UI logs must respect config toggles');
-assertIncludes(gameContext, 'b.config = state.config', 'battle ticks must receive the latest config');
+assertIncludes(gameContext, 'battle.run(state.config)', 'battle ticks must receive the latest config');
 assertIncludes(battle, 'this.monster.dropItem(this.playerState, this.map.mapData.modifier, this.config)', 'battle must pass config into Monster/Boss dropItem');
 assertIncludes(monster, 'handleDroppedItem(playerState, drop, config)', 'monster drops must respect config toggles');
 
