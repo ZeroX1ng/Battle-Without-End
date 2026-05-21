@@ -5,7 +5,7 @@
 // 设计为纯函数模块，所有操作通过传入/返回 PlayerState 实现不可变更新。
 
 import type { PlayerState } from '../types';
-import { Stat, WeaponCategory, SkillCategory, SkillType, EquipSlot } from '../constants';
+import { Stat, WeaponCategory, SkillCategory, SkillType, EquipSlot, WeaponHand } from '../constants';
 import { BasicStatus } from './BasicStatus';
 import { Race } from './Race';
 import { Equipment } from './Equipment';
@@ -262,14 +262,16 @@ export function levelUp(state: PlayerState): PlayerState {
 export function ageup(state: PlayerState): PlayerState {
   let s: PlayerState = { ...state, caculate: 0, age: state.age + 1 };
   s.basicStatus = s.basicStatus.clone();
-  if (s.age <= 25 && s.race) {
-    s.basicStatus.hp += s.race.ageupList[s.age - 11].hp + 1;
-    s.basicStatus.mp += s.race.ageupList[s.age - 11].mp + 1;
-    s.basicStatus.str += s.race.ageupList[s.age - 11].str;
-    s.basicStatus.dex += s.race.ageupList[s.age - 11].dex;
-    s.basicStatus.will += s.race.ageupList[s.age - 11].will;
-    s.basicStatus.intelligence += s.race.ageupList[s.age - 11].intelligence;
-    s.basicStatus.luck += s.race.ageupList[s.age - 11].luck;
+  const ageupIndex = s.age - 11;
+  const ageGrowth = s.race && ageupIndex >= 0 ? s.race.ageupList[ageupIndex] : undefined;
+  if (s.age <= 25 && s.race && ageGrowth) {
+    s.basicStatus.hp += ageGrowth.hp + 1;
+    s.basicStatus.mp += ageGrowth.mp + 1;
+    s.basicStatus.str += ageGrowth.str;
+    s.basicStatus.dex += ageGrowth.dex;
+    s.basicStatus.will += ageGrowth.will;
+    s.basicStatus.intelligence += ageGrowth.intelligence;
+    s.basicStatus.luck += ageGrowth.luck;
   } else {
     s.basicStatus.hp += 1;
     s.basicStatus.mp += 1;
@@ -323,16 +325,16 @@ export function equipItem(state: PlayerState, item: Equipment): PlayerState {
     s = { ...s, [slot]: null };
   }
 
-  if (item instanceof Weapon) {
+  if (item.position === WeaponHand.ONEHAND || item.position === WeaponHand.OFFHAND || item.position === WeaponHand.TWOHAND) {
     switch (item.position) {
-      case Weapon.ONEHAND:
-        s = { ...s, leftHand: item as Weapon };
+      case WeaponHand.ONEHAND:
+        s = { ...s, leftHand: item };
         break;
-      case Weapon.OFFHAND:
-        s = { ...s, rightHand: item as Weapon };
+      case WeaponHand.OFFHAND:
+        s = { ...s, rightHand: item };
         break;
-      case Weapon.TWOHAND:
-        s = { ...s, leftHand: item as Weapon };
+      case WeaponHand.TWOHAND:
+        s = { ...s, leftHand: item };
         break;
     }
   } else {
@@ -343,16 +345,16 @@ export function equipItem(state: PlayerState, item: Equipment): PlayerState {
 }
 
 function getEquipTarget(item: Equipment, state: PlayerState): { equipSlot: string; clearSlots: string[] } | null {
-  if (item instanceof Weapon) {
+  if (item.position === WeaponHand.ONEHAND || item.position === WeaponHand.OFFHAND || item.position === WeaponHand.TWOHAND) {
     switch (item.position) {
-      case Weapon.ONEHAND:
+      case WeaponHand.ONEHAND:
         return { equipSlot: 'leftHand', clearSlots: ['leftHand'] };
-      case Weapon.OFFHAND:
+      case WeaponHand.OFFHAND:
         return {
           equipSlot: 'rightHand',
-          clearSlots: state.leftHand?.position === Weapon.TWOHAND ? ['rightHand', 'leftHand'] : ['rightHand'],
+          clearSlots: state.leftHand?.position === WeaponHand.TWOHAND ? ['rightHand', 'leftHand'] : ['rightHand'],
         };
-      case Weapon.TWOHAND:
+      case WeaponHand.TWOHAND:
         return { equipSlot: 'leftHand', clearSlots: ['leftHand', 'rightHand'] };
       default:
         return null;

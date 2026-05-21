@@ -32,6 +32,14 @@ function assertEqual(actual, expected, message) {
   }
 }
 
+function assertFiniteStatus(status, message) {
+  for (const key of ['hp', 'mp', 'str', 'dex', 'intelligence', 'will', 'luck']) {
+    if (!Number.isFinite(status[key])) {
+      throw new Error(`${message}.${key} must stay finite, got ${status[key]}`);
+    }
+  }
+}
+
 function clonePlayer(player) {
   return {
     ...player,
@@ -66,6 +74,9 @@ assertIncludes(as3Player, 'if(_loc1_ < 1 && age <= 25)', 'AS3 only applies the a
 assertIncludes(as3Player, 'if(_loc1_ > 0)', 'AS3 does not add ageup AP when the post-ageup formula is non-positive');
 assertIncludes(as3SkillDataList, 'monster.protection - Player.protectionReduce - Player.protectionIgnore', 'AS3 active skill formulas read live monster.protection');
 
+assertIncludes(playerModel, 'const ageupIndex = s.age - 11;', 'React ageup must calculate the AS3 ageupList index once');
+assertIncludes(playerModel, 'const ageGrowth = s.race && ageupIndex >= 0 ? s.race.ageupList[ageupIndex] : undefined;', 'React ageup must guard against negative ageupList indexes');
+assertIncludes(playerModel, 'if (s.age <= 25 && s.race && ageGrowth)', 'React ageup must only read race growth when the guarded entry exists');
 assertIncludes(playerModel, 'if (apGain > 0) s.ap += apGain;', 'React ageup must keep the AS3 positive-AP gate');
 assertNotIncludes(playerModel, 'Math.max(1, 18 - s.age)', 'React ageup must not keep applying the AP floor after age 25');
 assertNotIncludes(skillBehaviors, 'mon.data.protection', 'Active skill formulas must read live monster.protection, not static monster data');
@@ -94,6 +105,16 @@ const skillBehaviorModule = await importTsModule({
 const { createInitialPlayerState, ageup } = playerModule;
 const { HUMAN } = raceModule;
 const { behave_bolt } = skillBehaviorModule;
+
+const age10Player = clonePlayer(createInitialPlayerState());
+age10Player.race = HUMAN;
+age10Player.age = 10;
+age10Player.basicStatus = HUMAN.caculateStat(10);
+const agedTo11 = ageup(age10Player);
+assertEqual(agedTo11.age, 11, 'ageup from the AS3 initial age 10 reaches age 11');
+assertFiniteStatus(agedTo11.basicStatus, 'first AS3 ageup must not pollute basicStatus with NaN');
+assertEqual(agedTo11.basicStatus.hp, HUMAN.initial.hp + HUMAN.ageupList[0].hp + 1, 'first AS3 ageup must use ageupList[0].hp');
+assertEqual(agedTo11.basicStatus.mp, HUMAN.initial.mp + HUMAN.ageupList[0].mp + 1, 'first AS3 ageup must use ageupList[0].mp');
 
 const age24Player = clonePlayer(createInitialPlayerState());
 age24Player.race = HUMAN;
