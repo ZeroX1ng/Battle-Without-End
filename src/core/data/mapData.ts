@@ -156,7 +156,7 @@ export const MapList: MapData[] = [
     x: 204,
     y: 501,
     name: 'Vaith',
-    realName: '神墟',
+    realName: '神墓',
     modifier: 5.6,
     monsterList: monsters(['Head_Hyena', 'Hellcat', 'Salamander', 'Banshee', 'Ruairi', 'Yeti', 'Mammoth', 'Giant_Sand_Worm', 'Ifrit']),
     petList: pets(['att_ruin', 'def_ruin', 'bal_ruin', 'mag_ruin', 'def_unicorn', 'bal_unicorn']),

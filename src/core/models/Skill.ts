@@ -2,6 +2,7 @@
 // AS3 original: iData.iSkill.Skill.as + ActiveSkill + PassiveSkill.
 
 import type { SkillData } from '../types';
+import { SkillType } from '../constants';
 import { SkillDataList } from '../data/skillData';
 
 export class Skill {
@@ -18,12 +19,14 @@ export class Skill {
     let skill: Skill | null = null;
     for (const skillData of SkillDataList) {
       if (skillData.name === parts[1]) {
-        skill = new Skill(skillData);
+        skill = skillData.type === SkillType.PASSIVE
+          ? new PassiveSkill(skillData)
+          : new ActiveSkill(skillData);
         break;
       }
     }
     if (!skill) {
-      skill = new Skill(SkillDataList[0]);
+      skill = new PassiveSkill(SkillDataList[0]);
     }
     skill.level = Number(parts[0]);
     return skill;

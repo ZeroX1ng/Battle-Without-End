@@ -116,7 +116,7 @@ export interface MapData {
   realName: string;
   modifier: number;
   monsterList: MonsterData[];
-  petList?: PetData[];
+  petList: PetData[];
 }
 
 // ═══ 装备基础数据 ═══
@@ -179,7 +179,7 @@ export interface SkillData {
   effectList?: StatData[][];
   lvupCostList: number[];
   /** 主动技能参数表 (按等级索引) */
-  setList?: number[][];
+  setList?: Array<number | number[]>;
   /** 主动技能 MP 消耗表 (按等级索引) */
   mpCostList?: number[];
   desFunction?: (skill: any) => string;

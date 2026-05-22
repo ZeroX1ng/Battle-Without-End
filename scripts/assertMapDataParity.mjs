@@ -7,6 +7,8 @@ const root = resolve(import.meta.dirname, '..');
 const srcRoot = join(root, 'src');
 const outRoot = join(root, '.tmp-map-data-test');
 const entry = join(srcRoot, 'core/data/mapData.ts');
+const mapModelEntry = join(srcRoot, 'core/models/Map.ts');
+const typesEntry = join(srcRoot, 'core/types.ts');
 
 const expectedMaps = [
   ['Town of Beginner', '新手镇', 85, 314, 0, ['Young_Raccoon', 'Young_Gray_Raccoon', 'Young_Brown_Fox', 'White_Spiderling', 'White_Spider', 'Brown_Fox', 'Young_Red_Fox', 'Black_Town_Rat', 'Brown_Town_Rat'], ['att_fox', 'att_rat', 'def_fox', 'bal_fox']],
@@ -23,7 +25,7 @@ const expectedMaps = [
   ['Bone Cave', '埋骨所', 689, 264, 4.4, ['Black_Succubus', 'Giant_Spider', 'Stone_Horse', 'Troll', 'Gnoll', 'Magic_Golem', 'Captain_Skeleton', 'Green_Snake', 'Lost_Sahuagin'], ['att_ghost', 'def_ghost', 'bal_ghost', 'mag_ghost']],
   ['Cape Warth', '风怒角', 754, 323, 4.8, ['Hippo', 'Brown_Ixion', 'Incubus', 'Zombie', 'Bisque_Doll', 'Ogre', 'Esras', 'Ogre_Warrior', 'Giant_Ogre', 'Siren'], ['att_zombie', 'def_zombie', 'bal_zombie', 'mag_zombie']],
   ['Wyl', '魔渊', 376, 448, 5.2, ['Lion', 'Balrog', 'Cyclops', 'Argus', 'Grendel', 'Cloaker', 'Wight', 'Ghost_Cloaker', 'Black_Warrior', 'Pink_Succubus', 'Spider_Warrior'], ['att_ruin', 'def_ruin', 'bal_ruin', 'mag_ruin']],
-  ['Vaith', '神墟', 204, 501, 5.6, ['Head_Hyena', 'Hellcat', 'Salamander', 'Banshee', 'Ruairi', 'Yeti', 'Mammoth', 'Giant_Sand_Worm', 'Ifrit'], ['att_ruin', 'def_ruin', 'bal_ruin', 'mag_ruin', 'def_unicorn', 'bal_unicorn']],
+  ['Vaith', '神墓', 204, 501, 5.6, ['Head_Hyena', 'Hellcat', 'Salamander', 'Banshee', 'Ruairi', 'Yeti', 'Mammoth', 'Giant_Sand_Worm', 'Ifrit'], ['att_ruin', 'def_ruin', 'bal_ruin', 'mag_ruin', 'def_unicorn', 'bal_unicorn']],
   ['???', '???', 395, 265, 6, ['Prairie_Dragon', 'Giant_Lion', 'Arc_Lich', 'Desert_Dragon'], ['att_dragon', 'mag_dragon', 'def_unicorn', 'bal_unicorn']],
 ];
 
@@ -109,8 +111,10 @@ function assertEqual(actual, expected, label) {
 
 await rm(outRoot, { recursive: true, force: true });
 await transpileFile(entry);
+await transpileFile(mapModelEntry);
 
 const { MapList } = await import(pathToFileURL(join(outRoot, 'core/data/mapData.js')));
+const { Map } = await import(pathToFileURL(join(outRoot, 'core/models/Map.js')));
 
 assertEqual(MapList.length, expectedMaps.length, 'Map count must match AS3 MapList.list');
 
@@ -123,6 +127,30 @@ for (const [index, expected] of expectedMaps.entries()) {
   assertEqual(actual.monsterList.map(monster => monster.name), monsters, `Map ${name} monster pool`);
   assertEqual((actual.petList ?? []).map(pet => pet.name), pets.map(pet => petNamesByLegacyId[pet]), `Map ${name} pet pool`);
 }
+
+const typesSource = await readFile(typesEntry, 'utf8');
+if (!/petList:\s*PetData\[\]/.test(typesSource)) {
+  throw new Error('MapData.petList must be required to match AS3 MapData constructor parameter 7.');
+}
+
+const mapModelSource = await readFile(mapModelEntry, 'utf8');
+if (/MonsterList/.test(mapModelSource) || /monsterList\.length\s*===\s*0/.test(mapModelSource)) {
+  throw new Error('Map.getBoss()/setAverageCp must not add a non-AS3 empty monsterList fallback.');
+}
+
+const fractionalAverageMap = new Map({
+  x: 0,
+  y: 0,
+  name: 'Average CP Fixture',
+  realName: 'Average CP Fixture',
+  modifier: 0,
+  monsterList: [
+    { name: 'CP_1', realName: 'CP_1', hp: 1, attack: { min: 1, max: 1 }, balance: 0, crit: 0, crit_mul: 0, defence: 0, protection: 0, CP: 1 },
+    { name: 'CP_2', realName: 'CP_2', hp: 1, attack: { min: 1, max: 1 }, balance: 0, crit: 0, crit_mul: 0, defence: 0, protection: 0, CP: 2 },
+  ],
+  petList: [],
+});
+assertEqual(fractionalAverageMap.averageCp, 1, 'Map.averageCp must truncate like AS3 int assignment');
 
 await rm(outRoot, { recursive: true, force: true });
 console.log('Map data matches AS3 MapList.');

@@ -22,6 +22,7 @@
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
     "assert:start-character-age": "node scripts/assertStartCharacterAgeParity.mjs",
     "assert:skill-eligibility-effects": "node scripts/assertSkillEligibilityEffectsParity.mjs",
+    "assert:skill-data-values": "node scripts/assertSkillDataValuesParity.mjs",
     "assert:map-selection": "node scripts/assertMapSelectionParity.mjs",
     "assert:save-load-runtime-continuity": "node scripts/assertSaveLoadRuntimeContinuityParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",

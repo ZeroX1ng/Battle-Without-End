@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-05-21
+Last updated: 2026-05-22
 
 ## 中文
 
@@ -11,24 +11,30 @@ Last updated: 2026-05-21
 | ID | 优先级 | 模块 | 状态 | 规格卡 | AS3 源 | React 目标 | 当前症状 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | P0-START | P0 | 角色与年龄选择 | Guarded | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | 进入游戏后的角色和年龄选择界面/流程与原作不同 | Existing: `assert:growth-skill-protection`, `assert:start-character-age`; Next: browser smoke |
+| P0-START-BURN | P0 | 创建/重生初始状态与自动存档 | Needs repair | `p0-start-burn-save.md` | `Player.as`, `RaceScene.as` | `Player.ts`, `GameContext.tsx`, `SaveSystem.ts`, `actions.ts` | 创建后未即时存档，`playerBurn()` 初始装备绕过 `equipItem()`，重生可能残留旧副手状态 | Needed: `assert:start-burn-save`; Adjacent: `assert:growth-skill-protection`, `assert:equipment-ownership`; Always: `npx tsc -b` |
 | P0-BATTLE | P0 | 战斗伤害、日志、死亡 | Guarded | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | 战斗日志缺少玩家受到伤害记录，玩家看起来直接死亡 | Existing: `assert:battle-player-state`, `assert:monster-reward`, `assert:battle-damage-log-death`; Next: review queue |
+| P0-LOOP | P0 | 游戏循环与 Hook 心跳 | Needs repair | `p0-game-loop-hook-parity.md` | `Battle.as`, `MainScene.as`, `Player.as` | `GameLoop.ts`, `useGameLoop.ts`, `MainScene.tsx`, `GameContext.tsx`, `Battle.ts` | 后台标签页会冻结逻辑时间，现有 `GAME_TICK` 回退分支与 AS3 Battle Timer 生命周期冲突 | Existing, must correct/extend: `assert:game-loop`; Needed if renamed: `assert:game-loop-parity`; Always: `npx tsc -b` |
 | P0-EQUIP | P0 | 装备所有权 | Guarded | `p0-equipment-ownership.md` | `Player.as`, `Equipment.as`, `EquipWindow.as`, `EquipCell.as` | `Player.ts`, `Equipment.ts`, `EquipWindow.tsx`, `GameContext.tsx` | 切换装备后，脱下装备像是复制了一份进仓库 | Existing: `assert:equip-window`, `assert:equipment-data`, `assert:stat-list`, `assert:equipment-ownership`; Next: browser smoke |
 | P0-MAP | P0 | 地图默认值与切换 | Guarded | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | 地图选择不可见或不可确认，默认地图来源不清楚 | Existing: `assert:map-data`, `assert:map-selection`; Next: browser smoke |
 | P0-MAP-DATA | P0 | 地图静态表与 Map 模型 | Needs repair | `p0-map-data-model-parity.md` | `MapList.as`, `MapData.as`, `Map.as` | `mapData.ts`, `Map.ts`, `types.ts`, `assertMapDataParity.mjs` | Vaith 中文名和 Map 模型边界与 AS3 静态表不一致，现有 guard 期望值也需要纠正 | Needed: correct/extend `assert:map-data`; Adjacent: `assert:map-selection`, `assert:monster-reward`; Always: `npx tsc -b` |
+| P0-MONSTER-DATA | P0 | 怪物静态表与宠物类型完整性 | Needs repair | `p0-monster-data-integrity.md` | `MonsterList.as`, `MonsterData.as`, `MonsterTitleList.as`, `PetDataList.as`, `MapList.as` | `monsterData.ts`, `petData.ts`, `mapData.ts`, `constants.ts`, `types.ts` | React 保留 AS3 不存在的自制怪物，怪物名/标题空格/PetTypes 与 AS3 不一致 | Needed: `assert:monster-data-integrity`; Adjacent: `assert:monster-data-immutable`, `assert:monster-reward`, `assert:map-data`; Always: `npx tsc -b` |
+| P0-SAVE-PERSIST | P0 | 存档写入生命周期 | Needs repair | `p0-save-persistence.md` | `Player.as`, `Battle.as`, `SaveScene.as` | `SaveSystem.ts`, `GameContext.tsx`, `actions.ts`, `SaveScene.tsx` | 自动存档在缺少 active slot 时静默跳过，创建/命名后未可靠同步持久化，手动导入缺 reducer 入口 | Needed: `assert:save-persistence`; Adjacent: `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
 | P0-SAVELOAD | P0 | 存档读取与运行时连续性 | Needs repair | `p0-save-load-runtime-continuity.md` | `Player.as`, `SaveScene.as`, `MainScene.as`, `Battle.as`, `RaceList.as`, `Equipment.as`, `Monster.as`, `Boss.as` | `SaveSystem.ts`, `Base64.ts`, `GameContext.tsx`, `SystemConfig.ts`, `Battle.ts`, `Monster.ts`, `SaveScene.tsx` | 读取存档后种族回退为人类，日志/装备掉落开关失效，自动保存未写回当前槽 | Needed: `assert:save-load-runtime-continuity`; Adjacent: `assert:start-character-age`, `assert:map-selection`, `assert:monster-reward`, `assert:system-window` |
 | P0-SKILL | P0 | 技能装备限制与战斗生效 | Guarded | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | 技能可以随意装备且不生效，没有远程武器也能使用远程技能 | Existing: `assert:skill-window`, `assert:growth-skill-protection`, `assert:skill-eligibility-effects`; Next: browser smoke |
 | P0-SKILL-DATA | P0 | 技能静态数值与 load 类型 | Needs repair | `p0-skill-data-values.md` | `SkillDataList.as`, `SkillData.as`, `PassiveSkillData.as`, `ActiveSkillData.as`, `Skill.as`, `Player.as` | `skillData.ts`, `Skill.ts`, `Player.ts`, `assertSkillDataValuesParity.mjs` | 技能数值由公式推导导致 stat/effect/setList 偏离 AS3，存档加载也缺少主动/被动实例类型还原 | Needed: `assert:skill-data-values`; Adjacent: `assert:skill-eligibility-effects`, `assert:growth-skill-protection`; Always: `npx tsc -b` |
 
 ### 后续推进顺序建议
 
-1. 静态表源对齐：`p0-skill-data-values.md` 与 `p0-map-data-model-parity.md` 一次只修一张，先纠正/新增 guard，再改数据或模型。
-2. 存档读取与运行时连续性：处理 `p0-save-load-runtime-continuity.md`，修复读取后种族、日志/掉落开关和当前槽自动保存。
-3. 浏览器 smoke：逐项确认 P0 玩家可见流程，不改代码，只记录问题。
-4. Battle core formula cards：从下面“战斗核心公式复核卡”选择一个条目。
-5. Battle review queue：从 `p0-battle-fix-deepseek260519.md` 选择一个 B-R 条目。
-6. Equipment review queue：从 `p0-equipment-deepseek.md` 选择一个 E-R 条目。
-7. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
-8. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+1. 静态表源对齐：`p0-skill-data-values.md`、`p0-map-data-model-parity.md`、`p0-monster-data-integrity.md` 一次只修一张，先纠正/新增 guard，再改数据或模型。
+2. 存档写入链路：处理 `p0-start-burn-save.md` 或 `p0-save-persistence.md`，创建/命名/自动存档一次只修一条。
+3. 存档读取与运行时连续性：处理 `p0-save-load-runtime-continuity.md`，修复读取后种族、日志/掉落开关和当前槽自动保存。
+4. 游戏循环生命周期：处理 `p0-game-loop-hook-parity.md`，先更正 `assert:game-loop` 的 AS3 假设，再修 Hook/heartbeat。
+5. 浏览器 smoke：逐项确认 P0 玩家可见流程，不改代码，只记录问题。
+6. Battle core formula cards：从下面“战斗核心公式复核卡”选择一个条目。
+7. Battle review queue：从 `p0-battle-fix-deepseek260519.md` 选择一个 B-R 条目。
+8. Equipment review queue：从 `p0-equipment-deepseek.md` 选择一个 E-R 条目。
+9. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+10. 重构工作：只做已有 guard 覆盖范围内的小步重构。
 
 ### 战斗核心公式复核卡
 
@@ -55,24 +61,30 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 | ID | Priority | Module | Status | Card | AS3 Sources | React Targets | Current Symptom | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | P0-START | P0 | Character and age selection | Guarded | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | The in-game character and age selection flow differs from the original | Existing: `assert:growth-skill-protection`, `assert:start-character-age`; Next: browser smoke |
+| P0-START-BURN | P0 | Creation/rebirth startup state and auto-save | Needs repair | `p0-start-burn-save.md` | `Player.as`, `RaceScene.as` | `Player.ts`, `GameContext.tsx`, `SaveSystem.ts`, `actions.ts` | Creation does not save immediately, `playerBurn()` bypasses `equipItem()` for starter equipment, and rebirth may keep stale off-hand state | Needed: `assert:start-burn-save`; Adjacent: `assert:growth-skill-protection`, `assert:equipment-ownership`; Always: `npx tsc -b` |
 | P0-BATTLE | P0 | Battle damage, logs, and death | Guarded | `p0-battle-damage-log-death.md` | `Battle.as`, `Player.as`, `MainScene.as` | `Battle.ts`, `GameContext.tsx`, `MainScene.tsx` | Battle logs do not show player damage, and the player appears to die directly | Existing: `assert:battle-player-state`, `assert:monster-reward`, `assert:battle-damage-log-death`; Next: review queue |
+| P0-LOOP | P0 | Game loop and hook heartbeat | Needs repair | `p0-game-loop-hook-parity.md` | `Battle.as`, `MainScene.as`, `Player.as` | `GameLoop.ts`, `useGameLoop.ts`, `MainScene.tsx`, `GameContext.tsx`, `Battle.ts` | Background tabs freeze logic time, and the current `GAME_TICK` fallback conflicts with AS3 Battle Timer lifecycle | Existing, must correct/extend: `assert:game-loop`; Needed if renamed: `assert:game-loop-parity`; Always: `npx tsc -b` |
 | P0-EQUIP | P0 | Equipment ownership | Guarded | `p0-equipment-ownership.md` | `Player.as`, `Equipment.as`, `EquipWindow.as`, `EquipCell.as` | `Player.ts`, `Equipment.ts`, `EquipWindow.tsx`, `GameContext.tsx` | Switching equipment appears to duplicate the unequipped item into inventory | Existing: `assert:equip-window`, `assert:equipment-data`, `assert:stat-list`, `assert:equipment-ownership`; Next: browser smoke |
 | P0-MAP | P0 | Default map and map switching | Guarded | `p0-map-selection.md` | `MapList.as`, `Map.as`, `MapPanel.as`, `Player.as` | `mapData.ts`, `Map.ts`, `MapWindow.tsx`, `GameContext.tsx` | Map selection is not visible or confirmed, and the default map source is unclear | Existing: `assert:map-data`, `assert:map-selection`; Next: browser smoke |
 | P0-MAP-DATA | P0 | Static map table and Map model | Needs repair | `p0-map-data-model-parity.md` | `MapList.as`, `MapData.as`, `Map.as` | `mapData.ts`, `Map.ts`, `types.ts`, `assertMapDataParity.mjs` | Vaith's Chinese name and Map model boundaries differ from AS3, and the current guard expectation also needs correction | Needed: correct/extend `assert:map-data`; Adjacent: `assert:map-selection`, `assert:monster-reward`; Always: `npx tsc -b` |
+| P0-MONSTER-DATA | P0 | Monster static table and pet-type integrity | Needs repair | `p0-monster-data-integrity.md` | `MonsterList.as`, `MonsterData.as`, `MonsterTitleList.as`, `PetDataList.as`, `MapList.as` | `monsterData.ts`, `petData.ts`, `mapData.ts`, `constants.ts`, `types.ts` | React keeps non-AS3 fabricated monsters, and monster names/title spacing/PetTypes differ from AS3 | Needed: `assert:monster-data-integrity`; Adjacent: `assert:monster-data-immutable`, `assert:monster-reward`, `assert:map-data`; Always: `npx tsc -b` |
+| P0-SAVE-PERSIST | P0 | Save write lifecycle | Needs repair | `p0-save-persistence.md` | `Player.as`, `Battle.as`, `SaveScene.as` | `SaveSystem.ts`, `GameContext.tsx`, `actions.ts`, `SaveScene.tsx` | Auto-save silently skips without an active slot, creation/name changes are not reliably persisted, and manual import lacks a reducer entry | Needed: `assert:save-persistence`; Adjacent: `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
 | P0-SAVELOAD | P0 | Save/load runtime continuity | Needs repair | `p0-save-load-runtime-continuity.md` | `Player.as`, `SaveScene.as`, `MainScene.as`, `Battle.as`, `RaceList.as`, `Equipment.as`, `Monster.as`, `Boss.as` | `SaveSystem.ts`, `Base64.ts`, `GameContext.tsx`, `SystemConfig.ts`, `Battle.ts`, `Monster.ts`, `SaveScene.tsx` | Loading a save resets race to Human, disables log/drop toggles, and does not auto-save back to the active slot | Needed: `assert:save-load-runtime-continuity`; Adjacent: `assert:start-character-age`, `assert:map-selection`, `assert:monster-reward`, `assert:system-window` |
 | P0-SKILL | P0 | Skill eligibility and battle effects | Guarded | `p0-skill-eligibility-effects.md` | `SkillWindow.as`, `ActiveSkill.as`, `SkillDataList.as`, `Player.as`, `WeaponType.as` | `SkillWindow.tsx`, `BattleSkillPanel.tsx`, `Skill.ts`, `Player.ts`, `Battle.ts`, `skillData.ts` | Skills can be equipped freely, do not reliably take effect, and ranged skills work without ranged weapons | Existing: `assert:skill-window`, `assert:growth-skill-protection`, `assert:skill-eligibility-effects`; Next: browser smoke |
 | P0-SKILL-DATA | P0 | Static skill values and load types | Needs repair | `p0-skill-data-values.md` | `SkillDataList.as`, `SkillData.as`, `PassiveSkillData.as`, `ActiveSkillData.as`, `Skill.as`, `Player.as` | `skillData.ts`, `Skill.ts`, `Player.ts`, `assertSkillDataValuesParity.mjs` | Formula-generated skill values deviate from AS3 stat/effect/setList tables, and save loading lacks active/passive instance restoration | Needed: `assert:skill-data-values`; Adjacent: `assert:skill-eligibility-effects`, `assert:growth-skill-protection`; Always: `npx tsc -b` |
 
 ### Recommended Next Order
 
-1. Static source-table alignment: repair `p0-skill-data-values.md` and `p0-map-data-model-parity.md` one card at a time, correcting/adding guards before data or model edits.
-2. Save/load runtime continuity: repair `p0-save-load-runtime-continuity.md`, covering loaded race, log/drop toggles, and active-slot auto-save.
-3. Browser smoke: confirm P0 player-visible flows without changing code.
-4. Battle core formula cards: pick one item from the "Battle Core Formula Review Cards" table below.
-5. Battle review queue: pick one B-R item from `p0-battle-fix-deepseek260519.md`.
-6. Equipment review queue: pick one E-R item from `p0-equipment-deepseek.md`.
-7. New issue review: write a short audit before adding a new parity card.
-8. Refactor work: only make small refactors under existing guard coverage.
+1. Static source-table alignment: repair `p0-skill-data-values.md`, `p0-map-data-model-parity.md`, and `p0-monster-data-integrity.md` one card at a time, correcting/adding guards before data or model edits.
+2. Save write lifecycle: repair `p0-start-burn-save.md` or `p0-save-persistence.md`, one creation/name/auto-save issue at a time.
+3. Save/load runtime continuity: repair `p0-save-load-runtime-continuity.md`, covering loaded race, log/drop toggles, and active-slot auto-save.
+4. Game-loop lifecycle: repair `p0-game-loop-hook-parity.md`, correcting the AS3 assumptions in `assert:game-loop` before hook/heartbeat edits.
+5. Browser smoke: confirm P0 player-visible flows without changing code.
+6. Battle core formula cards: pick one item from the "Battle Core Formula Review Cards" table below.
+7. Battle review queue: pick one B-R item from `p0-battle-fix-deepseek260519.md`.
+8. Equipment review queue: pick one E-R item from `p0-equipment-deepseek.md`.
+9. New issue review: write a short audit before adding a new parity card.
+10. Refactor work: only make small refactors under existing guard coverage.
 
 ### Battle Core Formula Review Cards
 

@@ -186,7 +186,7 @@ assertEqual(
 );
 
 const passivePlayer = clonePlayer(createInitialPlayerState());
-passive.level = 1;
+passive.level = 3;
 passivePlayer.leftHand = { category: WeaponCategory.RANGED };
 passivePlayer.skillList = [passive];
 const passiveUpdated = updateSkillInfo(passivePlayer);
