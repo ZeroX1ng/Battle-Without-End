@@ -176,9 +176,10 @@ export const SkillCategory = {
 // AS3 原始: iData.iPet.PetTypeList
 
 export const PetTypes = [
-  'rat', 'spider', 'wolf', 'bear', 'goblin',
-  'skeleton', 'zombie', 'ghost', 'fox',
-  'unicorn', 'dragon', 'slime'
+  'fox', 'rat', 'spider', 'wolf', 'bear',
+  'goblin', 'skeleton', 'ghost', 'zombie',
+  'attack', 'defence', 'balance', 'magic',
+  'unicorn', 'dragon'
 ] as const;
 
 // ═══ 装备品质颜色常量 ═══

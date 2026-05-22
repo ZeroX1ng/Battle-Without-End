@@ -124,7 +124,7 @@ for (const [index, expected] of expectedMaps.entries()) {
   assertEqual(actual.name, name, `Map ${index} name`);
   assertEqual(actual.realName, realName, `Map ${name} realName`);
   assertEqual([actual.x, actual.y, actual.modifier], [x, y, modifier], `Map ${name} coordinates/modifier`);
-  assertEqual(actual.monsterList.map(monster => monster.name), monsters, `Map ${name} monster pool`);
+  assertEqual(actual.monsterList.map(monster => monster.sourceKey ?? monster.name), monsters, `Map ${name} monster pool`);
   assertEqual((actual.petList ?? []).map(pet => pet.name), pets.map(pet => petNamesByLegacyId[pet]), `Map ${name} pet pool`);
 }
 

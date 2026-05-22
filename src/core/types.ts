@@ -81,6 +81,7 @@ export interface RaceData {
 // AS3 原始: iData.iMonster.MonsterData
 
 export interface MonsterData {
+  sourceKey?: string;
   name: string;
   realName: string;
   hp: number;

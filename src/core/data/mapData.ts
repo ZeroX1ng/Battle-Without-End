@@ -2,11 +2,11 @@
 // AS3 原始: iData.iMap.MapData + MapList
 
 import type { MapData, MonsterData, PetData } from '../types';
-import { MonsterList } from './monsterData';
+import { getMonsterByName } from './monsterData';
 import { getPetDataByLegacyId } from './petData';
 
 function getMonster(name: string): MonsterData {
-  const monster = MonsterList.find(item => item.name === name);
+  const monster = getMonsterByName(name);
   if (!monster) {
     throw new Error(`Unknown monster data: ${name}`);
   }
