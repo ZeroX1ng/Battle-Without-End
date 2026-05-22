@@ -78,6 +78,10 @@ function getCurrentMapName(state: GameState): string {
   return (state.battle as any)?.map?.mapData?.name ?? MapList[0].name;
 }
 
+function hasValidPlayerName(player: PlayerState): boolean {
+  return player.playerName.trim().length > 0;
+}
+
 function switchBattleMap(state: GameState, map: GameMap): any {
   const battle: any = state.battle
     ? Object.create(
@@ -131,19 +135,31 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       updateTitleInfo('begin');
       {
         const player = playerBurn(state.player, action.age, action.race);
-        return {
+        const activeSaveSlot = state.activeSaveSlot ?? 'slot1';
+        const nextState = {
           ...state,
+          activeSaveSlot,
           player,
           shop: createInitialShopState(player),
           scene: 'main',
         };
+        const mapName = getCurrentMapName(nextState);
+        const saveStr = serializeSave(player, nextState.config, mapName, activeSaveSlot);
+        localSave(player.playerName, activeSaveSlot, saveStr);
+        return nextState;
       }
 
-    case 'PLAYER_SET_NAME':
-      return withBattlePlayer(
-        { ...state, activeSaveSlot: action.slot ?? state.activeSaveSlot },
-        { ...state.player, playerName: action.name }
-      );
+    case 'PLAYER_SET_NAME': {
+      const nextPlayer = { ...state.player, playerName: action.name };
+      const activeSaveSlot = action.slot ?? state.activeSaveSlot;
+      const nextState = { ...state, activeSaveSlot };
+      if (activeSaveSlot && hasValidPlayerName(nextPlayer)) {
+        const mapName = getCurrentMapName(nextState);
+        const saveStr = serializeSave(nextPlayer, nextState.config, mapName, activeSaveSlot);
+        localSave(nextPlayer.playerName, activeSaveSlot, saveStr);
+      }
+      return withBattlePlayer(nextState, nextPlayer);
+    }
 
     case 'EQUIP_ITEM': {
       const newPlayer = equipItem(state.player, action.item);
@@ -467,9 +483,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Auto-save follows the current SaveScene slot.
       if (result.shouldSave) {
+        if (!newState.activeSaveSlot) {
+          newState = addLog({ ...newState, activeSaveSlot: 'slot1' }, 'Auto-save used slot1 because no active save slot was set.');
+        }
         const activeSaveSlot = newState.activeSaveSlot;
-        if (!activeSaveSlot) {
-          return withBattlePlayer(newState, playerState);
+        if (activeSaveSlot === null) {
+          throw new Error('Auto-save slot fallback failed.');
+        }
+        if (!hasValidPlayerName(playerState)) {
+          return addLog(withBattlePlayer(newState, playerState), 'Save skipped: player name is empty.');
         }
         const mapName = battle.map?.mapData?.name ?? MapList[0].name;
         const saveStr = serializeSave(playerState, newState.config, mapName, activeSaveSlot);
@@ -590,6 +612,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SAVE_GAME': {
+      if (!hasValidPlayerName(state.player)) {
+        return addLog(state, 'Save skipped: player name is empty.');
+      }
       const mapName = getCurrentMapName(state);
       const saveStr = serializeSave(state.player, state.config, mapName, action.slot);
       localSave(state.player.playerName, action.slot, saveStr);
@@ -597,9 +622,24 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'MANUAL_SAVE': {
+      if (!hasValidPlayerName(state.player)) {
+        return addLog(state, 'Save skipped: player name is empty.');
+      }
       const mapName = getCurrentMapName(state);
       manuallySave(state.player, state.config, mapName, action.slot);
       return addLog({ ...state, activeSaveSlot: action.slot }, `存档已导出至 ${action.slot}.boe 文件!`);
+    }
+
+    case 'MANUAL_LOAD': {
+      const { player, config, mapName, playerName } = deserializeSave(action.saveData.info, action.saveData.playerName);
+      const mapData = getMapByName(mapName) ?? MapList[0];
+      const battle = new Battle(player, new GameMap(mapData), config) as any;
+      battle.init();
+      localSave(action.saveData.playerName, action.saveData.slot, action.saveData.info);
+      return addLog(
+        { ...state, player, config, activeSaveSlot: action.saveData.slot, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
+        `Manual save ${action.saveData.slot} imported for ${playerName}.`
+      );
     }
 
     case 'LOAD_GAME': {

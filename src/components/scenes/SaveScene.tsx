@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameContext } from '../../state/GameContext'
-import { localLoad, fileImport, localSave } from '../../core/systems/SaveSystem'
+import { localLoad, fileImport } from '../../core/systems/SaveSystem'
 import { Button } from '../common/Common'
 
 const SLOTS = ['slot1', 'slot2', 'slot3']
@@ -66,9 +66,8 @@ export function SaveScene() {
     setLoading(true)
     try {
       const data = await fileImport(file)
-      localSave(data.playerName, 'slot1', data.info)
+      dispatch({ type: 'MANUAL_LOAD', saveData: data })
       refreshSlots()
-      dispatch({ type: 'LOAD_GAME', slot: 'slot1' })
     } catch {
       setLoading(false)
     }

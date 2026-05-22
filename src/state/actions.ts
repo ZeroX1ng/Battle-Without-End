@@ -85,6 +85,7 @@ export type GameAction =
   // ── 存档 ──
   | { type: 'SAVE_GAME'; slot: string }
   | { type: 'MANUAL_SAVE'; slot: string }
+  | { type: 'MANUAL_LOAD'; saveData: { playerName: string; slot: string; info: string } }
   | { type: 'LOAD_GAME'; slot: string }
 
   // ── 配置 ──

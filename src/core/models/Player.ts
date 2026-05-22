@@ -42,12 +42,10 @@ export function createInitialPlayerState(): PlayerState {
  * AS3 原始: Player.burn(param1:int, param2:Race): void
  */
 export function playerBurn(state: PlayerState, age: number, race: Race): PlayerState {
-  let s = { ...state, age, race, lv: 1 };
+  let s = { ...createInitialPlayerState(), playerName: state.playerName, age, race, lv: 1 };
   s.basicStatus = caculateInitStat(s);
-  if (!s.leftHand) {
-    s.leftHand = new Weapon(EquipmentList[1] as WeaponData, 1);
-  }
-  // 初始化基础技能（原 AS3 Player.burn 中注册的 11 个技能）
+  s = equipItem(s, new Weapon(EquipmentList[1] as WeaponData, 1));
+  // 初始化基础技能（原 AS3 Player.burn 中注册的 12 个技能）
   const initSkills = [
     'COMBAT_MASTERY', 'SMASH', 'CRITICAL_HIT', 'COUNTERATTACK',
     'DEFENCE', 'MAGIC_MASTERY', 'FIREBOLT', 'ICEBOLT',

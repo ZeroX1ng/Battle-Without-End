@@ -1,6 +1,6 @@
 // ═══ useGameLoop - 心跳 Hook ═══
 // 替代 AS3 的 Timer(500) 自动战斗循环。
-// 使用 useEffect + requestAnimationFrame 实现稳定定时回调。
+// 使用墙钟时间补偿后台标签页期间错过的逻辑 tick。
 // 严格按照计划文档原则6设计。
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -17,8 +17,8 @@ interface GameLoopOptions {
 /**
  * 游戏主循环 Hook
  *
- * 用 requestAnimationFrame 实现稳定的定时器。
- * 相比 setInterval 更精确，且会随页面隐藏自动暂停以节省资源。
+ * 用 Date.now() 计算经过的真实时间。
+ * 浏览器后台节流导致回调延迟时，回到前台后会补齐应发生的逻辑 tick。
  *
  * @returns { tick, isRunning } - 当前 tick 计数和运行状态
  */
@@ -26,40 +26,48 @@ export function useGameLoop({ callback, intervalMs = 500, enabled = true }: Game
   const tickRef = useRef(0);
   const lastTimeRef = useRef(0);
   const callbackRef = useRef(callback);
-  const rafRef = useRef<number>(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 保持 callback 引用最新
   callbackRef.current = callback;
 
-  const loop = useCallback((timestamp: number) => {
-    if (!lastTimeRef.current) {
-      lastTimeRef.current = timestamp;
+  const clearLoop = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+  }, []);
 
-    const elapsed = timestamp - lastTimeRef.current;
+  const loop = useCallback(() => {
+    const now = Date.now();
+    const elapsed = now - lastTimeRef.current;
 
     if (elapsed >= intervalMs) {
-      lastTimeRef.current = timestamp - (elapsed % intervalMs);
-      tickRef.current++;
-      callbackRef.current();
+      const dueTicks = Math.floor(elapsed / intervalMs);
+      lastTimeRef.current += dueTicks * intervalMs;
+      for (let i = 0; i < dueTicks; i += 1) {
+        tickRef.current++;
+        callbackRef.current();
+      }
     }
 
-    rafRef.current = requestAnimationFrame(loop);
+    const nextDelay = Math.max(0, intervalMs - (Date.now() - lastTimeRef.current));
+    timeoutRef.current = setTimeout(loop, nextDelay);
   }, [intervalMs]);
 
   useEffect(() => {
+    clearLoop();
     if (!enabled) {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       return;
     }
 
-    lastTimeRef.current = 0;
-    rafRef.current = requestAnimationFrame(loop);
+    lastTimeRef.current = Date.now();
+    timeoutRef.current = setTimeout(loop, intervalMs);
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearLoop();
     };
-  }, [enabled, loop]);
+  }, [clearLoop, enabled, intervalMs, loop]);
 
   return { tick: tickRef.current };
 }

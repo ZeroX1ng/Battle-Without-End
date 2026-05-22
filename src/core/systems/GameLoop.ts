@@ -21,14 +21,9 @@ export function gameTick(
   state: GameState,
   dispatch: React.Dispatch<GameAction>
 ): void {
-  // 战斗进行中
   if (state.battle) {
     dispatch({ type: 'BATTLE_TICK' });
-    return;
   }
-
-  // 非战斗状态只累加计数器
-  dispatch({ type: 'GAME_TICK' });
 }
 
 /**
