@@ -1,8 +1,12 @@
 # P0 Start Character And Age Parity
 
-Last updated: 2026-05-19
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:start-character-age` 守住。下面的 Current Symptom 保留为原始回归场景说明；后续只在 guard 变红或出现新角色/年龄选择症状时重新打开。
 
 ### AS3 Source of Truth
 
@@ -65,6 +69,10 @@ Last updated: 2026-05-19
 4. 开始游戏，检查玩家年龄、种族、初始装备和第一场战斗状态。
 5. 检查玩家的年龄成长是否生效
 ## English
+
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:start-character-age`. The Current Symptom below remains as original regression context; reopen it only if the guard turns red or a new character/age-selection symptom appears.
 
 ### AS3 Source of Truth
 

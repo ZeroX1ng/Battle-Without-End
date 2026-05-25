@@ -1,8 +1,12 @@
 # P0 Save State Persistence
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:save-persistence` 守住。下面的 Original Symptom 和 Red Guard Contract 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩浏览器可见 smoke。
 
 ### 卡片范围
 
@@ -22,7 +26,7 @@ Last updated: 2026-05-22
 - `src/components/scenes/SaveScene.tsx` / 相关导入 UI - 触发命名、槽位选择、文件导入的入口。
 - `package.json` / `scripts/assertSavePersistenceParity.mjs` - 本卡新增或注册的 guard。
 
-### Current Symptom
+### Original Symptom
 
 自动存档在 `activeSaveSlot === null` 时静默跳过，不产生任何玩家可见提示或开发者警告。玩家在战斗中长时间未手动存档后，刷新浏览器会导致进度丢失。角色创建后不自动持久化；`PLAYER_SET_NAME` 后名字元数据可能与 `player.playerName` 不同步；文件导入的后端逻辑存在但缺少 reducer action 入口。
 
@@ -94,6 +98,10 @@ Last updated: 2026-05-22
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:save-persistence`. The Original Symptom and Red Guard Contract below remain as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is browser-visible smoke only.
+
 ### Card Scope
 
 This card only covers save-write lifecycle behavior, missing-slot handling, name metadata synchronization, and the reducer entry for manual file import. It does not cover starter equipment/skill setup in `playerBurn()` (`p0-start-burn-save.md`) or post-load runtime continuity such as race, log toggles, drop toggles, and Battle instance restoration (`p0-save-load-runtime-continuity.md`).
@@ -112,7 +120,7 @@ This card only covers save-write lifecycle behavior, missing-slot handling, name
 - `src/components/scenes/SaveScene.tsx` / related import UI - player-facing entry points for naming, slot selection, and file import.
 - `package.json` / `scripts/assertSavePersistenceParity.mjs` - guard registration for this card.
 
-### Current Symptom
+### Original Symptom
 
 Auto-save silently skips when `activeSaveSlot === null`, with no player-visible message or developer warning. Progress can be lost after refreshing during long battles without manual save. Character creation is not persisted immediately; `PLAYER_SET_NAME` can leave slot metadata out of sync with `player.playerName`; file-import backend logic exists but lacks a reducer action path.
 

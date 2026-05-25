@@ -1,8 +1,12 @@
 # P0 Battle Numeric Coercion Parity
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:battle-numeric-coercion` 守住。下面的 Original Symptom 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。
 
 ### AS3 Source of Truth
 
@@ -21,9 +25,9 @@ Last updated: 2026-05-20
 - `src/core/math/MyMath.ts`
 - `src/core/data/skillBehaviors.ts`
 
-### Current Symptom
+### Original Symptom
 
-当前 React 仍有问题。AS3 的核心战斗属性大多以 `int` getter 或 `int` 局部变量进入伤害、暴击、平衡、魔法平衡、宠物属性与怪物攻击计算；当前 React 对这些中间值大量保留 `number` 浮点结果，只有部分最终伤害使用 `Math.floor()`。这会让低等级、带小数装备/称号/技能加成、魔法伤害和平衡随机分布的实际数值偏离 AS3。
+修复前的 React 问题是：AS3 的核心战斗属性大多以 `int` getter 或 `int` 局部变量进入伤害、暴击、平衡、魔法平衡、宠物属性与怪物攻击计算；React 对这些中间值大量保留 `number` 浮点结果，只有部分最终伤害使用 `Math.floor()`。这会让低等级、带小数装备/称号/技能加成、魔法伤害和平衡随机分布的实际数值偏离 AS3。
 
 ### Reviewed Evidence
 
@@ -31,8 +35,8 @@ Last updated: 2026-05-20
 - AS3 `Battle.as` 将普通攻击、怪物攻击、宠物攻击的伤害写入 `int` 局部变量后再扣血。
 - AS3 `Monster.as` 的 `attack`、`hp`、`balance`、`crit`、`crit_mul`、`defence`、`protection` getter 返回 `int`。
 - AS3 `Pet.as` 的 `hp`、`mp`、`attmin`、`attmax`、`defence`、`pro`、`balance`、`cri`、`crimul`、`magicatt`、`attack` getter 返回 `int`。
-- 当前 React `Player.ts` 的 `formula_title_stat()` 在没有称号匹配时直接返回浮点 `value`；`getAttMin()`、`getAttMax()`、`getBalance()`、`getCrit()`、`getSpellChance()`、`getMagicDamage()`、`getMagicBalance()` 等继续返回 `number`。
-- 当前 React `Monster.ts` 和 `Pet.ts` 的攻击/属性 getter 也返回 `number`，未统一复刻 AS3 `int` 截断边界。
+- 修复前 React `Player.ts` 的 `formula_title_stat()` 在没有称号匹配时直接返回浮点 `value`；`getAttMin()`、`getAttMax()`、`getBalance()`、`getCrit()`、`getSpellChance()`、`getMagicDamage()`、`getMagicBalance()` 等继续返回 `number`。
+- 修复前 React `Monster.ts` 和 `Pet.ts` 的攻击/属性 getter 也返回 `number`，未统一复刻 AS3 `int` 截断边界。
 
 ### Expected Behavior
 
@@ -76,6 +80,10 @@ Last updated: 2026-05-20
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:battle-numeric-coercion`. The Original Symptom below remains as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again.
+
 ### AS3 Source of Truth
 
 - `../BOE-O/scripts/iGlobal/Player.as`
@@ -93,9 +101,9 @@ Last updated: 2026-05-20
 - `src/core/math/MyMath.ts`
 - `src/core/data/skillBehaviors.ts`
 
-### Current Symptom
+### Original Symptom
 
-Current React still has this issue. AS3 feeds most battle attributes through `int` getters or `int` locals before damage, crit, balance, magic balance, pet stats, and monster attack calculations. React currently keeps many of those values as floating-point `number`s and only floors some final damage values. Low-level combat, fractional equipment/title/skill bonuses, magic damage, and balance distributions can therefore drift from AS3.
+Before the repair, React had this issue: AS3 feeds most battle attributes through `int` getters or `int` locals before damage, crit, balance, magic balance, pet stats, and monster attack calculations. React kept many of those values as floating-point `number`s and only floored some final damage values. Low-level combat, fractional equipment/title/skill bonuses, magic damage, and balance distributions could therefore drift from AS3.
 
 ### Reviewed Evidence
 

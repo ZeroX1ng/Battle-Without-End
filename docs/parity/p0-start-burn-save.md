@@ -1,8 +1,12 @@
 # P0 Start Burn Flow And Auto-Save Parity
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:start-burn-save` 守住。下面的 Original Symptom 和 Red Guard Contract 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩浏览器可见 smoke。
 
 ### 卡片范围
 
@@ -22,7 +26,7 @@ Last updated: 2026-05-22
 - `src/state/actions.ts` - 与角色创建/存档相关的 action type。
 - `package.json` / `scripts/assertStartBurnSaveParity.mjs` - 本卡新增或注册的 guard。
 
-### Current Symptom
+### Original Symptom
 
 角色创建后没有自动存档，刷新页面会丢失新创建的角色。同时 `playerBurn()` 在初始化装备时绕过 `equipItem()` 的完整流程，直接写入 `leftHand`，容易漏掉旧槽清理、TWOHAND 双手处理、技能/装备状态刷新和重生时的旧副手清理。
 
@@ -93,6 +97,10 @@ Last updated: 2026-05-22
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:start-burn-save`. The Original Symptom and Red Guard Contract below remain as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is browser-visible smoke only.
+
 ### Card Scope
 
 This card only covers the `Player.burn()` / `playerBurn()` startup state flow during character creation or rebirth, plus immediate auto-save after creation. It does not cover the race/age selection UI itself (`p0-start-character-age.md`) or the full save-slot/import/load-continuity chain (`p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`).
@@ -111,7 +119,7 @@ This card only covers the `Player.burn()` / `playerBurn()` startup state flow du
 - `src/state/actions.ts` - character-creation and save-related action types.
 - `package.json` / `scripts/assertStartBurnSaveParity.mjs` - guard registration for this card.
 
-### Current Symptom
+### Original Symptom
 
 No automatic save occurs after character creation, so refreshing the page loses the new character. `playerBurn()` also bypasses the full `equipItem()` path by writing directly to `leftHand`, which can skip old-slot cleanup, TWOHAND handling, skill/equipment recalculation, and stale off-hand cleanup during rebirth.
 

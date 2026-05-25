@@ -21,7 +21,9 @@ const ignoredDirectories = new Set([
   'coverage',
   'dist',
   'node_modules',
+  'output',
   'public',
+  'release',
 ]);
 
 const badFragments = [

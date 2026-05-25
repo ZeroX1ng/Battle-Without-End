@@ -1,8 +1,12 @@
 # P1 Battle Active Skill Single Roll Parity
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:battle-active-skill-single-roll` 守住。下面的 Original Symptom 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。
 
 ### AS3 Source of Truth
 
@@ -18,16 +22,16 @@ Last updated: 2026-05-20
 - `src/core/data/skillBehaviors.ts`
 - `scripts/assertSkillEligibilityEffectsParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-当前 React 仍有问题。AS3 `Battle.playerTurn()` 在施法概率通过后，只从 `Player.attackSkillList` 中随机取一个攻击技能并调用一次 `behaveFunction()`；如果这个技能因为 MP 不足等原因返回 `false`，该回合直接回落到普通攻击。当前 React `Battle.playerTurn()` 会把攻击技能洗牌，然后循环尝试多个技能，直到某个技能成功。这会提高多技能角色的实际技能触发率，并绕过 AS3 的“随机到失败技能就普通攻击”语义。
+修复前的 React 问题是：AS3 `Battle.playerTurn()` 在施法概率通过后，只从 `Player.attackSkillList` 中随机取一个攻击技能并调用一次 `behaveFunction()`；如果这个技能因为 MP 不足等原因返回 `false`，该回合直接回落到普通攻击。React `Battle.playerTurn()` 会把攻击技能洗牌，然后循环尝试多个技能，直到某个技能成功。这会提高多技能角色的实际技能触发率，并绕过 AS3 的“随机到失败技能就普通攻击”语义。
 
 ### Reviewed Evidence
 
 - AS3 `Battle.as` `playerTurn()` 计算 `Player.spellChance + 20 + attackSkillList.length * 5`，上限 95。
 - AS3 概率命中后执行 `_loc4_ = Player.attackSkillList[Math.random() * _loc2_ >> 0]`，只选择一个技能。
 - AS3 只有该单个技能 `behaveFunction(_loc4_)` 返回 true 时，才阻止普通攻击。
-- 当前 React `Battle.ts` `playerTurn()` 先 `sort(() => Math.random() - 0.5)`，再 `for` 循环尝试整个列表，成功即停止。
+- 修复前 React `Battle.ts` `playerTurn()` 先 `sort(() => Math.random() - 0.5)`，再 `for` 循环尝试整个列表，成功即停止。
 - 现有 `assert:skill-eligibility-effects` 只验证列表过滤和 Battle 消费同一列表，不验证每回合只尝试一个攻击技能。
 
 ### Expected Behavior
@@ -71,6 +75,10 @@ Last updated: 2026-05-20
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:battle-active-skill-single-roll`. The Original Symptom below remains as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again.
+
 ### AS3 Source of Truth
 
 - `../BOE-O/scripts/iData/Battle.as`
@@ -85,9 +93,9 @@ Last updated: 2026-05-20
 - `src/core/data/skillBehaviors.ts`
 - `scripts/assertSkillEligibilityEffectsParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-Current React still has this issue. AS3 `Battle.playerTurn()` rolls the attack-skill chance, then randomly selects exactly one skill from `Player.attackSkillList` and calls that single `behaveFunction()`. If that skill fails, for example because MP is insufficient, the turn falls back to a normal attack. React currently shuffles the full attack-skill list and tries multiple skills until one succeeds. Characters with several equipped attack skills therefore get a higher effective skill success rate than AS3.
+Before the repair, React had this issue: AS3 `Battle.playerTurn()` rolls the attack-skill chance, then randomly selects exactly one skill from `Player.attackSkillList` and calls that single `behaveFunction()`. If that skill fails, for example because MP is insufficient, the turn falls back to a normal attack. React shuffled the full attack-skill list and tried multiple skills until one succeeded. Characters with several equipped attack skills therefore got a higher effective skill success rate than AS3.
 
 ### Reviewed Evidence
 

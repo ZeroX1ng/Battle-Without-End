@@ -1,8 +1,12 @@
 # P1 Battle Pet Flow Logs And Random Order Parity
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:battle-pet-flow-logs` 守住。下面的 Original Symptom 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩宠物战斗浏览器 smoke。
 
 ### AS3 Source of Truth
 
@@ -18,19 +22,19 @@ Last updated: 2026-05-20
 - `src/core/data/petSkillBehaviors.ts`
 - `scripts/assertBattleDamageLogDeathParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-当前 React 仍有问题。宠物参与战斗的数值流和日志未完全覆盖 AS3：怪物攻击宠物、宠物普通攻击、宠物反伤、宠物反击、吸血等路径在 AS3 都会写玩家可见日志；当前 React 多个宠物路径只改 HP，不写对应伤害/吸血日志，且若干模板字符串缺少 `${...}`。另外，AS3 怪物攻击宠物时先计算暴击和伤害，再执行 Dodge 判定；当前 React 在 Dodge 成功时提前返回，不消耗 AS3 中的攻击/暴击随机序列。
+修复前的 React 问题是：宠物参与战斗的数值流和日志未完全覆盖 AS3：怪物攻击宠物、宠物普通攻击、宠物反伤、宠物反击、吸血等路径在 AS3 都会写玩家可见日志；React 多个宠物路径只改 HP，不写对应伤害/吸血日志，且若干模板字符串缺少 `${...}`。另外，AS3 怪物攻击宠物时先计算暴击和伤害，再执行 Dodge 判定；React 在 Dodge 成功时提前返回，不消耗 AS3 中的攻击/暴击随机序列。
 
 ### Reviewed Evidence
 
 - AS3 `Battle.as` `monsterAttackPet()` 先计算 `monster.crit`、`monster.attack`、宠物防御/护甲伤害，再检查 `PetSkillList.dodge`。
 - AS3 `monsterAttackPet()` 在怪物对宠物造成伤害、宠物反伤、宠物反击时均调用 `MainScene.allInfoPanel.addText()`。
 - AS3 `petAttack()` 在宠物治疗怪物、宠物造成伤害、宠物吸血时均写日志。
-- 当前 React `Battle.ts` `monsterAttackPet()` 在 Dodge 成功时先于伤害/暴击计算返回，随机消耗顺序不同。
-- 当前 React `Battle.ts` `monsterAttackPet()` 扣 `petHp` 后没有输出“怪物对宠物造成伤害”的基础日志。
-- 当前 React `Battle.ts` `petAttack()` 扣 `monsterHp` 后没有输出宠物普通攻击伤害日志，吸血只改 `petHp` 不写日志。
-- 当前 React `Battle.ts` 多处日志为 ``... {mon.getNameHtml(...)} ...``，缺少 `$`，玩家会看到字面量模板片段。
+- 修复前 React `Battle.ts` `monsterAttackPet()` 在 Dodge 成功时先于伤害/暴击计算返回，随机消耗顺序不同。
+- 修复前 React `Battle.ts` `monsterAttackPet()` 扣 `petHp` 后没有输出“怪物对宠物造成伤害”的基础日志。
+- 修复前 React `Battle.ts` `petAttack()` 扣 `monsterHp` 后没有输出宠物普通攻击伤害日志，吸血只改 `petHp` 不写日志。
+- 修复前 React `Battle.ts` 多处日志为 ``... {mon.getNameHtml(...)} ...``，缺少 `$`，玩家会看到字面量模板片段。
 
 ### Expected Behavior
 
@@ -76,6 +80,10 @@ Last updated: 2026-05-20
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:battle-pet-flow-logs`. The Original Symptom below remains as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is pet-combat browser smoke only.
+
 ### AS3 Source of Truth
 
 - `../BOE-O/scripts/iData/Battle.as`
@@ -90,9 +98,9 @@ Last updated: 2026-05-20
 - `src/core/data/petSkillBehaviors.ts`
 - `scripts/assertBattleDamageLogDeathParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-Current React still has this issue. Pet combat flow and logs are not fully AS3-equivalent. AS3 emits player-visible logs for monster damage to pet, pet normal attacks, pet reflection, pet counterattack, and pet life drain. React currently updates HP on several pet paths without the matching visible logs, and several template strings are missing `${...}` interpolation. React also checks Dodge before consuming the crit/attack damage sequence that AS3 consumes before the Dodge branch.
+Before the repair, React had this issue: pet combat flow and logs were not fully AS3-equivalent. AS3 emits player-visible logs for monster damage to pet, pet normal attacks, pet reflection, pet counterattack, and pet life drain. React updated HP on several pet paths without the matching visible logs, and several template strings were missing `${...}` interpolation. React also checked Dodge before consuming the crit/attack damage sequence that AS3 consumes before the Dodge branch.
 
 ### Reviewed Evidence
 

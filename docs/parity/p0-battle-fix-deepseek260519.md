@@ -1,6 +1,6 @@
 # Battle Follow-up Review Queue
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
 
@@ -13,18 +13,18 @@ Last updated: 2026-05-20
 ### 当前结论
 
 - P0-BATTLE 主问题已由 `assert:battle-damage-log-death` 守住。
-- 后续重点应从“修战斗卡片”转为“审阅战斗周边风险”：怪物数据不可变、日志完整度、死亡惩罚、reducer 纯度。
-- 本文件中的条目不是已确认事实；每个条目都需要 AS3 证据和可执行 guard。
+- 后续重点应从“修战斗卡片”转为“玩家可见 smoke / 新回归复核”：怪物数据不可变、日志完整度、死亡惩罚、reducer 纯度和 loot 引用安全都已有 focused guard。
+- 本文件中的旧 DeepSeek 条目已在 2026-05-23 复核为 Guarded；只有 guard 变红或出现新症状时，才按单行重新打开。
 
 ### Review Queue
 
 | ID | 优先级 | 主题 | 可能影响 | 先读 AS3 | React 目标 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- |
-| B-R1 | P0 | Monster 构造浅拷贝可能污染全局 `attack` | 长时间挂机后怪物攻击可能指数增长 | `Monster.as`, `MonsterTitle.as`, `Battle.as` | `src/core/models/Monster.ts`, `src/core/data/monsterData.ts` | 新增 `assert:monster-data-immutable` |
-| B-R2 | P1 | 玩家攻击、遭遇、怪物击败日志完整度 | 日志不完整会让玩家误判战斗过程 | `Battle.as`, `MainScene.as` | `src/core/models/Battle.ts` | 扩展 `assert:battle-damage-log-death` 或新增 `assert:battle-log-sequence` |
-| B-R3 | P1 | 玩家死亡是否应扣经验 | 若与 AS3 不同，会改变失败成本 | `Battle.as`, `Player.as` | `src/core/models/Battle.ts`, `src/state/GameContext.tsx` | 新增 `assert:battle-death-penalty` |
-| B-R4 | P2 | `BATTLE_TICK` reducer 里直接修改 battle 对象 | React 状态纯度和未来调试风险 | 无 AS3；属于 React 架构审阅 | `src/state/GameContext.tsx` | `assert:battle-player-state` + `npx tsc -b` |
-| B-R5 | P2 | loot 合并对象引用安全 | 战利品累计可能受共享引用影响 | 无 AS3；属于 React 架构审阅 | `src/state/GameContext.tsx` | 现有 loot/奖励 guard + focused unit assertion |
+| B-R1 | P0 | Monster 构造浅拷贝可能污染全局 `attack` | 长时间挂机后怪物攻击可能指数增长 | `Monster.as`, `MonsterTitle.as`, `Battle.as` | `src/core/models/Monster.ts`, `src/core/data/monsterData.ts` | 已守住：`assert:monster-data-immutable` |
+| B-R2 | P1 | 玩家攻击、遭遇、怪物击败日志完整度 | 日志不完整会让玩家误判战斗过程 | `Battle.as`, `MainScene.as` | `src/core/models/Battle.ts` | 已守住：`assert:battle-damage-log-death` |
+| B-R3 | P1 | 玩家死亡是否应扣经验 | 若与 AS3 不同，会改变失败成本 | `Battle.as`, `Player.as` | `src/core/models/Battle.ts`, `src/state/GameContext.tsx` | 已守住：`assert:battle-death-penalty` |
+| B-R4 | P2 | `BATTLE_TICK` reducer 里直接修改 battle 对象 | React 状态纯度和未来调试风险 | 无 AS3；属于 React 架构审阅 | `src/state/GameContext.tsx` | 已守住：`assert:battle-player-state` + `npx tsc -b` |
+| B-R5 | P2 | loot 合并对象引用安全 | 战利品累计可能受共享引用影响 | 无 AS3；属于 React 架构审阅 | `src/state/GameContext.tsx` | 已守住：`assert:loot-merge-reference-safety` + `assert:monster-reward` |
 
 ### 推荐对话模板
 
@@ -61,18 +61,18 @@ This file is a compact follow-up review queue distilled from a DeepSeek review. 
 ### Current Conclusion
 
 - The main P0-BATTLE issue is guarded by `assert:battle-damage-log-death`.
-- Future work should focus on battle-adjacent review risks: immutable monster data, log completeness, death penalty, and reducer purity.
-- Items here are not confirmed facts; each one needs AS3 evidence and executable coverage.
+- Future work should focus on player-visible smoke or new regression review: immutable monster data, log completeness, death penalty, reducer purity, and loot reference safety all have focused guards.
+- The old DeepSeek rows in this file were rechecked as Guarded on 2026-05-23; reopen one row only if a guard turns red or a new symptom appears.
 
 ### Review Queue
 
 | ID | Priority | Topic | Potential Impact | Read AS3 First | React Targets | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- |
-| B-R1 | P0 | Monster shallow copy may mutate global `attack` | Monster attack may grow exponentially during long idle play | `Monster.as`, `MonsterTitle.as`, `Battle.as` | `src/core/models/Monster.ts`, `src/core/data/monsterData.ts` | Add `assert:monster-data-immutable` |
-| B-R2 | P1 | Encounter, player attack, and defeated log completeness | Missing logs obscure battle flow | `Battle.as`, `MainScene.as` | `src/core/models/Battle.ts` | Extend `assert:battle-damage-log-death` or add `assert:battle-log-sequence` |
-| B-R3 | P1 | Whether player death should deduct exp | Failure cost may differ from AS3 | `Battle.as`, `Player.as` | `src/core/models/Battle.ts`, `src/state/GameContext.tsx` | Add `assert:battle-death-penalty` |
-| B-R4 | P2 | Direct battle object mutation inside `BATTLE_TICK` | React state purity and debugging risk | No AS3; React architecture review | `src/state/GameContext.tsx` | `assert:battle-player-state` + `npx tsc -b` |
-| B-R5 | P2 | Loot merge reference safety | Loot counters may be affected by shared references | No AS3; React architecture review | `src/state/GameContext.tsx` | Existing reward guards + focused unit assertion |
+| B-R1 | P0 | Monster shallow copy may mutate global `attack` | Monster attack may grow exponentially during long idle play | `Monster.as`, `MonsterTitle.as`, `Battle.as` | `src/core/models/Monster.ts`, `src/core/data/monsterData.ts` | Guarded: `assert:monster-data-immutable` |
+| B-R2 | P1 | Encounter, player attack, and defeated log completeness | Missing logs obscure battle flow | `Battle.as`, `MainScene.as` | `src/core/models/Battle.ts` | Guarded: `assert:battle-damage-log-death` |
+| B-R3 | P1 | Whether player death should deduct exp | Failure cost may differ from AS3 | `Battle.as`, `Player.as` | `src/core/models/Battle.ts`, `src/state/GameContext.tsx` | Guarded: `assert:battle-death-penalty` |
+| B-R4 | P2 | Direct battle object mutation inside `BATTLE_TICK` | React state purity and debugging risk | No AS3; React architecture review | `src/state/GameContext.tsx` | Guarded: `assert:battle-player-state` + `npx tsc -b` |
+| B-R5 | P2 | Loot merge reference safety | Loot counters may be affected by shared references | No AS3; React architecture review | `src/state/GameContext.tsx` | Guarded: `assert:loot-merge-reference-safety` + `assert:monster-reward` |
 
 ### Recommended Prompt
 

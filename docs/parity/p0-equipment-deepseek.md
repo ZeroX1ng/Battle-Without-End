@@ -1,6 +1,6 @@
 # Equipment Follow-up Review Queue
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
 
@@ -12,6 +12,7 @@ Last updated: 2026-05-20
 
 ### 当前结论
 
+- 2026-05-23 复核：E-R1 到 E-R6 仍为 Guarded / intentional divergence；只有 guard 变红或出现新装备症状时，才按单行重新打开。
 - P0-EQUIP 主问题已由 `assert:equipment-ownership` 守住。
 - E-R1 已由 `assert:weapon-load-category` 守住：`Equipment.load()` 读回武器后保留 `category`，远程攻击加成继续生效。
 - E-R2 已由 `assert:weapon-quality-stat` 守住：新生成武器的品质属性池可以随机到 AS3 `StatList` 末尾的 `balance`。
@@ -67,6 +68,7 @@ This file is a compact follow-up review queue distilled from a DeepSeek review. 
 
 ### Current Conclusion
 
+- 2026-05-23 review: E-R1 through E-R6 remain Guarded / intentional divergence; reopen one row only if a guard turns red or a new equipment symptom appears.
 - The main P0-EQUIP issue is guarded by `assert:equipment-ownership`.
 - E-R1 is guarded by `assert:weapon-load-category`: weapons loaded through `Equipment.load()` preserve `category`, so the ranged attack bonus remains active.
 - E-R2 is guarded by `assert:weapon-quality-stat`: newly generated weapons can roll the AS3 `balance` entry at the end of `StatList`.

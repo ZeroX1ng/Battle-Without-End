@@ -1,8 +1,12 @@
 # P0 Battle Damage Log And Death Parity
 
-Last updated: 2026-05-19
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:battle-damage-log-death` 守住。下面的 Current Symptom 保留为原始回归场景说明；后续只在 guard 变红或出现新日志/死亡症状时重新打开。
 
 ### AS3 Source of Truth
 
@@ -67,6 +71,10 @@ Last updated: 2026-05-19
 4. 死亡后确认惩罚、刷新和日志语义与 AS3 相符。
 
 ## English
+
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:battle-damage-log-death`. The Current Symptom below remains as original regression context; reopen it only if the guard turns red or a new log/death symptom appears.
 
 ### AS3 Source of Truth
 

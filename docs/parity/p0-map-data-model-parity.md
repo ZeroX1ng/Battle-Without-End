@@ -1,8 +1,12 @@
 # P0 Map Data And Model Parity
 
-Last updated: 2026-05-21
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:map-data` 守住。下面的 Original Symptom 和 Red Guard Contract 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩浏览器可见 smoke。
 
 ### 卡片范围
 
@@ -22,9 +26,9 @@ Last updated: 2026-05-21
 - `scripts/assertMapDataParity.mjs` - 已有 guard，但必须按 AS3 纠正期望值
 - `package.json` - 复用已有 `assert:map-data`
 
-### Current Symptom
+### Original Symptom
 
-React 地图表和模型有 AS3 偏差：第 15 张地图 `Vaith` 在 AS3 中 `realName` 是 `神墓`，当前 React 和现有 map-data guard 仍使用 `神墟`。`Map.ts` 还包含 AS3 没有的空列表 fallback/guard，`MapData.petList` 在类型上是可选字段，后续地图/宠物池修复容易绕开 AS3 结构。
+修复前 React 地图表和模型有 AS3 偏差：第 15 张地图 `Vaith` 在 AS3 中 `realName` 是 `神墓`，React 和当时的 map-data guard 仍使用 `神墟`。`Map.ts` 还包含 AS3 没有的空列表 fallback/guard，`MapData.petList` 在类型上是可选字段，后续地图/宠物池修复容易绕开 AS3 结构。
 
 ### Red Guard Contract
 
@@ -96,6 +100,10 @@ React 地图表和模型有 AS3 偏差：第 15 张地图 `Vaith` 在 AS3 中 `r
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:map-data`. The Original Symptom and Red Guard Contract below remain as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is browser-visible smoke only.
+
 ### Card Scope
 
 This card only covers static map data and `Map` model behavior. It does not cover map-window visibility, click-to-switch flow, or save-field continuity. `p0-map-selection.md` already covers switching and the UI/save chain; this card is the lower-level data/model repair card.
@@ -114,9 +122,9 @@ This card only covers static map data and `Map` model behavior. It does not cove
 - `scripts/assertMapDataParity.mjs` - existing guard, but its expectations must be corrected to AS3
 - `package.json` - reuse existing `assert:map-data`
 
-### Current Symptom
+### Original Symptom
 
-React map data and model behavior deviate from AS3. The 15th map `Vaith` has `realName` `神墓` in AS3, while current React data and the existing map-data guard still use `神墟`. `Map.ts` also contains empty-list guards/fallbacks that AS3 does not have, and `MapData.petList` is optional in TypeScript, making future map/pet-pool repairs easy to route around the AS3 structure.
+Before the repair, React map data and model behavior deviated from AS3. The 15th map `Vaith` has `realName` `神墓` in AS3, while React data and the then-existing map-data guard still used `神墟`. `Map.ts` also contained empty-list guards/fallbacks that AS3 does not have, and `MapData.petList` was optional in TypeScript, making future map/pet-pool repairs easy to route around the AS3 structure.
 
 ### Red Guard Contract
 

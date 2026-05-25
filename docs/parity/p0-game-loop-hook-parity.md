@@ -1,8 +1,12 @@
 # P0 Game Loop And Hook Parity
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:game-loop` 守住。下面的 Original Symptom 和 Red Guard Contract 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩浏览器后台 smoke。
 
 ### 卡片范围
 
@@ -23,9 +27,9 @@ Last updated: 2026-05-22
 - `src/core/models/Battle.ts` - `run()`、`caculate`、save/shop/ageup 信号。
 - `package.json` / `scripts/assertGameLoopHeartbeatParity.mjs` 或后续 `scripts/assertGameLoopParity.mjs` - 本卡 guard。
 
-### Current Symptom
+### Original Symptom
 
-核心 tick 调度（500ms、战斗回合、`caculate` 累加、信号触发）已经接近 AS3 `Battle.run()`，但仍存在两个 P0 偏差：后台标签页中 React 使用 `requestAnimationFrame` 会暂停，AS3 Timer 则持续运行；现有 `GAME_TICK` 回退分支和 `assert:game-loop` 还编码了“无 battle 时仍有非战斗心跳”的 React 架构假设，与 AS3 Battle Timer 生命周期不一致。
+修复前核心 tick 调度（500ms、战斗回合、`caculate` 累加、信号触发）已经接近 AS3 `Battle.run()`，但仍存在两个 P0 偏差：后台标签页中 React 使用 `requestAnimationFrame` 会暂停，AS3 Timer 则持续运行；现有 `GAME_TICK` 回退分支和 `assert:game-loop` 还编码了“无 battle 时仍有非战斗心跳”的 React 架构假设，与 AS3 Battle Timer 生命周期不一致。
 
 ### Red Guard Contract
 
@@ -98,6 +102,10 @@ Last updated: 2026-05-22
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:game-loop`. The Original Symptom and Red Guard Contract below remain as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is browser background smoke only.
+
 ### Card Scope
 
 This card only covers lifecycle parity between AS3 `Battle.run()` heartbeat behavior and the React `GameLoop` / `useGameLoop` / reducer tick chain. It does not cover battle formulas, skill triggers, monster rewards, death penalties, or log wording; those remain in their own battle parity cards.
@@ -117,9 +125,9 @@ This card only covers lifecycle parity between AS3 `Battle.run()` heartbeat beha
 - `src/core/models/Battle.ts` - `run()`, `caculate`, save/shop/ageup signals.
 - `package.json` / `scripts/assertGameLoopHeartbeatParity.mjs` or future `scripts/assertGameLoopParity.mjs` - guard for this card.
 
-### Current Symptom
+### Original Symptom
 
-Core tick dispatch (500ms, battle turns, `caculate`, and signal emission) is close to AS3 `Battle.run()`, but two P0 deviations remain: React currently uses `requestAnimationFrame`, which pauses in background tabs, while AS3 Timer keeps running; the existing `GAME_TICK` fallback and `assert:game-loop` still encode a React assumption that a non-battle heartbeat is a normal path, which conflicts with AS3 Battle Timer lifecycle.
+Before the repair, core tick dispatch (500ms, battle turns, `caculate`, and signal emission) was close to AS3 `Battle.run()`, but two P0 deviations remained: React used `requestAnimationFrame`, which pauses in background tabs, while AS3 Timer keeps running; the existing `GAME_TICK` fallback and `assert:game-loop` still encoded a React assumption that a non-battle heartbeat is a normal path, which conflicts with AS3 Battle Timer lifecycle.
 
 ### Red Guard Contract
 

@@ -1,8 +1,12 @@
 # P0 Map Selection Parity
 
-Last updated: 2026-05-19
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:map-selection` 守住。下面的 Current Symptom 保留为原始回归场景说明；后续只在 guard 变红或出现新地图切换/默认地图症状时重新打开。
 
 ### AS3 Source of Truth
 
@@ -71,6 +75,10 @@ Last updated: 2026-05-19
 5. 保存并读取，确认地图保持不变。
 
 ## English
+
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:map-selection`. The Current Symptom below remains as original regression context; reopen it only if the guard turns red or a new map-switch/default-map symptom appears.
 
 ### AS3 Source of Truth
 

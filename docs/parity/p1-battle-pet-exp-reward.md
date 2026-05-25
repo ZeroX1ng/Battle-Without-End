@@ -1,8 +1,12 @@
 # P1 Battle Pet Exp Reward Recalculation Parity
 
-Last updated: 2026-05-20
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:battle-pet-exp-reward` 守住。下面的 Original Symptom 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。
 
 ### AS3 Source of Truth
 
@@ -19,16 +23,16 @@ Last updated: 2026-05-20
 - `src/core/models/Pet.ts`
 - `scripts/assertMonsterRewardParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-当前 React 仍有问题。AS3 `Battle.giveTrophy()` 对玩家调用 `Player.addExp(this.monster.exp)` 后，在宠物奖励处再次读取 `this.monster.exp`。由于 `Monster.exp` 依赖当前 `Player.combatPower`、地图 modifier 和幸运值，若玩家获得经验后升级并改变战斗力，宠物获得的经验会按升级后的玩家状态重新计算。当前 React 先缓存 `expGain`，玩家和宠物都使用同一个旧值，因此在击杀导致玩家升级时，宠物经验可能与 AS3 不同。
+修复前的 React 问题是：AS3 `Battle.giveTrophy()` 对玩家调用 `Player.addExp(this.monster.exp)` 后，在宠物奖励处再次读取 `this.monster.exp`。由于 `Monster.exp` 依赖当前 `Player.combatPower`、地图 modifier 和幸运值，若玩家获得经验后升级并改变战斗力，宠物获得的经验会按升级后的玩家状态重新计算。React 先缓存 `expGain`，玩家和宠物都使用同一个旧值，因此在击杀导致玩家升级时，宠物经验可能与 AS3 不同。
 
 ### Reviewed Evidence
 
 - AS3 `Battle.as` 先执行 `Player.addExp(this.monster.exp)`，后续宠物分支又执行 `this.pet.addExp(this.monster.exp)`。
 - AS3 `Monster.as` 的 `exp` getter 每次读取都会用当前 `Player.combatPower`、`Global.map.mapData.modifier` 和 `Player.luck` 重新计算。
 - AS3 `Pet.as` `addExp()` 使用传入经验值，并根据 `this.level - Player.lv > 5` 限制升级。
-- 当前 React `Battle.ts` 在 `giveTrophy()` 中先 `const expGain = this.monster.getExp(...)`，玩家加经验后仍用 `this.pet.addExp(expGain, this.playerState.lv)`。
+- 修复前 React `Battle.ts` 在 `giveTrophy()` 中先 `const expGain = this.monster.getExp(...)`，玩家加经验后仍用 `this.pet.addExp(expGain, this.playerState.lv)`。
 - 现有 `assert:monster-reward` 只确认宠物收到 defeated-monster exp，不区分 AS3 的“第二次读取 monster.exp”语义。
 
 ### Expected Behavior
@@ -73,6 +77,10 @@ Last updated: 2026-05-20
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:battle-pet-exp-reward`. The Original Symptom below remains as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again.
+
 ### AS3 Source of Truth
 
 - `../BOE-O/scripts/iData/Battle.as`
@@ -88,9 +96,9 @@ Last updated: 2026-05-20
 - `src/core/models/Pet.ts`
 - `scripts/assertMonsterRewardParity.mjs`
 
-### Current Symptom
+### Original Symptom
 
-Current React still has this issue. AS3 `Battle.giveTrophy()` calls `Player.addExp(this.monster.exp)`, then later reads `this.monster.exp` again for the active pet. Since `Monster.exp` depends on current `Player.combatPower`, map modifier, and luck, a kill that levels up the player can change the pet's reward value. React currently caches `expGain` once and gives that same stale value to both player and pet.
+Before the repair, React had this issue: AS3 `Battle.giveTrophy()` calls `Player.addExp(this.monster.exp)`, then later reads `this.monster.exp` again for the active pet. Since `Monster.exp` depends on current `Player.combatPower`, map modifier, and luck, a kill that levels up the player can change the pet's reward value. React cached `expGain` once and gave that same stale value to both player and pet.
 
 ### Reviewed Evidence
 

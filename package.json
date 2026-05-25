@@ -2,10 +2,13 @@
   "name": "boe-refactor",
   "private": true,
   "version": "1.0.0",
+  "description": "BWE desktop playtest build",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite --config vite.config.mjs --configLoader native",
     "build": "tsc -b && vite build --config vite.config.mjs --configLoader native",
+    "pack:exe": "npm run build && electron-builder --win portable --x64",
     "assert:other-panel": "node scripts/assertOtherPanelParity.mjs",
     "assert:other-window-children": "node scripts/assertOtherWindowChildrenParity.mjs",
     "assert:system-window": "node scripts/assertSystemWindowParity.mjs",
@@ -65,7 +68,28 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "typescript": "~5.6.2",
     "vite": "^6.0.0"
+  },
+  "build": {
+    "appId": "com.local.bwe",
+    "productName": "BWE",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "portable"
+      ],
+      "artifactName": "${productName}-${version}.${ext}"
+    }
   }
 }

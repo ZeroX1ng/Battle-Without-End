@@ -1,8 +1,12 @@
 # P0 Monster Data Integrity
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## 中文
+
+### 当前状态
+
+2026-05-23 复核：本卡已由 `npm run assert:monster-data-integrity` 守住。下面的 Original Symptom 和 Red Guard Contract 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。下一步只剩浏览器可见 smoke。
 
 ### 卡片范围
 
@@ -28,7 +32,7 @@ Last updated: 2026-05-22
 - `src/core/types.ts` - `MonsterData`、`MonsterTitleData`、`PetData` 类型。
 - `package.json` / `scripts/assertMonsterDataIntegrityParity.mjs` - 本卡新增或注册的 guard。
 
-### Current Symptom
+### Original Symptom
 
 `MonsterList` 前 35 个条目是 React 自制怪物数据（如 `town_rat` 到 `desert_dragon_final`），AS3 中不存在。React 怪物总数为 155，而 AS3 只有 119 个。React 当前还把部分 AS3 常量名当作 `MonsterData.name` 使用；例如 AS3 常量是 `Brown_tailed_Mongoose`，但构造函数第一个参数即真实 `name` 是 `"Brown-tailed Mongoose"`。`PetTypes` 含 AS3 不存在的 `slime`。`MonsterTitleList` 中 `"努力的 "` 的尾随空格丢失。
 
@@ -110,6 +114,10 @@ Last updated: 2026-05-22
 
 ## English
 
+### Current Status
+
+2026-05-23 review: this card is guarded by `npm run assert:monster-data-integrity`. The Original Symptom and Red Guard Contract below remain as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again. The next step is browser-visible smoke only.
+
 ### Card Scope
 
 This card only covers static data integrity for monsters, monster titles, and pet-type constants. It does not cover monster reward formulas (`assert:monster-reward`), immutable monster instance title generation (`assert:monster-data-immutable`), or map-selection UI. After repair, however, every map `monsterList` reference must still resolve to an AS3 monster.
@@ -134,7 +142,7 @@ This card only covers static data integrity for monsters, monster titles, and pe
 - `src/core/types.ts` - `MonsterData`, `MonsterTitleData`, and `PetData` types.
 - `package.json` / `scripts/assertMonsterDataIntegrityParity.mjs` - guard registration for this card.
 
-### Current Symptom
+### Original Symptom
 
 The first 35 entries in `MonsterList` are fabricated React monsters, such as `town_rat` through `desert_dragon_final`, that do not exist in AS3. React has 155 monsters while AS3 has 119. React also currently uses some AS3 constant names as `MonsterData.name`; for example, the AS3 constant is `Brown_tailed_Mongoose`, but the constructor's first argument and real `name` is `"Brown-tailed Mongoose"`. `PetTypes` contains the non-AS3 `slime` type. `MonsterTitleList` loses the trailing space in `"努力的 "`.
 
