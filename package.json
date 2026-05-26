@@ -34,6 +34,8 @@
     "assert:title-data-save-parity": "node scripts/assertTitleDataSaveParity.mjs",
     "assert:title-window": "node scripts/assertTitleWindowParity.mjs",
     "assert:equipment-compare-tooltip": "node scripts/assertEquipmentCompareTooltipParity.mjs",
+    "assert:drop-filter-auto-sell": "node scripts/assertDropFilterAutoSellParity.mjs",
+    "assert:age-growth-visible": "node scripts/assertAgeGrowthVisibleParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
     "assert:monster-data-immutable": "node scripts/assertMonsterDataImmutable.mjs",

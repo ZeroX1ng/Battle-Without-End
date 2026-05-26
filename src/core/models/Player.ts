@@ -260,24 +260,81 @@ export function levelUp(state: PlayerState): PlayerState {
 export function ageup(state: PlayerState): PlayerState {
   let s: PlayerState = { ...state, caculate: 0, age: state.age + 1 };
   s.basicStatus = s.basicStatus.clone();
-  const ageupIndex = s.age - 11;
-  const ageGrowth = s.race && ageupIndex >= 0 ? s.race.ageupList[ageupIndex] : undefined;
-  if (s.age <= 25 && s.race && ageGrowth) {
-    s.basicStatus.hp += ageGrowth.hp + 1;
-    s.basicStatus.mp += ageGrowth.mp + 1;
-    s.basicStatus.str += ageGrowth.str;
-    s.basicStatus.dex += ageGrowth.dex;
-    s.basicStatus.will += ageGrowth.will;
-    s.basicStatus.intelligence += ageGrowth.intelligence;
-    s.basicStatus.luck += ageGrowth.luck;
-  } else {
-    s.basicStatus.hp += 1;
-    s.basicStatus.mp += 1;
-  }
-  let apGain = 18 - s.age;
-  if (apGain < 1 && s.age <= 25) apGain = 1;
-  if (apGain > 0) s.ap += apGain;
+  const growthInfo = getAgeGrowthInfo(state);
+  s.basicStatus.hp += growthInfo.nextGrowth.hp;
+  s.basicStatus.mp += growthInfo.nextGrowth.mp;
+  s.basicStatus.str += growthInfo.nextGrowth.str;
+  s.basicStatus.dex += growthInfo.nextGrowth.dex;
+  s.basicStatus.will += growthInfo.nextGrowth.will;
+  s.basicStatus.intelligence += growthInfo.nextGrowth.intelligence;
+  s.basicStatus.luck += growthInfo.nextGrowth.luck;
+  if (growthInfo.nextApGain > 0) s.ap += growthInfo.nextApGain;
   return s;
+}
+
+export interface AgeGrowthInfo {
+  nextGrowth: {
+    hp: number;
+    mp: number;
+    str: number;
+    dex: number;
+    will: number;
+    intelligence: number;
+    luck: number;
+  };
+  nextApGain: number;
+  remainingTicks: number;
+  timeToGrowup: string;
+  tooltip: string;
+}
+
+export function getAgeGrowthInfo(state: PlayerState): AgeGrowthInfo {
+  const nextGrowth = {
+    hp: 1,
+    mp: 1,
+    str: 0,
+    dex: 0,
+    will: 0,
+    intelligence: 0,
+    luck: 0,
+  };
+
+  if (state.age < 25 && state.race) {
+    const ageGrowth = state.race.ageupList[state.age - 10];
+    if (ageGrowth) {
+      nextGrowth.hp = ageGrowth.hp + 1;
+      nextGrowth.mp = ageGrowth.mp + 1;
+      nextGrowth.str = ageGrowth.str;
+      nextGrowth.dex = ageGrowth.dex;
+      nextGrowth.will = ageGrowth.will;
+      nextGrowth.intelligence = ageGrowth.intelligence;
+      nextGrowth.luck = ageGrowth.luck;
+    }
+  }
+
+  let nextApGain = state.age < 25 ? 17 - state.age : 0;
+  if (nextApGain < 1 && state.age <= 25) nextApGain = 1;
+  if (state.age >= 25) nextApGain = 0;
+
+  const tickInCycle = state.caculate % 2400;
+  const remainingTicks = 2400 - tickInCycle;
+  const minutes = Math.trunc(remainingTicks / 120);
+  const seconds = Math.trunc((remainingTicks - minutes * 120) / 2);
+  const timeToGrowup = `${minutes}:${seconds}`;
+  const tooltip = [
+    '年龄增长时:',
+    `Hp   +${nextGrowth.hp}`,
+    `Mp   +${nextGrowth.mp}`,
+    `力量 +${nextGrowth.str}`,
+    `敏捷 +${nextGrowth.dex}`,
+    `意志 +${nextGrowth.will}`,
+    `智力 +${nextGrowth.intelligence}`,
+    `幸运 +${nextGrowth.luck}`,
+    `AP   +${nextApGain}`,
+    `长大还剩:${timeToGrowup}`,
+  ].join('\n');
+
+  return { nextGrowth, nextApGain, remainingTicks, timeToGrowup, tooltip };
 }
 
 // ═══ 背包管理 ═══

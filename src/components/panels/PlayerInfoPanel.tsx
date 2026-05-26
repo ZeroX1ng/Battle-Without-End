@@ -1,16 +1,58 @@
-// ═══ 玩家属性面板 ═══
-// AS3 原始: iPanel.iCell.* (PlayerInfo相关)
-// 原版尺寸: 385 × 220
-
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { selectPlayerStats } from '../../state/selectors'
+import { getAgeGrowthInfo } from '../../core/models/Player'
 import { Bar } from '../common/Common'
+import { useInfoWindow } from '../common/InfoWindow'
 
 export function PlayerInfoPanel() {
   const { state } = useGameContext();
+  const { showStringInfo, hideStringInfo, updateMouse } = useInfoWindow();
   const s = selectPlayerStats(state.player);
   const battleHp = state.battle?.playerHp ?? s.hp;
   const battleMp = state.battle?.playerMp ?? s.mp;
+  const ageGrowthInfo = getAgeGrowthInfo(state.player);
+  const ageRef = useRef<HTMLSpanElement | null>(null);
+  const [isAgeHovered, setIsAgeHovered] = useState(false);
+  const showAgeInfo = (event: React.MouseEvent<HTMLSpanElement>) => {
+    setIsAgeHovered(true);
+    updateMouse(event.clientX, event.clientY);
+    showStringInfo(ageGrowthInfo.tooltip);
+  };
+  const hideAgeInfo = () => {
+    setIsAgeHovered(false);
+    hideStringInfo();
+  };
+
+  useEffect(() => {
+    if (isAgeHovered) {
+      showStringInfo(ageGrowthInfo.tooltip);
+    }
+  }, [ageGrowthInfo.tooltip, isAgeHovered, showStringInfo]);
+
+  useEffect(() => {
+    const ageElement = ageRef.current;
+    if (!ageElement) return;
+    const show = (event: MouseEvent) => {
+      setIsAgeHovered(true);
+      updateMouse(event.clientX, event.clientY);
+      showStringInfo(ageGrowthInfo.tooltip);
+    };
+    const move = (event: MouseEvent) => updateMouse(event.clientX, event.clientY);
+    const hide = () => {
+      setIsAgeHovered(false);
+      hideStringInfo();
+    };
+    ageElement.addEventListener('mouseover', show);
+    ageElement.addEventListener('mousemove', move);
+    ageElement.addEventListener('mouseleave', hide);
+    return () => {
+      ageElement.removeEventListener('mouseover', show);
+      ageElement.removeEventListener('mousemove', move);
+      ageElement.removeEventListener('mouseleave', hide);
+    };
+  }, [ageGrowthInfo.tooltip, hideStringInfo, showStringInfo, updateMouse]);
 
   return (
     <div style={{
@@ -22,7 +64,18 @@ export function PlayerInfoPanel() {
       </div>
 
       <div style={{ color: 'var(--color-text-dim)', fontSize: 11, marginBottom: 2 }}>
-        {s.raceName} · {s.age}岁
+        <span>{s.raceName} · </span>
+        <span
+          ref={ageRef}
+          data-testid="player-age-growth"
+          onMouseEnter={showAgeInfo}
+          onMouseOver={showAgeInfo}
+          onMouseMove={event => updateMouse(event.clientX, event.clientY)}
+          onMouseLeave={hideAgeInfo}
+          style={{ color: 'var(--color-yellow)', cursor: 'help' }}
+        >
+          {s.age}岁
+        </span>
       </div>
 
       <Bar value={battleHp} max={s.hp} color='var(--color-hp)' label={`HP ${Math.floor(battleHp)}/${Math.floor(s.hp)}`} height={8} />

@@ -153,7 +153,7 @@ function StringInfoWindow({ text, visible, mouseX, mouseY }: StringInfoWindowPro
         lineHeight: 1.4,
       }}
     >
-      <TextField size={20} color="#c8c8d4" multiline>
+      <TextField size={20} color="#c8c8d4" multiline style={{ whiteSpace: 'pre-line' }}>
         {text}
       </TextField>
     </div>

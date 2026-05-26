@@ -95,7 +95,7 @@ Last updated: 2026-05-25
 
 **Scope:** 装备拾取筛选取消勾选后的掉落处理必须验证为自动出售/转金币，而不是“未拾取后消失”。
 
-**AS3 Source of Truth:** `Monster.as`, `Boss.as`, `SystemConfig.as`, `Battle.as`, equipment sell/drop money logic.
+**AS3 Source of Truth:** `Monster.as`, `Boss.as`, `Global.as`, `SystemWindow.as`, `Battle.as`, equipment sell/drop money logic.
 
 **React Targets:** `SystemConfig.ts`, `Monster.ts`, `Battle.ts`, `GameContext.tsx`, `scripts/assertSystemConfigConsumption.mjs`, `package.json`, existing `assert:system-window`, existing `assert:monster-reward`.
 
