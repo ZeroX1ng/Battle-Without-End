@@ -55,7 +55,7 @@ Last updated: 2026-05-25
 
 **Scope:** 背包装备和商店在售装备缺少与当前装备的浮窗对比。
 
-**AS3 Source of Truth:** `EquipmentCell.as`, `ItemWindow.as`, `ShopCell.as`, `ShopWindow.as`, `InfoWindow.as`.
+**AS3 Source of Truth:** `EquipmentCell.as`, `ItemWindow.as`, `ShopCell.as`, `ShopPanel.as`, `GambleCell.as`, `InfoWindow.as`.
 
 **React Targets:** `InfoWindow.tsx`, `EquipmentCell.tsx`, `ItemWindow.tsx`, `ShopWindow.tsx`, `SpecialShopWindow.tsx`, `Player.ts`, existing `assert:equip-window`, existing `assert:shop-window`.
 
@@ -75,7 +75,7 @@ Last updated: 2026-05-25
 
 **Scope:** 地图、帮助、商店、特殊商店等功能窗口应叠加在挂机战斗主页面，而不是嵌在当前标签页内部导致错位。
 
-**AS3 Source of Truth:** `OtherWindow.as`, `MapPanel.as`, `HelpPanel.as`, `ShopWindow.as`, `SpecialShopWindow.as`, `MainScene.as`.
+**AS3 Source of Truth:** `OtherWindow.as`, `MapPanel.as`, `HelpPanel.as`, `ShopPanel.as`, `SpecialShopPanel.as`, `MainScene.as`.
 
 **React Targets:** `OtherWindow.tsx`, `OtherPanel.tsx`, `MainScene.tsx`, `MapWindow.tsx`, `ShopWindow.tsx`, `SpecialShopWindow.tsx`, `SaveWindow.tsx`, `GameContext.tsx`, `types.ts`, existing `assert:system-window`.
 

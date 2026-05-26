@@ -4,7 +4,7 @@ import { useInfoWindow } from '../common/InfoWindow'
 import { EquipmentCell } from '../common/Common'
 import { QualityColor, QualityName } from '../../core/constants'
 import { getAutoForgeTarget, getForgeCost, getForgeSuccessRate } from '../../core/systems/ForgeSystem'
-import { getLuck } from '../../core/models/Player'
+import { getEquipmentComparisonSlot, getLuck } from '../../core/models/Player'
 import { useGameContext } from '../../state/GameContext'
 
 function btnStyle(bg: string, disabled: boolean = false): CSSProperties {
@@ -145,6 +145,7 @@ export function ItemWindow() {
                 <EquipmentCell
                   key={`${item.name ?? item.realName}-${i}`}
                   equip={item}
+                  currentEquip={getEquipmentComparisonSlot(item, state.player)}
                   selected={item === selectedItem}
                   onSelect={() => setSelectedItem(item === selectedItem ? null : item)}
                   onEquip={() => {

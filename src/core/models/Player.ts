@@ -362,6 +362,12 @@ function getEquipTarget(item: Equipment, state: PlayerState): { equipSlot: strin
   return { equipSlot: item.position, clearSlots: [item.position] };
 }
 
+export function getEquipmentComparisonSlot(item: Equipment, state: PlayerState): Equipment | null {
+  const target = getEquipTarget(item, state);
+  if (!target) return null;
+  return (state as any)[target.equipSlot] ?? null;
+}
+
 export function unequipItem(state: PlayerState, slot: string): PlayerState {
   if (!EQUIP_SLOTS.includes(slot)) return state;
   const item = (state as any)[slot];
@@ -522,10 +528,18 @@ export function removePet(state: PlayerState, pet: any): PlayerState {
 // ═══ 称号 ═══
 
 export function addTitle(state: PlayerState, title: TitleData): PlayerState {
+  const index = state.titleList.findIndex(item => item.name === title.name);
+  if (index >= 0) {
+    const titleList = [...state.titleList];
+    titleList[index] = { ...titleList[index], ...title, isGot: true };
+    return { ...state, titleList };
+  }
   return { ...state, titleList: [...state.titleList, title] };
 }
 
 export function setTitle(state: PlayerState, title: TitleData): PlayerState {
-  if (state.title === title) return { ...state, title: null };
-  return { ...state, title };
+  if (state.title?.name === title.name) return { ...state, title: null };
+  const ownedTitle = state.titleList.find(item => item.name === title.name);
+  if (!ownedTitle?.isGot && !title.isGot) return state;
+  return { ...state, title: ownedTitle ?? title };
 }

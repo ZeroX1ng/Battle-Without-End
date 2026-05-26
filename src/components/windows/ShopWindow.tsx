@@ -2,6 +2,8 @@
 // AS3 original: iPanel.iScene.iPanel.ShopPanel.as + ShopCell.as + GambleCell.as
 
 import { useGameContext } from '../../state/GameContext'
+import { EquipmentCell } from '../common/Common'
+import { getEquipmentComparisonSlot } from '../../core/models/Player'
 
 function getSlotLabel(position: string): string {
   if (position === 'one-handed') return '主手';
@@ -56,36 +58,19 @@ export function ShopWindow() {
               const affordable = p.gold >= item.price;
               const equip = item.equip;
               return (
-                <button
+                <EquipmentCell
                   key={`${equip.name}-${idx}`}
-                  onClick={() => dispatch({ type: 'SHOP_BUY_SELL', index: idx })}
+                  equip={equip}
+                  currentEquip={getEquipmentComparisonSlot(equip, p)}
+                  getDescription={(equip) => `${equip.getSellDesciption()}${affordable ? '' : "<font color='#ff4040'>Can't afford</font>"}`}
+                  showEquipAction={false}
+                  sellLabel="$"
                   disabled={!affordable}
+                  onSell={() => dispatch({ type: 'SHOP_BUY_SELL', index: idx })}
                   style={{
-                    width: '100%',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '3px 6px', cursor: affordable ? 'pointer' : 'not-allowed',
-                    border: 0,
-                    borderBottom: '1px solid var(--color-border)',
-                    background: 'transparent',
-                    opacity: affordable ? 1 : 0.45,
-                    fontSize: 12,
-                    textAlign: 'left',
+                    marginBottom: 4,
                   }}
-                >
-                  <span style={{ flex: 1, overflow: 'hidden' }}>
-                    <span dangerouslySetInnerHTML={{ __html: equip.getNameHTML() }} />
-                    <span style={{ color: 'var(--color-text-dim)', marginLeft: 6, fontSize: 10 }}>
-                      {getSlotLabel(equip.position)}
-                    </span>
-                  </span>
-                  <span style={{
-                    color: affordable ? 'var(--color-yellow)' : 'var(--color-red)',
-                    fontSize: 12, fontWeight: 'bold', minWidth: 60, textAlign: 'right',
-                    flexShrink: 0
-                  }}>
-                    ${item.price}
-                  </span>
-                </button>
+                />
               );
             })}
           </div>

@@ -11,12 +11,26 @@ import { AllInfoPanel } from '../panels/AllInfoPanel'
 import { BattleSkillPanel } from '../panels/BattleSkillPanel'
 import { LootPanel } from '../panels/LootPanel'
 import { OtherPanel } from '../panels/OtherPanel'
+import { HelpWindow } from '../windows/HelpWindow'
+import { MapWindow } from '../windows/MapWindow'
+import { SaveWindow } from '../windows/SaveWindow'
+import { ShopWindow } from '../windows/ShopWindow'
+import { SpecialShopWindow } from '../windows/SpecialShopWindow'
 import '../../styles/main-scene.css'
+
+const overlayWindows: Record<string, JSX.Element> = {
+  map: <MapWindow />,
+  help: <HelpWindow />,
+  shop: <ShopWindow />,
+  specialshop: <SpecialShopWindow />,
+  save: <SaveWindow />,
+}
 
 export function MainScene() {
   const { state, dispatch } = useGameContext()
   const stateRef = useRef(state)
   stateRef.current = state
+  const overlay = state.ui.activeWindow ? overlayWindows[state.ui.activeWindow] : null
 
   useEffect(() => {
     if (!stateRef.current.battle) {
@@ -58,6 +72,22 @@ export function MainScene() {
       <section className="main-scene__log" aria-label="战斗日志">
         <AllInfoPanel />
       </section>
+
+      {overlay && (
+        <div className="main-scene__overlay">
+          <div className="main-scene__overlay-panel">
+            <button
+              className="main-scene__overlay-close"
+              type="button"
+              onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
+              aria-label="Close overlay"
+            >
+              x
+            </button>
+            {overlay}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

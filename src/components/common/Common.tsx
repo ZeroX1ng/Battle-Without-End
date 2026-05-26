@@ -342,6 +342,10 @@ export function StringInfoCell({ text, info, width = 100, size = 16, style, onMo
 
 interface EquipmentCellProps {
   equip: any
+  currentEquip?: any
+  getDescription?: (equip: any) => string
+  showEquipAction?: boolean
+  sellLabel?: string
   selected?: boolean
   disabled?: boolean
   onSelect?: (equip: any, event: ReactMouseEvent) => void
@@ -356,7 +360,19 @@ function getEquipHtml(equip: any): string {
   return `${name}${level}`
 }
 
-export function EquipmentCell({ equip, selected, disabled, onSelect, onEquip, onSell, style }: EquipmentCellProps) {
+export function EquipmentCell({
+  equip,
+  currentEquip,
+  getDescription,
+  showEquipAction = true,
+  sellLabel = '$',
+  selected,
+  disabled,
+  onSelect,
+  onEquip,
+  onSell,
+  style,
+}: EquipmentCellProps) {
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const [hovered, setHovered] = useState(false)
   const highLevelGlow = equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255,0,0,0.66)` : undefined
@@ -365,7 +381,9 @@ export function EquipmentCell({ equip, selected, disabled, onSelect, onEquip, on
 
   const handleHover = (event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
-    if (equip?.getDescription) showItemInfo(equip.getDescription())
+    const candidateHtml = getDescription ? getDescription(equip) : equip?.getDescription ? equip.getDescription() : undefined
+    const compareHtml = currentEquip && currentEquip !== equip ? currentEquip.getDescription?.() : undefined
+    if (candidateHtml) showItemInfo(candidateHtml, compareHtml)
   }
 
   const actionButton = (kind: 'equip' | 'sell', label: string, handler?: (equip: any, event: ReactMouseEvent) => void) => (
@@ -420,8 +438,8 @@ export function EquipmentCell({ equip, selected, disabled, onSelect, onEquip, on
         <span style={iconStyle(active, highLevelGlow)}>{iconText}</span>
         <span style={nameStyle(active)} dangerouslySetInnerHTML={{ __html: getEquipHtml(equip) }} />
         <span style={actionsStyle}>
-          {actionButton('equip', 'E', onEquip)}
-          {actionButton('sell', '$', onSell)}
+          {showEquipAction && actionButton('equip', 'E', onEquip)}
+          {actionButton('sell', sellLabel, onSell)}
         </span>
       </BasicCell>
     </div>

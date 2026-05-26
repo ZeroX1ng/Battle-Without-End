@@ -16,6 +16,7 @@ interface InfoWindowState {
   stringText: string
   stringVisible: boolean
   itemHtml: string
+  compareHtml: string
   itemVisible: boolean
   mouseX: number
   mouseY: number
@@ -24,7 +25,7 @@ interface InfoWindowState {
 interface InfoWindowContextType {
   showStringInfo: (text: string) => void
   hideStringInfo: () => void
-  showItemInfo: (html: string) => void
+  showItemInfo: (html: string, compareHtml?: string) => void
   hideItemInfo: () => void
   updateMouse: (x: number, y: number) => void
 }
@@ -38,6 +39,7 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
     stringText: '',
     stringVisible: false,
     itemHtml: '',
+    compareHtml: '',
     itemVisible: false,
     mouseX: 0,
     mouseY: 0,
@@ -51,12 +53,12 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
     setState(s => ({ ...s, stringVisible: false }))
   }, [])
 
-  const showItemInfo = useCallback((html: string) => {
-    setState(s => ({ ...s, itemHtml: html, itemVisible: true }))
+  const showItemInfo = useCallback((html: string, compareHtml: string = '') => {
+    setState(s => ({ ...s, itemHtml: html, compareHtml, itemVisible: true }))
   }, [])
 
   const hideItemInfo = useCallback(() => {
-    setState(s => ({ ...s, itemVisible: false }))
+    setState(s => ({ ...s, itemVisible: false, compareHtml: '' }))
   }, [])
 
   const updateMouse = useCallback((x: number, y: number) => {
@@ -82,6 +84,7 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
       />
       <ItemInfoWindow
         html={state.itemHtml}
+        compareHtml={state.compareHtml}
         visible={state.itemVisible}
         mouseX={state.mouseX}
         mouseY={state.mouseY}
@@ -163,21 +166,33 @@ function StringInfoWindow({ text, visible, mouseX, mouseY }: StringInfoWindowPro
 
 interface ItemInfoWindowProps {
   html: string
+  compareHtml?: string
   visible: boolean
   mouseX: number
   mouseY: number
 }
 
-function ItemInfoWindow({ html, visible, mouseX, mouseY }: ItemInfoWindowProps) {
+function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: ItemInfoWindowProps) {
   if (!visible || !html) return null
 
   const offsetX = 16
   const offsetY = -10
   const panelWidth = 300
+  const gap = 10
+  const hasCompare = !!compareHtml
 
   // 防止面板超出屏幕右侧
-  const adjustedX = Math.min(mouseX + offsetX, window.innerWidth - panelWidth - 10)
+  const totalWidth = hasCompare ? panelWidth * 2 + gap : panelWidth
+  const adjustedX = Math.min(mouseX + offsetX, window.innerWidth - totalWidth - 10)
   const adjustedY = Math.max(10, mouseY + offsetY)
+  const panelStyle: React.CSSProperties = {
+    width: panelWidth,
+    padding: '8px 10px',
+    background: INFO_BG,
+    border: `1px solid ${GOLD_BORDER}`,
+    borderRadius: 4,
+    boxShadow: `0 0 13px ${GLOW_COLOR}, 0 0 3px ${GOLD_BORDER}`,
+  }
 
   return (
     <div
@@ -185,22 +200,31 @@ function ItemInfoWindow({ html, visible, mouseX, mouseY }: ItemInfoWindowProps) 
         position: 'fixed',
         left: adjustedX,
         top: adjustedY,
-        width: panelWidth,
-        padding: '8px 10px',
-        background: INFO_BG,
-        border: `1px solid ${GOLD_BORDER}`,
-        borderRadius: 4,
-        boxShadow: `0 0 13px ${GLOW_COLOR}, 0 0 3px ${GOLD_BORDER}`,
+        display: 'flex',
+        gap,
+        alignItems: 'flex-start',
         pointerEvents: 'none',
         zIndex: 10001,
       }}
     >
-      <TextField
-        size={16}
-        color="#c8c8d4"
-        multiline
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div style={panelStyle}>
+        <TextField
+          size={16}
+          color="#c8c8d4"
+          multiline
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
+      {hasCompare && (
+        <div style={panelStyle}>
+          <TextField
+            size={16}
+            color="#c8c8d4"
+            multiline
+            dangerouslySetInnerHTML={{ __html: compareHtml }}
+          />
+        </div>
+      )}
     </div>
   )
 }

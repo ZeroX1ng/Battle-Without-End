@@ -67,7 +67,9 @@ export function serializeSave(
 
   // @TITLE
   _loc2_ += '@TITLE:';
-  for (const title of player.titleList) {
+  const playerTitlesByName = new Map(player.titleList.map((title: any) => [title.name, title]));
+  for (const titleDef of TitleList) {
+    const title = playerTitlesByName.get(titleDef.name) ?? (player.title?.name === titleDef.name ? player.title : titleDef);
     _loc2_ += title.save() + ',';
   }
 
@@ -348,11 +350,11 @@ export function deserializeSave(
   // 加载称号
   const titleList: any[] = [];
   for (let i = 0; i < TitleList.length; i++) {
+    const title = { ...TitleList[i] };
     if (i < titleStrs.length && titleStrs[i] !== '') {
-      const title = { ...TitleList[i] };
       title.load(titleStrs[i]);
-      titleList.push(title);
     }
+    titleList.push(title);
   }
 
   // 选择当前称号
