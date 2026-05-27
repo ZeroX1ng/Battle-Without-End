@@ -54,6 +54,8 @@ const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
   { label: '魔攻', getValue: pet => `${Math.floor(pet.magicatt ?? 0)}%` },
 ]
 
+const EQUIP_WINDOW_CONTENT_MAX_HEIGHT = 'min(508px, 100%)'
+
 function getSlotComparison(equip: any): Array<{ name: string; value: number }> {
   const totals = new Map<string, number>()
   for (const stat of [...(equip?.basicStat ?? []), ...(equip?.qualityStat ?? []), ...(equip?.levelStat ?? [])]) {
@@ -127,28 +129,39 @@ export function EquipWindow() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) minmax(150px, 0.78fr)', gap: 8, flex: 1, minHeight: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
-          <div style={{
-            position: 'relative',
-            minHeight: 330,
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01))',
-            overflow: 'hidden',
-          }}>
+      <div
+        data-bwe-equip-scroll-region
+        style={{
+          flex: 1,
+          minHeight: 0,
+          maxHeight: EQUIP_WINDOW_CONTENT_MAX_HEIGHT,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingRight: 2,
+        }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) minmax(150px, 0.78fr)', gap: 8, minHeight: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
             <div style={{
-              position: 'absolute',
-              left: '50%',
-              top: 54,
-              bottom: 58,
-              width: 76,
-              transform: 'translateX(-50%)',
-              border: '1px solid rgba(205, 175, 95, 0.42)',
-              borderRadius: 38,
-              background: 'rgba(255,255,255,0.025)',
-              boxShadow: 'inset 0 0 28px rgba(205, 175, 95, 0.08)',
-            }} />
+              position: 'relative',
+              minHeight: 330,
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01))',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute',
+                left: '50%',
+                top: 54,
+                bottom: 58,
+                width: 76,
+                transform: 'translateX(-50%)',
+                border: '1px solid rgba(205, 175, 95, 0.42)',
+                borderRadius: 38,
+                background: 'rgba(255,255,255,0.025)',
+                boxShadow: 'inset 0 0 28px rgba(205, 175, 95, 0.08)',
+              }} />
 
             {EQUIP_SLOTS.map(({ slot, label, shortLabel }) => {
               const equip = player[slot]
@@ -242,12 +255,14 @@ export function EquipWindow() {
           </section>
         </div>
 
-        <div style={{
+        <div
+          data-bwe-equip-detail-panel
+          style={{
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-md)',
           background: 'var(--color-bg-panel)',
           padding: 10,
-          minHeight: 0,
+          minHeight: 180,
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -275,6 +290,7 @@ export function EquipWindow() {
                   opacity: player.itemList.length >= player.BAGMAX ? 0.55 : 1,
                   fontSize: 12,
                   fontWeight: 700,
+                  flexShrink: 0,
                 }}
               >
                 卸下
@@ -300,6 +316,7 @@ export function EquipWindow() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
