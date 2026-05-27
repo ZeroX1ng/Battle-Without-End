@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-05-25
+Last updated: 2026-05-27
 
 ## 中文
 
@@ -54,6 +54,7 @@ Last updated: 2026-05-25
 | ID | 优先级 | 模块 | 状态 | 规格卡 | 验收 |
 | --- | --- | --- | --- | --- | --- |
 | PLAYTEST-2026-05-25 | Mixed | 试玩发现 follow-up | Queued | `playtest-followups-2026-05-25.md` | 每次只选择一个卡片 ID；先读 AS3，先补/确认 red guard，再做最小修复；最后跑专属 guard、相邻 guard、`npx tsc -b` 和 UI smoke |
+| P1-MONSTER-TITLE-TOOLTIP | P1 | 怪物称号 HTML 浮窗 | Verified | `playtest-followups-2026-05-25.md#p1-monster-title-tooltip` | AS3 `MonsterTitle.description` 只展示 `statMulList` 属性加值/倍率；`assert:monster-title-tooltip`、相邻 monster guards、`npx tsc -b` 和浏览器 smoke 已通过 |
 
 ## English
 
@@ -107,3 +108,4 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 | ID | Priority | Module | Status | Card | Acceptance |
 | --- | --- | --- | --- | --- | --- |
 | PLAYTEST-2026-05-25 | Mixed | Playtest follow-up findings | Queued | `playtest-followups-2026-05-25.md` | Pick one card ID per repair; read AS3 first; add or confirm the red guard; make the smallest repair; then run the dedicated guard, nearby guards, `npx tsc -b`, and UI smoke |
+| P1-MONSTER-TITLE-TOOLTIP | P1 | Monster title HTML tooltip | Verified | `playtest-followups-2026-05-25.md#p1-monster-title-tooltip` | AS3 `MonsterTitle.description` displays only `statMulList` add/multiplier lines; `assert:monster-title-tooltip`, adjacent monster guards, `npx tsc -b`, and browser smoke passed |

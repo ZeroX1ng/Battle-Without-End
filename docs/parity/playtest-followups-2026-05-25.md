@@ -1,6 +1,6 @@
 # BWE Playtest Follow-up Parity Queue - 2026-05-25
 
-Last updated: 2026-05-25
+Last updated: 2026-05-27
 
 ## 中文
 
@@ -26,7 +26,7 @@ Last updated: 2026-05-25
 | `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Needs repair card | `assert:battle-log-sticky-scroll` |
 | `P1-EQUIP-WINDOW-BOUNDS` | P1 | UI repair | 3 | Needs repair card | `assert:equip-window-bounds` |
 | `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Needs repair card | `assert:forge-ui-placement` |
-| `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Needs repair card | `assert:monster-title-tooltip` |
+| `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` |
 | `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Needs repair card | `assert:test-speed-control` |
@@ -197,13 +197,15 @@ Last updated: 2026-05-25
 
 **AS3 Source of Truth:** `MonsterInfoPanel.as`, `MonsterTitle.as`, `MonsterTitleList.as`.
 
-**React Targets:** `MonsterInfoPanel.tsx`, `monsterTitleData.ts`, `InfoWindow.tsx`, existing `assert:monster-data-integrity`, existing `assert:monster-reward`.
+**React Targets:** `MonsterInfoPanel.tsx`, `monsterData.ts`, `InfoWindow.tsx`, existing `assert:monster-data-integrity`, existing `assert:monster-reward`.
 
-**Current Symptom:** 怪物称号只使用浏览器原生 `title` 或信息不足，无法像原版一样展示属性倍率/加值详情。
+**Current Status:** Verified on 2026-05-27. `MonsterInfoPanel` uses the global HTML `InfoWindow` for `MonsterTitle.description` content, and the dedicated guard plus browser smoke cover the behavior.
+
+**Original Symptom:** 怪物称号只使用浏览器原生 `title` 或信息不足，无法像原版一样展示属性倍率/加值详情。
 
 **Red Guard Contract:** 新增 `assert:monster-title-tooltip`，确认怪物称号使用全局 `InfoWindow` HTML 浮窗，内容来自 `MonsterTitle.description` 等价数据，而不是原生 `title` 属性。
 
-**Expected Behavior:** hover 怪物称号时显示包含 HP、攻击、防御、命中、闪避、经验、金币、掉落等加成的 HTML 浮窗；未生成怪物或无称号时不显示错误浮窗。
+**Expected Behavior:** hover 怪物称号时通过 HTML 浮窗显示 AS3 `MonsterTitle.description` 等价内容：逐条展示 `statMulList` 的属性加值/倍率；`xpMul`、`goldMul`、`dropMul` 参与奖励计算但不写入称号 tooltip；未生成怪物或无称号时不显示错误浮窗。
 
 **Forbidden Behavior:** 不允许只保留原生浏览器 tooltip；不允许用硬编码中文描述替代数据模型；不允许 tooltip 影响战斗 tick。
 
@@ -295,7 +297,7 @@ This document turns the 2026-05-25 playtest findings into executable follow-up c
 | `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Needs repair card | `assert:battle-log-sticky-scroll` | Logs follow the bottom only while the user is already at the bottom. |
 | `P1-EQUIP-WINDOW-BOUNDS` | P1 | UI repair | 3 | Needs repair card | `assert:equip-window-bounds` | Equipment stats and actions remain visible through a bounded scroll area. |
 | `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Needs repair card | `assert:forge-ui-placement` | Forge controls live in the fixed lower inventory area like AS3 `ItemWindow.setForge()`. |
-| `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Needs repair card | `assert:monster-title-tooltip` | Monster title hover uses the global HTML info window and displays title modifiers. |
+| `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` | Monster title hover uses the global HTML info window and displays AS3 `MonsterTitle.description` stat modifiers. |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` | A visible `自动保存` slot receives auto-saves without overwriting manual slots. |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` | Visual RAF loops are capped by a shared helper, while 500ms logic ticks remain unchanged. |
 | `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Needs repair card | `assert:test-speed-control` | `1x/2x/5x/10x` debug speed affects loop interval only and is not saved. |

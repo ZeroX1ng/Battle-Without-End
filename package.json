@@ -42,6 +42,7 @@
     "assert:monster-data-immutable": "node scripts/assertMonsterDataImmutable.mjs",
     "assert:monster-data-integrity": "node scripts/assertMonsterDataIntegrityParity.mjs",
     "assert:monster-reward": "node scripts/assertMonsterRewardParity.mjs",
+    "assert:monster-title-tooltip": "node scripts/assertMonsterTitleTooltipParity.mjs",
     "assert:battle-pet-exp-reward": "node scripts/assertBattlePetExpRewardParity.mjs",
     "assert:battle-pet-flow-logs": "node scripts/assertBattlePetFlowLogsParity.mjs",
     "assert:battle-damage-log-death": "node scripts/assertBattleDamageLogDeathParity.mjs",
