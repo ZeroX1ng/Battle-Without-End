@@ -137,7 +137,7 @@ export function ItemWindow() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, flex: 1, overflow: 'hidden' }}>
+      <div style={itemBodyStyle}>
         <div style={{ flex: '1 1 55%', overflowY: 'auto', maxHeight: '100%' }}>
           {items.length === 0
             ? <div style={{ color: 'var(--color-text-dim)', textAlign: 'center', padding: 20 }}>背包是空的</div>
@@ -182,60 +182,80 @@ export function ItemWindow() {
               <span style={{ color: selectedItem.level > 0 ? '#FFD700' : 'var(--color-text-dim)' }}>+{selectedItem.level}</span>
             </div>
 
-            {forgeInfo && !forgeInfo.maxed && (
-              <>
+            <button
+              onClick={() => { dispatch({ type: 'EQUIP_ITEM', item: selectedItem }); setSelectedItem(null); hideItemInfo() }}
+              style={btnStyle('var(--color-blue)')}
+            >
+              穿戴
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div data-bwe-forge-panel="inventory-lower" style={forgePanelStyle}>
+        {selectedItem ? (
+          <>
+            <div style={forgeItemPreviewStyle}>
+              <div
+                style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--color-text-bright)' }}
+                dangerouslySetInnerHTML={{ __html: getItemName(selectedItem) }}
+              />
+              {forgeInfo && !forgeInfo.maxed && (
                 <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>锻造至 +{selectedItem.level + 1}</div>
-                <div style={{ fontSize: 11, color: forgeInfo.rate >= 70 ? 'var(--color-green)' : forgeInfo.rate >= 40 ? 'var(--color-yellow)' : 'var(--color-red)' }}>
-                  成功率 {forgeInfo.rate.toFixed(1)}%
-                </div>
-                <div style={{ fontSize: 11, color: forgeInfo.canAfford ? 'var(--color-yellow)' : 'var(--color-red)' }}>
-                  费用: ${forgeInfo.cost.toLocaleString()}
-                </div>
-              </>
-            )}
-            {forgeInfo?.maxed && (
-              <div style={{ fontSize: 11, color: 'var(--color-green)' }}>已达到最高强化等级 +15</div>
-            )}
+              )}
+              {forgeInfo?.maxed && (
+                <div style={{ fontSize: 11, color: 'var(--color-green)' }}>已达到最高强化等级 +15</div>
+              )}
+            </div>
 
-            <label
-              onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
-              onMouseEnter={(event) => {
-                updateMouse(event.clientX, event.clientY)
-                showStringInfo(autoForgeLabel)
-              }}
-              onMouseLeave={hideStringInfo}
-              style={toggleStyle}
-            >
-              <input
-                type="checkbox"
-                checked={autoEnhance}
-                disabled={!autoForgeTarget}
-                onChange={(event) => setAutoEnhance(event.target.checked)}
-              />
-              {autoForgeLabel}
-            </label>
+            <div style={forgeStatRowStyle}>
+              {forgeInfo && !forgeInfo.maxed ? (
+                <>
+                  <span style={{ color: forgeInfo.rate >= 70 ? 'var(--color-green)' : forgeInfo.rate >= 40 ? 'var(--color-yellow)' : 'var(--color-red)' }}>
+                    成功率 {forgeInfo.rate.toFixed(1)}%
+                  </span>
+                  <span style={{ color: forgeInfo.canAfford ? 'var(--color-yellow)' : 'var(--color-red)' }}>
+                    费用: ${forgeInfo.cost.toLocaleString()}
+                  </span>
+                </>
+              ) : (
+                <span style={{ color: 'var(--color-text-dim)' }}>无可锻造目标</span>
+              )}
+            </div>
 
-            <label
-              onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
-              onMouseEnter={(event) => handleStringHover('音效', event)}
-              onMouseLeave={hideStringInfo}
-              style={toggleStyle}
-            >
-              <input
-                type="checkbox"
-                checked={state.config.sound_toggle}
-                onChange={() => dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })}
-              />
-              音效
-            </label>
-
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              <button
-                onClick={() => { dispatch({ type: 'EQUIP_ITEM', item: selectedItem }); setSelectedItem(null); hideItemInfo() }}
-                style={btnStyle('var(--color-blue)')}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <label
+                onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
+                onMouseEnter={(event) => {
+                  updateMouse(event.clientX, event.clientY)
+                  showStringInfo(autoForgeLabel)
+                }}
+                onMouseLeave={hideStringInfo}
+                style={toggleStyle}
               >
-                穿戴
-              </button>
+                <input
+                  type="checkbox"
+                  checked={autoEnhance}
+                  disabled={!autoForgeTarget}
+                  onChange={(event) => setAutoEnhance(event.target.checked)}
+                />
+                {autoForgeLabel}
+              </label>
+
+              <label
+                onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
+                onMouseEnter={(event) => handleStringHover('音效', event)}
+                onMouseLeave={hideStringInfo}
+                style={toggleStyle}
+              >
+                <input
+                  type="checkbox"
+                  checked={state.config.sound_toggle}
+                  onChange={() => dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })}
+                />
+                音效
+              </label>
+
               <button
                 onClick={handleForge}
                 disabled={!forgeInfo?.canAfford || forgeInfo?.maxed || selectedIdx < 0}
@@ -250,7 +270,9 @@ export function ItemWindow() {
                 学习 Blacksmithing 后可解锁自动锻造。
               </div>
             )}
-          </div>
+          </>
+        ) : (
+          <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>选择背包装备后可锻造</div>
         )}
       </div>
     </div>
@@ -267,6 +289,14 @@ const sortBtnStyle: CSSProperties = {
   padding: '2px 4px',
 }
 
+const itemBodyStyle: CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  flex: 1,
+  minHeight: 0,
+  overflow: 'hidden',
+}
+
 const detailPanelStyle: CSSProperties = {
   flex: '1 1 45%',
   background: 'var(--color-bg-panel)',
@@ -275,6 +305,34 @@ const detailPanelStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 6,
+}
+
+const forgePanelStyle: CSSProperties = {
+  flex: '0 0 118px',
+  marginTop: 8,
+  padding: 8,
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-sm)',
+  background: 'rgba(255, 255, 255, 0.05)',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(120px, 1fr) minmax(150px, 1.1fr) auto',
+  gridAutoRows: 'min-content',
+  alignItems: 'center',
+  gap: 8,
+}
+
+const forgeItemPreviewStyle: CSSProperties = {
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 3,
+}
+
+const forgeStatRowStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 3,
+  fontSize: 11,
 }
 
 const toggleStyle: CSSProperties = {
