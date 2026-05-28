@@ -1,0 +1,60 @@
+name: Release Windows EXE
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: GitHub release tag to publish
+        required: true
+        default: v0.1
+
+permissions:
+  contents: write
+
+jobs:
+  build-win-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run release guards
+        shell: pwsh
+        run: |
+          npm run assert:battle-log-sticky-scroll
+          npm run assert:visual-fps-cap
+          npm run assert:source-encoding
+          npm run assert:text-resources
+          npx tsc -b
+
+      - name: Build Windows portable EXE
+        run: npm run pack:exe
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          $artifact = "release/BWE-0.1.0.exe"
+          if (!(Test-Path $artifact)) {
+            throw "Missing release artifact: $artifact"
+          }
+
+          gh release view $env:TAG --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --target main --draft --title "BWE $env:TAG" --notes "Windows x64 portable single-file executable."
+          }
+
+          gh release upload $env:TAG $artifact --repo $env:GITHUB_REPOSITORY --clobber
+          gh release edit $env:TAG --repo $env:GITHUB_REPOSITORY --draft=false --prerelease=false --latest
