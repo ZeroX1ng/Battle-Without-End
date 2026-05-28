@@ -1,7 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { useGameLoop } from '../../hooks/useGameLoop'
 import { gameTick } from '../../core/systems/GameLoop'
+import {
+  DEFAULT_TEST_SPEED_MULTIPLIER,
+  TEST_SPEED_CONTROL_ENABLED,
+  getTestSpeedIntervalMs,
+  type TestSpeedMultiplier,
+} from '../../core/debug/testSpeedControl'
 import { Map } from '../../core/models/Map'
 import { MapList } from '../../core/data/mapData'
 import { PlayerInfoPanel } from '../panels/PlayerInfoPanel'
@@ -16,6 +22,7 @@ import { MapWindow } from '../windows/MapWindow'
 import { SaveWindow } from '../windows/SaveWindow'
 import { ShopWindow } from '../windows/ShopWindow'
 import { SpecialShopWindow } from '../windows/SpecialShopWindow'
+import { TestSpeedControl } from '../debug/TestSpeedControl'
 import '../../styles/main-scene.css'
 
 const overlayWindows: Record<string, JSX.Element> = {
@@ -28,9 +35,14 @@ const overlayWindows: Record<string, JSX.Element> = {
 
 export function MainScene() {
   const { state, dispatch } = useGameContext()
+  const [testSpeedMultiplier, setTestSpeedMultiplier] = useState<TestSpeedMultiplier>(DEFAULT_TEST_SPEED_MULTIPLIER)
   const stateRef = useRef(state)
   stateRef.current = state
   const overlay = state.ui.activeWindow ? overlayWindows[state.ui.activeWindow] : null
+  const gameLoopIntervalMs = useMemo(
+    () => getTestSpeedIntervalMs(500, testSpeedMultiplier),
+    [testSpeedMultiplier],
+  )
 
   useEffect(() => {
     if (!stateRef.current.battle) {
@@ -43,12 +55,16 @@ export function MainScene() {
     callback: () => {
       gameTick(stateRef.current, dispatch)
     },
-    intervalMs: 500,
+    intervalMs: gameLoopIntervalMs,
     enabled: true,
   })
 
   return (
     <div className="main-scene">
+      {TEST_SPEED_CONTROL_ENABLED && (
+        <TestSpeedControl value={testSpeedMultiplier} onChange={setTestSpeedMultiplier} />
+      )}
+
       <section className="main-scene__player" aria-label="玩家状态">
         <PlayerInfoPanel />
       </section>

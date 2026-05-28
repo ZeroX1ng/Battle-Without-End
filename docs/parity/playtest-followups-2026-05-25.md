@@ -29,7 +29,7 @@ Last updated: 2026-05-27
 | `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` |
-| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Needs repair card | `assert:test-speed-control` |
+| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Verified | `assert:test-speed-control` |
 
 ### `P0-TITLE-SAVE-DATA`
 
@@ -279,6 +279,8 @@ Last updated: 2026-05-27
 
 **Manual Smoke:** 在主场景切换 1x/2x/5x/10x，观察战斗日志和年龄成长进度加速；刷新后确认回到 1x。
 
+**Current Status:** Verified. `MainScene` renders a feature-flagged temporary speed control with `1x/2x/5x/10x`, derives only the `useGameLoop` interval from the selected multiplier, defaults to `1x`, and leaves save/config state untouched.
+
 ## English
 
 ### How To Use
@@ -300,7 +302,7 @@ This document turns the 2026-05-25 playtest findings into executable follow-up c
 | `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` | Monster title hover uses the global HTML info window and displays AS3 `MonsterTitle.description` stat modifiers. |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` | A visible `自动保存` slot receives auto-saves without overwriting manual slots. |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` | Visual RAF loops are capped by a shared helper, while 500ms logic ticks remain unchanged. |
-| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Needs repair card | `assert:test-speed-control` | `1x/2x/5x/10x` debug speed affects loop interval only and is not saved. |
+| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Verified | `assert:test-speed-control` | `1x/2x/5x/10x` debug speed affects loop interval only and is not saved. |
 
 ### Implementation Notes
 

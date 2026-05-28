@@ -52,6 +52,37 @@
   cursor: pointer;
 }
 
+.test-speed-control {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  display: inline-grid;
+  grid-template-columns: repeat(4, 34px);
+  gap: 4px;
+  padding: 4px;
+  background: rgba(25, 25, 25, 0.82);
+  border: 1px solid var(--color-border);
+}
+
+.test-speed-control__button {
+  width: 34px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-panel);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.test-speed-control__button[aria-pressed="true"] {
+  background: var(--color-accent);
+  color: var(--color-bg-dark);
+  font-weight: 700;
+}
+
 .main-scene__player,
 .main-scene__battle,
 .main-scene__other,

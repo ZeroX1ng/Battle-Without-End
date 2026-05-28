@@ -37,6 +37,7 @@
     "assert:equip-window-bounds": "node scripts/assertEquipWindowBoundsParity.mjs",
     "assert:drop-filter-auto-sell": "node scripts/assertDropFilterAutoSellParity.mjs",
     "assert:age-growth-visible": "node scripts/assertAgeGrowthVisibleParity.mjs",
+    "assert:test-speed-control": "node scripts/assertTestSpeedControlParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
     "assert:monster-data-immutable": "node scripts/assertMonsterDataImmutable.mjs",
