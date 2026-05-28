@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
+import { createVisualFrameScheduler } from '../../utils/visualFrame'
 
 interface ScrollPanelProps {
   height?: number
@@ -17,7 +18,6 @@ export function ScrollPanel({ height = 400, enableBlur = true, children, style }
   const isDraggingRef = useRef(false)
   const dragAnchorYRef = useRef(0)
   const dragAnchorScrollRef = useRef(0)
-  const rafRef = useRef(0)
 
   const [scrollY, setScrollY] = useState(0)
   const [contentH, setContentH] = useState(0)
@@ -46,6 +46,7 @@ export function ScrollPanel({ height = 400, enableBlur = true, children, style }
 
   useEffect(() => {
     let active = true
+    const scheduler = createVisualFrameScheduler()
     const tick = () => {
       if (!active) return
 
@@ -86,10 +87,10 @@ export function ScrollPanel({ height = 400, enableBlur = true, children, style }
         setShowBottomFade(scrollYRef.current > -(maxScroll - 0.5))
       }
 
-      rafRef.current = requestAnimationFrame(tick)
+      scheduler.request(tick)
     }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => { active = false; cancelAnimationFrame(rafRef.current) }
+    scheduler.request(tick)
+    return () => { active = false; scheduler.cancel() }
   }, [maxScroll, canScroll, clamp, enableBlur])
 
   const handleWheel = useCallback((e: React.WheelEvent) => {

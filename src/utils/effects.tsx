@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { DEFAULT_VISUAL_FRAME_MS, createVisualFrameScheduler } from './visualFrame'
 
 export const DEFAULT_FADE_FRAME_COUNT = 10
 export const DEFAULT_GRADIENT_FRAME_COUNT = 30
@@ -7,7 +8,7 @@ export const HIDE_MESSAGE_FADE_THRESHOLD = 50
 export const HIDE_MESSAGE_FINALIZE_THRESHOLD = 20
 export const HIDE_MESSAGE_BLUR = 4
 
-const FRAME_MS = 1000 / 60
+const FRAME_MS = DEFAULT_VISUAL_FRAME_MS
 
 type FadeOptions = {
   frameCount?: number
@@ -34,7 +35,7 @@ export function requestFrameFade(
   { frameCount = DEFAULT_FADE_FRAME_COUNT, onComplete, restoreInteractivity: shouldRestore = false }: FadeOptions = {},
 ) {
   let frame = 0
-  let rafId = 0
+  const scheduler = createVisualFrameScheduler()
   const totalFrames = Math.max(1, frameCount)
 
   el.style.opacity = String(from)
@@ -45,7 +46,7 @@ export function requestFrameFade(
     el.style.opacity = String(from + (to - from) * progress)
 
     if (progress < 1) {
-      rafId = requestAnimationFrame(step)
+      scheduler.request(step)
       return
     }
 
@@ -55,9 +56,9 @@ export function requestFrameFade(
     onComplete?.()
   }
 
-  rafId = requestAnimationFrame(step)
+  scheduler.request(step)
 
-  return () => cancelAnimationFrame(rafId)
+  return () => scheduler.cancel()
 }
 
 export function useFadeIn(frameCount: number = DEFAULT_FADE_FRAME_COUNT) {
@@ -323,7 +324,6 @@ export function ExplodeOut({
   onComplete?: () => void
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animRef = useRef<number>(0)
   const fadeCancelRef = useRef<(() => void) | null>(null)
   const particlesRef = useRef<HideMessageParticleState[]>([])
   const [visible, setVisible] = useState(false)
@@ -356,6 +356,7 @@ export function ExplodeOut({
     setVisible(true)
 
     let out = false
+    const scheduler = createVisualFrameScheduler()
 
     const animate = () => {
       ctx.save()
@@ -376,21 +377,21 @@ export function ExplodeOut({
             onComplete,
           })
         }
-        animRef.current = requestAnimationFrame(animate)
+        scheduler.request(animate)
         return
       }
 
-      cancelAnimationFrame(animRef.current)
+      scheduler.cancel()
       setVisible(false)
       if (!out) {
         onComplete?.()
       }
     }
 
-    animRef.current = requestAnimationFrame(animate)
+    scheduler.request(animate)
 
     return () => {
-      cancelAnimationFrame(animRef.current)
+      scheduler.cancel()
       fadeCancelRef.current?.()
       particlesRef.current = []
     }
@@ -423,7 +424,6 @@ export function TextDisperse({
   onComplete?: () => void
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animRef = useRef<number>(0)
   const fadeCancelRef = useRef<(() => void) | null>(null)
   const particlesRef = useRef<HideMessageParticleState[]>([])
   const [visible, setVisible] = useState(false)
@@ -464,6 +464,7 @@ export function TextDisperse({
     if (!ctx2) return
 
     let out = false
+    const scheduler = createVisualFrameScheduler()
 
     const animate = () => {
       ctx2.save()
@@ -484,21 +485,21 @@ export function TextDisperse({
             onComplete,
           })
         }
-        animRef.current = requestAnimationFrame(animate)
+        scheduler.request(animate)
         return
       }
 
-      cancelAnimationFrame(animRef.current)
+      scheduler.cancel()
       setVisible(false)
       if (!out) {
         onComplete?.()
       }
     }
 
-    animRef.current = requestAnimationFrame(animate)
+    scheduler.request(animate)
 
     return () => {
-      cancelAnimationFrame(animRef.current)
+      scheduler.cancel()
       fadeCancelRef.current?.()
       particlesRef.current = []
     }
@@ -531,16 +532,16 @@ export function useFPSShow() {
       countRef.current = 0
     }, 1000)
 
-    let rafId = 0
+    const scheduler = createVisualFrameScheduler()
     const onFrame = () => {
       countRef.current += 1
-      rafId = requestAnimationFrame(onFrame)
+      scheduler.request(onFrame)
     }
-    rafId = requestAnimationFrame(onFrame)
+    scheduler.request(onFrame)
 
     return () => {
       window.clearInterval(interval)
-      cancelAnimationFrame(rafId)
+      scheduler.cancel()
     }
   }, [])
 

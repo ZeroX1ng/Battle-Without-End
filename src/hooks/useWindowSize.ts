@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createVisualFrameScheduler } from '../utils/visualFrame'
 
 export function useWindowSize() {
   const [size, setSize] = useState({
@@ -7,11 +8,11 @@ export function useWindowSize() {
   })
 
   useEffect(() => {
-    let rafId = 0
+    const scheduler = createVisualFrameScheduler()
 
     const handleResize = () => {
-      if (rafId) cancelAnimationFrame(rafId)
-      rafId = requestAnimationFrame(() => {
+      scheduler.cancel()
+      scheduler.request(() => {
         setSize({
           width: window.innerWidth,
           height: window.innerHeight,
@@ -22,7 +23,7 @@ export function useWindowSize() {
     window.addEventListener('resize', handleResize)
     return () => {
       window.removeEventListener('resize', handleResize)
-      if (rafId) cancelAnimationFrame(rafId)
+      scheduler.cancel()
     }
   }, [])
 
