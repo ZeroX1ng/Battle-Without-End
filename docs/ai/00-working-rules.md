@@ -1,6 +1,6 @@
 # BWE AI Working Rules
 
-Last updated: 2026-05-19
+Last updated: 2026-05-29
 
 ## 中文
 
@@ -13,6 +13,7 @@ Last updated: 2026-05-19
 - `reference/as3/BOE-O` 是唯一行为源。任何规则、公式、默认值、列表顺序、掉落池、技能限制和状态流转，都必须先读 AS3，再改 React。
 - 视觉相似不等于完成。按钮、窗口和面板存在，只能说明 UI 有入口；必须继续验证它是否消费了真实业务状态。
 - 禁止 AI 自创规则。不能用“更合理”“更现代”“React 更方便”的规则替代 AS3 原逻辑。
+- 行为保真是外部契约，不是要求照搬 AS3 内部反模式。内部实现可以按 React/TypeScript 的结构健康边界调整，但必须用 guard 证明玩家可见行为仍与 AS3 一致，并在文档中记录 intentional divergence / architecture boundary。
 - 禁止跳过源文件对照。每个改动说明都要列出读过的 AS3 文件和 React 目标文件。
 - 一次只修一个 P0 行为。不要把战斗、装备、技能、地图和 UI 外观混在一个大改里。
 - 先写或确认可执行验收，再修复。已有 guard 要复用；缺 guard 时先新增最小红色断言。
@@ -67,6 +68,7 @@ This project migrates a decompiled SWF/AS3 game from `reference/as3/BOE-O` into 
 - `reference/as3/BOE-O` is the only behavior source of truth. Read AS3 before changing rules, formulas, defaults, list order, drop pools, skill restrictions, or state transitions.
 - Visual similarity is not completion. A component or button only proves an entry point exists; it must still be verified against real business behavior.
 - Do not invent new rules. Do not replace AS3 behavior with something that feels more reasonable, modern, or React-friendly.
+- Behavioral parity is an external contract, not a requirement to copy AS3 internal anti-patterns. Internal implementation may follow healthy React/TypeScript architecture boundaries, but guards must prove the same player-visible AS3 behavior and docs must record any intentional divergence / architecture boundary.
 - Do not skip source comparison. Every implementation note must list the AS3 files inspected and the React files changed.
 - Fix one P0 behavior at a time. Do not mix battle, equipment, skills, map flow, and visual polish in one large pass.
 - Confirm executable acceptance before repair. Reuse existing guards; when a guard is missing, add the smallest red assertion first.
