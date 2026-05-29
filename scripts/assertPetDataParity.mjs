@@ -1,9 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { resolveAs3Path } from './lib/as3Source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-const as3Root = resolve(root, '..', 'BOE-O', 'scripts');
+const as3Root = resolveAs3Path('scripts');
 const outRoot = join(root, '.tmp-pet-data-test');
 
 const expectedRealNamesByLegacyId = {

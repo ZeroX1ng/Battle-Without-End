@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const playerOutRoot = join(root, '.tmp-start-character-age-player');
@@ -88,12 +89,12 @@ function calculateAs3Stat(race, age) {
 }
 
 try {
-  const as3RaceList = read('../BOE-O/scripts/iData/RaceList.as');
-  const as3Race = read('../BOE-O/scripts/iData/Race.as');
-  const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-  const as3MainTimeline = read('../BOE-O/scripts/Main_fla/MainTimeline.as');
-  const as3MainScene = read('../BOE-O/scripts/iPanel/iScene/MainScene.as');
-  const as3RaceScene = read('../BOE-O/scripts/iPanel/iScene/RaceScene.as');
+  const as3RaceList = readAs3('scripts/iData/RaceList.as');
+  const as3Race = readAs3('scripts/iData/Race.as');
+  const as3Player = readAs3('scripts/iGlobal/Player.as');
+  const as3MainTimeline = readAs3('scripts/Main_fla/MainTimeline.as');
+  const as3MainScene = readAs3('scripts/iPanel/iScene/MainScene.as');
+  const as3RaceScene = readAs3('scripts/iPanel/iScene/RaceScene.as');
   const reactRaceScene = read('src/components/scenes/RaceScene.tsx');
   const reactGameContext = read('src/state/GameContext.tsx');
   const reactMainScene = read('src/components/scenes/MainScene.tsx');

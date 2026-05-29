@@ -10,11 +10,11 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/RaceList.as`
-- `../BOE-O/scripts/iData/Race.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/Main_fla/MainTimeline.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iData/RaceList.as`
+- `reference/as3/BOE-O/scripts/iData/Race.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/Main_fla/MainTimeline.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
 
 ### React Targets
 
@@ -76,11 +76,11 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/RaceList.as`
-- `../BOE-O/scripts/iData/Race.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/Main_fla/MainTimeline.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iData/RaceList.as`
+- `reference/as3/BOE-O/scripts/iData/Race.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/Main_fla/MainTimeline.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
 
 ### React Targets
 

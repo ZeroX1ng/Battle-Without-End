@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveAs3Path } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const as3Root = join(root, '..', 'BOE-O', 'scripts');
+const as3Root = resolveAs3Path('scripts');
 
 function read(relativePath) {
   const filePath = join(root, relativePath);

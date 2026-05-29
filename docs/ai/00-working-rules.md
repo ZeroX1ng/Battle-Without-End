@@ -6,11 +6,11 @@ Last updated: 2026-05-19
 
 ### 目标
 
-本项目是从反编译 SWF/AS3 源码 `../BOE-O` 迁移到 React/TypeScript 的行为还原项目。AI 的目标不是写一个“风格类似”的新游戏，而是让 `BWE` 在规则、状态、数值、日志、资源和窗口行为上逐项贴近 AS3 原作。
+本项目是从反编译 SWF/AS3 源码 `reference/as3/BOE-O` 迁移到 React/TypeScript 的行为还原项目。AI 的目标不是写一个“风格类似”的新游戏，而是让 `BWE` 在规则、状态、数值、日志、资源和窗口行为上逐项贴近 AS3 原作。
 
 ### 硬性规则
 
-- `../BOE-O` 是唯一行为源。任何规则、公式、默认值、列表顺序、掉落池、技能限制和状态流转，都必须先读 AS3，再改 React。
+- `reference/as3/BOE-O` 是唯一行为源。任何规则、公式、默认值、列表顺序、掉落池、技能限制和状态流转，都必须先读 AS3，再改 React。
 - 视觉相似不等于完成。按钮、窗口和面板存在，只能说明 UI 有入口；必须继续验证它是否消费了真实业务状态。
 - 禁止 AI 自创规则。不能用“更合理”“更现代”“React 更方便”的规则替代 AS3 原逻辑。
 - 禁止跳过源文件对照。每个改动说明都要列出读过的 AS3 文件和 React 目标文件。
@@ -60,11 +60,11 @@ Last updated: 2026-05-19
 
 ### Purpose
 
-This project migrates a decompiled SWF/AS3 game from `../BOE-O` into React/TypeScript. The AI goal is not to create a visually similar new game. The goal is step-by-step parity with the AS3 source in rules, state ownership, numbers, logs, assets, and window behavior.
+This project migrates a decompiled SWF/AS3 game from `reference/as3/BOE-O` into React/TypeScript. The AI goal is not to create a visually similar new game. The goal is step-by-step parity with the AS3 source in rules, state ownership, numbers, logs, assets, and window behavior.
 
 ### Hard Rules
 
-- `../BOE-O` is the only behavior source of truth. Read AS3 before changing rules, formulas, defaults, list order, drop pools, skill restrictions, or state transitions.
+- `reference/as3/BOE-O` is the only behavior source of truth. Read AS3 before changing rules, formulas, defaults, list order, drop pools, skill restrictions, or state transitions.
 - Visual similarity is not completion. A component or button only proves an entry point exists; it must still be verified against real business behavior.
 - Do not invent new rules. Do not replace AS3 behavior with something that feels more reasonable, modern, or React-friendly.
 - Do not skip source comparison. Every implementation note must list the AS3 files inspected and the React files changed.

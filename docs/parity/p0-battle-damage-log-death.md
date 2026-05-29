@@ -10,11 +10,11 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as`
 
 ### React Targets
 
@@ -78,11 +78,11 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as`
 
 ### React Targets
 

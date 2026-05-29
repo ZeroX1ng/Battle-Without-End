@@ -10,10 +10,10 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iData/iMonster/Monster.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iPet/Pet.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Monster.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iPet/Pet.as`
 
 ### React Targets
 
@@ -83,10 +83,10 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iData/iMonster/Monster.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iPet/Pet.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Monster.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iPet/Pet.as`
 
 ### React Targets
 

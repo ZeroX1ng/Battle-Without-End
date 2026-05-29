@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-battle-pet-exp-reward');
@@ -103,10 +104,10 @@ function createMap() {
   };
 }
 
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3Monster = read('../BOE-O/scripts/iData/iMonster/Monster.as');
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3Pet = read('../BOE-O/scripts/iData/iPet/Pet.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3Pet = readAs3('scripts/iData/iPet/Pet.as');
 const battleModelSource = read('src/core/models/Battle.ts');
 const monsterModelSource = read('src/core/models/Monster.ts');
 const playerModelSource = read('src/core/models/Player.ts');

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -35,7 +36,7 @@ function getCase(source, actionType) {
   return source.slice(start, next < 0 ? source.indexOf('\n    default:', start) : next);
 }
 
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
 const gameContext = read('src/state/GameContext.tsx');
 const packageJson = JSON.parse(read('package.json'));
 const battleTick = getCase(gameContext, 'BATTLE_TICK');

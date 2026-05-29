@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-monster-data-integrity');
@@ -89,14 +90,14 @@ function parseMapMonsterRefs(source) {
   return [...new Set([...source.matchAll(/MonsterList\.([A-Za-z0-9_]+)/g)].map(match => match[1]))];
 }
 
-const as3MonsterListSource = read('../BOE-O/scripts/iData/iMonster/MonsterList.as');
-const as3MonsterDataSource = read('../BOE-O/scripts/iData/iMonster/MonsterData.as');
-const as3MonsterTitleListSource = read('../BOE-O/scripts/iData/iMonster/MonsterTitleList.as');
-const as3MonsterTitleSource = read('../BOE-O/scripts/iData/iMonster/MonsterTitle.as');
-const as3StatMulSource = read('../BOE-O/scripts/iData/iMonster/StatMul.as');
-const as3PetDataListSource = read('../BOE-O/scripts/iData/iPet/PetDataList.as');
-const as3PetTypeListSource = read('../BOE-O/scripts/iData/iPet/PetTypeList.as');
-const as3MapListSource = read('../BOE-O/scripts/iData/iMap/MapList.as');
+const as3MonsterListSource = readAs3('scripts/iData/iMonster/MonsterList.as');
+const as3MonsterDataSource = readAs3('scripts/iData/iMonster/MonsterData.as');
+const as3MonsterTitleListSource = readAs3('scripts/iData/iMonster/MonsterTitleList.as');
+const as3MonsterTitleSource = readAs3('scripts/iData/iMonster/MonsterTitle.as');
+const as3StatMulSource = readAs3('scripts/iData/iMonster/StatMul.as');
+const as3PetDataListSource = readAs3('scripts/iData/iPet/PetDataList.as');
+const as3PetTypeListSource = readAs3('scripts/iData/iPet/PetTypeList.as');
+const as3MapListSource = readAs3('scripts/iData/iMap/MapList.as');
 const packageJson = JSON.parse(read('package.json'));
 
 assert(as3MonsterDataSource.includes('this.name = param1;'), 'AS3 MonsterData.name must come from constructor parameter 1');

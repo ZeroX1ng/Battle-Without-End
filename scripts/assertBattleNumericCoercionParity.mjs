@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-battle-numeric-coercion');
@@ -40,11 +41,11 @@ function withRandom(value, fn) {
   }
 }
 
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3Monster = read('../BOE-O/scripts/iData/iMonster/Monster.as');
-const as3Pet = read('../BOE-O/scripts/iData/iPet/Pet.as');
-const as3MyMath = read('../BOE-O/scripts/tool/MyMath.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
+const as3Pet = readAs3('scripts/iData/iPet/Pet.as');
+const as3MyMath = readAs3('scripts/tool/MyMath.as');
 const packageJson = JSON.parse(read('package.json'));
 
 assertIncludes(as3Player, 'public static function get attMin() : int', 'AS3 Player.attMin must be an int getter');

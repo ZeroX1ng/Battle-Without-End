@@ -9,6 +9,7 @@
     "dev": "vite --config vite.config.mjs --configLoader native",
     "build": "tsc -b && vite build --config vite.config.mjs --configLoader native",
     "pack:exe": "npm run build && electron-builder --win portable --x64",
+    "assert:preflight": "node scripts/assertPreflight.mjs",
     "assert:other-panel": "node scripts/assertOtherPanelParity.mjs",
     "assert:other-window-children": "node scripts/assertOtherWindowChildrenParity.mjs",
     "assert:other-window-overlay": "node scripts/assertOtherWindowOverlayParity.mjs",

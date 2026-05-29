@@ -14,9 +14,9 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as` - 500ms `Timer`、`run()`、`caculate` 累加、60/600/2401 tick 信号与怪物重生。
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as` - 主场景创建 Battle 并保持战斗循环运行。
-- `../BOE-O/scripts/iGlobal/Player.as` - `ageUp()`、`save()` 等由 tick 信号触发的玩家状态变化。
+- `reference/as3/BOE-O/scripts/iData/Battle.as` - 500ms `Timer`、`run()`、`caculate` 累加、60/600/2401 tick 信号与怪物重生。
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as` - 主场景创建 Battle 并保持战斗循环运行。
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `ageUp()`、`save()` 等由 tick 信号触发的玩家状态变化。
 
 ### React Targets
 
@@ -112,9 +112,9 @@ This card only covers lifecycle parity between AS3 `Battle.run()` heartbeat beha
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/Battle.as` - 500ms `Timer`, `run()`, `caculate`, 60/600/2401 tick signals, and monster respawn.
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as` - main-scene Battle creation and continuous battle loop.
-- `../BOE-O/scripts/iGlobal/Player.as` - player changes triggered by tick signals, such as `ageUp()` and `save()`.
+- `reference/as3/BOE-O/scripts/iData/Battle.as` - 500ms `Timer`, `run()`, `caculate`, 60/600/2401 tick signals, and monster respawn.
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as` - main-scene Battle creation and continuous battle loop.
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - player changes triggered by tick signals, such as `ageUp()` and `save()`.
 
 ### React Targets
 

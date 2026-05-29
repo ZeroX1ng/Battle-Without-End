@@ -14,9 +14,9 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMap/MapList.as` - 16 张地图的 `x`、`y`、`name`、`realName`、`modifier`、`monsterList`、`petList`
-- `../BOE-O/scripts/iData/iMap/MapData.as` - `monsterList` 和 `petList` 均为构造参数和实例字段
-- `../BOE-O/scripts/iData/iMap/Map.as` - `averageCp:int`、`setAverageCp()` 和 `getBoss()` 行为
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as` - 16 张地图的 `x`、`y`、`name`、`realName`、`modifier`、`monsterList`、`petList`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapData.as` - `monsterList` 和 `petList` 均为构造参数和实例字段
+- `reference/as3/BOE-O/scripts/iData/iMap/Map.as` - `averageCp:int`、`setAverageCp()` 和 `getBoss()` 行为
 
 ### React Targets
 
@@ -110,9 +110,9 @@ This card only covers static map data and `Map` model behavior. It does not cove
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMap/MapList.as` - all 16 maps' `x`, `y`, `name`, `realName`, `modifier`, `monsterList`, and `petList`
-- `../BOE-O/scripts/iData/iMap/MapData.as` - `monsterList` and `petList` as constructor parameters and instance fields
-- `../BOE-O/scripts/iData/iMap/Map.as` - `averageCp:int`, `setAverageCp()`, and `getBoss()`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as` - all 16 maps' `x`, `y`, `name`, `realName`, `modifier`, `monsterList`, and `petList`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapData.as` - `monsterList` and `petList` as constructor parameters and instance fields
+- `reference/as3/BOE-O/scripts/iData/iMap/Map.as` - `averageCp:int`, `setAverageCp()`, and `getBoss()`
 
 ### React Targets
 

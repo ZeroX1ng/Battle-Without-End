@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -38,7 +39,7 @@ function assertCaseSyncsBattle(source, actionType) {
 
 const gameContext = read('src/state/GameContext.tsx');
 const battleModel = read('src/core/models/Battle.ts');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
 
 assertIncludes(as3Battle, '++Player.caculate;', 'AS3 Battle.run must mutate the global Player timer');
 assertIncludes(as3Battle, 'Player.ageup();', 'AS3 Battle.run must age the global Player directly');

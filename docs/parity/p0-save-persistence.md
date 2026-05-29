@@ -14,9 +14,9 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as` - `save()`、`manuallySave()`、`load()`、`manualLoad()`、`burn()` 结尾保存。
-- `../BOE-O/scripts/iData/Battle.as` - 每 60 tick 自动调用 `Player.save()`。
-- `../BOE-O/scripts/iPanel/iScene/SaveScene.as` - 槽位选择、角色名输入和进入主场景前的存档前置流程。
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `save()`、`manuallySave()`、`load()`、`manualLoad()`、`burn()` 结尾保存。
+- `reference/as3/BOE-O/scripts/iData/Battle.as` - 每 60 tick 自动调用 `Player.save()`。
+- `reference/as3/BOE-O/scripts/iPanel/iScene/SaveScene.as` - 槽位选择、角色名输入和进入主场景前的存档前置流程。
 
 ### React Targets
 
@@ -108,9 +108,9 @@ This card only covers save-write lifecycle behavior, missing-slot handling, name
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as` - `save()`, `manuallySave()`, `load()`, `manualLoad()`, and the final save in `burn()`.
-- `../BOE-O/scripts/iData/Battle.as` - automatic `Player.save()` every 60 ticks.
-- `../BOE-O/scripts/iPanel/iScene/SaveScene.as` - slot selection, player-name entry, and the save prerequisites before entering the main scene.
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `save()`, `manuallySave()`, `load()`, `manualLoad()`, and the final save in `burn()`.
+- `reference/as3/BOE-O/scripts/iData/Battle.as` - automatic `Player.save()` every 60 ticks.
+- `reference/as3/BOE-O/scripts/iPanel/iScene/SaveScene.as` - slot selection, player-name entry, and the save prerequisites before entering the main scene.
 
 ### React Targets
 

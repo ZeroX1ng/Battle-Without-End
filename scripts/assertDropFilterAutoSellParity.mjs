@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-drop-filter-auto-sell');
@@ -108,11 +109,11 @@ function createPlayerState() {
   };
 }
 
-const as3Global = read('../BOE-O/scripts/iGlobal/Global.as');
-const as3SystemWindow = read('../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SystemWindow.as');
-const as3Monster = read('../BOE-O/scripts/iData/iMonster/Monster.as');
-const as3Boss = read('../BOE-O/scripts/iData/iMonster/Boss.as');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
+const as3Global = readAs3('scripts/iGlobal/Global.as');
+const as3SystemWindow = readAs3('scripts/iPanel/iScene/iPanel/iWindow/SystemWindow.as');
+const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
+const as3Boss = readAs3('scripts/iData/iMonster/Boss.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
 const monsterModel = read('src/core/models/Monster.ts');
 const battleModel = read('src/core/models/Battle.ts');
 const packageJson = JSON.parse(read('package.json'));

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-title-data-save');
@@ -64,9 +65,9 @@ function decodeSections(base64Decode, saveString) {
   return sections;
 }
 
-const as3TitleList = read('../BOE-O/scripts/iData/iPlayer/TitleList.as');
-const as3Title = read('../BOE-O/scripts/iData/iPlayer/Title.as');
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
+const as3TitleList = readAs3('scripts/iData/iPlayer/TitleList.as');
+const as3Title = readAs3('scripts/iData/iPlayer/Title.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
 const saveSystemSource = read('src/core/systems/SaveSystem.ts');
 const playerSource = read('src/core/models/Player.ts');
 const packageJson = JSON.parse(read('package.json'));

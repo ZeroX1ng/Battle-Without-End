@@ -10,15 +10,15 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iPanel/iScene/SaveScene.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as`
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iData/RaceList.as`
-- `../BOE-O/scripts/iData/iItem/Equipment.as`
-- `../BOE-O/scripts/iData/iMonster/Monster.as`
-- `../BOE-O/scripts/iData/iMonster/Boss.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/SaveScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iData/RaceList.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Equipment.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Monster.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Boss.as`
 
 ### React Targets
 
@@ -108,15 +108,15 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iPanel/iScene/SaveScene.as`
-- `../BOE-O/scripts/iPanel/iScene/MainScene.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as`
-- `../BOE-O/scripts/iData/Battle.as`
-- `../BOE-O/scripts/iData/RaceList.as`
-- `../BOE-O/scripts/iData/iItem/Equipment.as`
-- `../BOE-O/scripts/iData/iMonster/Monster.as`
-- `../BOE-O/scripts/iData/iMonster/Boss.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/SaveScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iData/Battle.as`
+- `reference/as3/BOE-O/scripts/iData/RaceList.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Equipment.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Monster.as`
+- `reference/as3/BOE-O/scripts/iData/iMonster/Boss.as`
 
 ### React Targets
 

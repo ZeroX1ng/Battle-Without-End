@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-save-load-runtime-continuity');
@@ -72,15 +73,15 @@ const persistedToggleKeys = [
   'ring', 'necklace', 'sound',
 ];
 
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3SaveScene = read('../BOE-O/scripts/iPanel/iScene/SaveScene.as');
-const as3MainScene = read('../BOE-O/scripts/iPanel/iScene/MainScene.as');
-const as3AllInfoInnerPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3RaceList = read('../BOE-O/scripts/iData/RaceList.as');
-const as3Equipment = read('../BOE-O/scripts/iData/iItem/Equipment.as');
-const as3Monster = read('../BOE-O/scripts/iData/iMonster/Monster.as');
-const as3Boss = read('../BOE-O/scripts/iData/iMonster/Boss.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3SaveScene = readAs3('scripts/iPanel/iScene/SaveScene.as');
+const as3MainScene = readAs3('scripts/iPanel/iScene/MainScene.as');
+const as3AllInfoInnerPanel = readAs3('scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3RaceList = readAs3('scripts/iData/RaceList.as');
+const as3Equipment = readAs3('scripts/iData/iItem/Equipment.as');
+const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
+const as3Boss = readAs3('scripts/iData/iMonster/Boss.as');
 
 const saveSystem = read('src/core/systems/SaveSystem.ts');
 const base64 = read('src/core/utils/Base64.ts');

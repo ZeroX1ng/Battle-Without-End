@@ -14,12 +14,12 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18 个技能的 `list` 顺序、`statList`、`effectList`、`lvupCostList`、`setList` 硬编码值
-- `../BOE-O/scripts/iData/iSkill/SkillData.as` - 技能数据基类字段
-- `../BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - 被动技能数据类型
-- `../BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - 主动技能数据类型和 `setList`
-- `../BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` 根据 AS3 数据类型创建 `PassiveSkill` / `ActiveSkill`
-- `../BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` 消费 `statList` / `effectList`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18 个技能的 `list` 顺序、`statList`、`effectList`、`lvupCostList`、`setList` 硬编码值
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillData.as` - 技能数据基类字段
+- `reference/as3/BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - 被动技能数据类型
+- `reference/as3/BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - 主动技能数据类型和 `setList`
+- `reference/as3/BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` 根据 AS3 数据类型创建 `PassiveSkill` / `ActiveSkill`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` 消费 `statList` / `effectList`
 
 ### React Targets
 
@@ -111,12 +111,12 @@ This card only covers static skill data and typed `Skill.load()` restoration. It
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18-skill `list` order, `statList`, `effectList`, `lvupCostList`, and `setList`
-- `../BOE-O/scripts/iData/iSkill/SkillData.as` - base skill-data fields
-- `../BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - passive skill data type
-- `../BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - active skill data type and `setList`
-- `../BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` creating `PassiveSkill` / `ActiveSkill`
-- `../BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` consuming `statList` / `effectList`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillDataList.as` - 18-skill `list` order, `statList`, `effectList`, `lvupCostList`, and `setList`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillData.as` - base skill-data fields
+- `reference/as3/BOE-O/scripts/iData/iSkill/PassiveSkillData.as` - passive skill data type
+- `reference/as3/BOE-O/scripts/iData/iSkill/ActiveSkillData.as` - active skill data type and `setList`
+- `reference/as3/BOE-O/scripts/iData/iSkill/Skill.as` - `Skill.load()` creating `PassiveSkill` / `ActiveSkill`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `updateSkillInfo()` consuming `statList` / `effectList`
 
 ### React Targets
 

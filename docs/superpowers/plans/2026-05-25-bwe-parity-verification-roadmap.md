@@ -6,7 +6,7 @@
 
 **Architecture:** Use browser smoke and structured play sessions to discover parity gaps, then convert each confirmed gap into one AS3-first repair card. Repairs stay narrow: read the listed AS3 source, add or confirm a focused guard, apply the smallest React fix, run nearby acceptance checks, capture visible evidence, and update the manifest.
 
-**Tech Stack:** React 18, TypeScript 5.6, Vite 6, Node parity scripts under `scripts/*.mjs`, AS3 source under `C:\Users\zero_\Desktop\bwe-r\BOE-O`, React target under `C:\Users\zero_\Desktop\bwe-r\BWE`.
+**Tech Stack:** React 18, TypeScript 5.6, Vite 6, Node parity scripts under `scripts/*.mjs`, AS3 source under `reference/as3/BOE-O`, React target under `.`.
 
 ---
 
@@ -19,13 +19,13 @@ Dear Master 后续可以直接用这些编号派活：
 要求：先读计划列出的 AS3 和 parity card，只处理这一项，完成后报告 guard、tsc、浏览器 smoke 证据。
 ```
 
-每次只执行一个编号。执行完成后，把该编号的结论更新到 `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`，如果发现新问题，先记录为 `V2-*` 或新 parity card，不顺手扩大修复范围。
+每次只执行一个编号。执行完成后，把该编号的结论更新到 `docs/parity/manifest.md`，如果发现新问题，先记录为 `V2-*` 或新 parity card，不顺手扩大修复范围。
 
 ## Plan Table / 计划总表
 
 | ID | Phase | Purpose | Primary Source | Verification Gate | Done State |
 | --- | --- | --- | --- | --- | --- |
-| V0-BASELINE | Baseline | Confirm repo health before visible verification | `package.json`, `docs/ai/00-working-rules.md`, `docs/parity/manifest.md` | `npm run assert:source-encoding`, `npm run assert:text-resources`, `npx tsc -b` | Baseline commands are green or blockers are recorded |
+| V0-BASELINE | Baseline | Confirm repo health before visible verification | `package.json`, `docs/ai/00-working-rules.md`, `docs/parity/manifest.md` | `npm run assert:preflight`, `npm run assert:source-encoding`, `npm run assert:text-resources`, `npx tsc -b` | Baseline commands are green or blockers are recorded |
 | V1-START-BURN | Browser smoke | Verify creation, race, age, rebirth startup, starter skills, and initial save | `p0-start-character-age.md`, `p0-start-burn-save.md` | start/race guards, growth guard, equipment guard, browser screenshot | Manifest entry can move from `Guarded` toward `Verified` |
 | V1-SAVE-LOAD | Browser smoke | Verify save write lifecycle, manual import, reload continuity, and active-slot autosave | `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md` | save guards, map/monster adjacent guards, browser screenshot | Save/load flow survives real navigation and battle resume |
 | V1-GAME-LOOP | Browser smoke | Verify 500ms heartbeat, elapsed catch-up, background recovery, and battle state continuity | `p0-game-loop-hook-parity.md`, `p0-battle-damage-log-death.md` | loop guard, battle state guards, browser background smoke | No tick rollback or missed visible battle progress |
@@ -44,31 +44,32 @@ Dear Master 后续可以直接用这些编号派活：
 ## Task V0-BASELINE: Baseline Health Check
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\ai\00-working-rules.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\package.json`
-- Modify only if needed: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/ai/00-working-rules.md`
+- Read: `docs/parity/manifest.md`
+- Read: `package.json`
+- Modify only if needed: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Confirm the active queue**
 
 Run:
 
 ```powershell
-Get-Content -LiteralPath 'C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md'
+Get-Content -LiteralPath 'docs/parity/manifest.md'
 ```
 
 Expected: the manifest contains P0 rows with current `Guarded` or `Verified` states and the recommended next order.
 
-- [ ] **Step 2: Run encoding and text guards**
+- [ ] **Step 2: Run preflight, encoding, and text guards**
 
 Run:
 
 ```powershell
+npm run assert:preflight
 npm run assert:source-encoding
 npm run assert:text-resources
 ```
 
-Expected: both commands exit with code `0`.
+Expected: all commands exit with code `0`.
 
 - [ ] **Step 3: Run TypeScript verification**
 
@@ -89,17 +90,17 @@ If all commands pass, keep this plan unchanged and execute `V1-START-BURN` next.
 ## Task V1-START-BURN: Creation, Age, Rebirth, Starter State
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-start-character-age.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-start-burn-save.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\RaceList.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\Main_fla\MainTimeline.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\MainScene.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\scenes\RaceScene.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\data\raceData.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Player.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\state\GameContext.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-start-character-age.md`
+- Read: `docs/parity/p0-start-burn-save.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/RaceList.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read AS3: `reference/as3/BOE-O/scripts/Main_fla/MainTimeline.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- Read React: `src/components/scenes/RaceScene.tsx`
+- Read React: `src/core/data/raceData.ts`
+- Read React: `src/core/models/Player.ts`
+- Read React: `src/state/GameContext.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run focused guards**
 
@@ -133,23 +134,23 @@ Expected evidence: screenshot of the selected character state after entry, visib
 
 - [ ] **Step 4: Update manifest status**
 
-If guard and browser smoke pass, update `P0-START` and `P0-START-BURN` next step text in `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md` to reflect verified smoke evidence. If smoke fails, keep status `Guarded`, record the failing operation path, and create or request one focused repair card.
+If guard and browser smoke pass, update `P0-START` and `P0-START-BURN` next step text in `docs/parity/manifest.md` to reflect verified smoke evidence. If smoke fails, keep status `Guarded`, record the failing operation path, and create or request one focused repair card.
 
 ---
 
 ## Task V1-SAVE-LOAD: Save Persistence And Runtime Continuity
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-save-persistence.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-save-load-runtime-continuity.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\SaveScene.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\MainScene.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\Battle.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\systems\SaveSystem.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\state\GameContext.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\scenes\SaveScene.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-save-persistence.md`
+- Read: `docs/parity/p0-save-load-runtime-continuity.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/SaveScene.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/Battle.as`
+- Read React: `src/core/systems/SaveSystem.ts`
+- Read React: `src/state/GameContext.tsx`
+- Read React: `src/components/scenes/SaveScene.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run focused and adjacent guards**
 
@@ -182,17 +183,17 @@ If state survives reload and battle resumes, update `P0-SAVE-PERSIST` and `P0-SA
 ## Task V1-GAME-LOOP: Heartbeat, Background Recovery, Battle Sync
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-game-loop-hook-parity.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-battle-damage-log-death.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\Battle.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\MainScene.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\systems\GameLoop.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\hooks\useGameLoop.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\scenes\MainScene.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\state\GameContext.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Battle.ts`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-game-loop-hook-parity.md`
+- Read: `docs/parity/p0-battle-damage-log-death.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/Battle.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read React: `src/core/systems/GameLoop.ts`
+- Read React: `src/hooks/useGameLoop.ts`
+- Read React: `src/components/scenes/MainScene.tsx`
+- Read React: `src/state/GameContext.tsx`
+- Read React: `src/core/models/Battle.ts`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run heartbeat and battle guards**
 
@@ -223,16 +224,16 @@ If background recovery and battle sync pass, update `P0-LOOP` and related `P0-BA
 ## Task V1-MAP-DATA: Map, Monster Pool, Pet Pool Visibility
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-map-selection.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-map-data-model-parity.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iMap\MapList.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iMap\MapData.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iMap\Map.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\iPanel\iWindow\iSystem\iMap\MapPanel.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\data\mapData.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Map.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\windows\MapWindow.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-map-selection.md`
+- Read: `docs/parity/p0-map-data-model-parity.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iMap/MapList.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iMap/MapData.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iMap/Map.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapPanel.as`
+- Read React: `src/core/data/mapData.ts`
+- Read React: `src/core/models/Map.ts`
+- Read React: `src/components/windows/MapWindow.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run map and monster guards**
 
@@ -263,20 +264,20 @@ If data and UI agree, update `P0-MAP` and `P0-MAP-DATA`. If presentation code hi
 ## Task V1-SKILL: Skill Data, Eligibility, Equipment Restrictions, Battle Effects
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-skill-data-values.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-skill-eligibility-effects.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\iPanel\iWindow\SkillWindow.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iSkill\ActiveSkill.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iSkill\SkillDataList.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iItem\WeaponType.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\windows\SkillWindow.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\panels\BattleSkillPanel.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Skill.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Player.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Battle.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\data\skillData.ts`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-skill-data-values.md`
+- Read: `docs/parity/p0-skill-eligibility-effects.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SkillWindow.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iSkill/ActiveSkill.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iSkill/SkillDataList.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iItem/WeaponType.as`
+- Read React: `src/components/windows/SkillWindow.tsx`
+- Read React: `src/components/panels/BattleSkillPanel.tsx`
+- Read React: `src/core/models/Skill.ts`
+- Read React: `src/core/models/Player.ts`
+- Read React: `src/core/models/Battle.ts`
+- Read React: `src/core/data/skillData.ts`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run skill guards**
 
@@ -309,18 +310,18 @@ If the UI and battle both consume the guarded skill rules, update `P0-SKILL` and
 ## Task V1-EQUIPMENT: Equipment Ownership, EquipWindow, Item Cells, Sell Flow
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-equipment-ownership.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-equipment-deepseek.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iItem\Equipment.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\iPanel\iWindow\EquipWindow.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\iPanel\iWindow\iEquip\EquipCell.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Player.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Equipment.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\windows\EquipWindow.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\common\Common.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\state\GameContext.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-equipment-ownership.md`
+- Read: `docs/parity/p0-equipment-deepseek.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/iItem/Equipment.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as`
+- Read React: `src/core/models/Player.ts`
+- Read React: `src/core/models/Equipment.ts`
+- Read React: `src/components/windows/EquipWindow.tsx`
+- Read React: `src/components/common/Common.tsx`
+- Read React: `src/state/GameContext.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run equipment guards**
 
@@ -355,18 +356,18 @@ If ownership and visible actions hold, update `P0-EQUIP`. If an action duplicate
 ## Task V1-BATTLE: Battle Logs, Reward, Death, Pet Flow, Formula Drift
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-battle-damage-log-death.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-battle-numeric-coercion.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p1-battle-active-skill-single-roll.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p1-battle-pet-exp-reward.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p1-battle-pet-flow-logs.md`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\Battle.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iGlobal\Player.as`
-- Read AS3: `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel\iScene\MainScene.as`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\core\models\Battle.ts`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\state\GameContext.tsx`
-- Read React: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\scenes\MainScene.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/p0-battle-damage-log-death.md`
+- Read: `docs/parity/p0-battle-numeric-coercion.md`
+- Read: `docs/parity/p1-battle-active-skill-single-roll.md`
+- Read: `docs/parity/p1-battle-pet-exp-reward.md`
+- Read: `docs/parity/p1-battle-pet-flow-logs.md`
+- Read AS3: `reference/as3/BOE-O/scripts/iData/Battle.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- Read AS3: `reference/as3/BOE-O/scripts/iPanel/iScene/MainScene.as`
+- Read React: `src/core/models/Battle.ts`
+- Read React: `src/state/GameContext.tsx`
+- Read React: `src/components/scenes/MainScene.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run battle guard set**
 
@@ -402,11 +403,11 @@ If player-visible battle flow matches the guard expectations, update `P0-BATTLE`
 ## Task V1-SYSTEM-SHOP-PET: Secondary Windows And Presentation Integrity
 
 **Files:**
-- Read relevant current cards under `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity`
-- Read AS3 window sources under `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iPanel`
-- Read React windows under `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\windows`
-- Read React common UI: `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\common\Common.tsx`
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read relevant current cards under `docs/parity`
+- Read AS3 window sources under `reference/as3/BOE-O/scripts/iPanel`
+- Read React windows under `src/components/windows`
+- Read React common UI: `src/components/common/Common.tsx`
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Run secondary-window guards**
 
@@ -444,9 +445,9 @@ If windows consume real business state, record the smoke evidence in the final r
 ## Task V2-FREE-PLAY-CAPTURE: Structured Free Play Discovery
 
 **Files:**
-- Read during triage: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
-- Create if symptoms are confirmed: one new file under `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity`
-- Modify if new card is created: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read during triage: `docs/parity/manifest.md`
+- Create if symptoms are confirmed: one new file under `docs/parity`
+- Modify if new card is created: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Play without repairing**
 
@@ -479,18 +480,18 @@ Expected: the next repair queue contains no more than five items and each item c
 ## Task V3-CARD-AUTHORING: Turn Symptoms Into Executable Repair Cards
 
 **Files:**
-- Create: one focused `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-*.md` or `p1-*.md` file per confirmed issue
-- Modify: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
-- Read AS3: exact source files identified from `C:\Users\zero_\Desktop\bwe-r\BOE-O`
-- Read React: exact target files identified from `C:\Users\zero_\Desktop\bwe-r\BWE\src`
+- Create: one focused `docs/parity/p0-*.md` or `p1-*.md` file per confirmed issue
+- Modify: `docs/parity/manifest.md`
+- Read AS3: exact source files identified from `reference/as3/BOE-O`
+- Read React: exact target files identified from `src`
 
 - [ ] **Step 1: Read source before writing the card**
 
 Use `rg` to locate the AS3 behavior and React target. The command must be generated from the concrete symptom being converted. For example, if the captured symptom is map selection, start with:
 
 ```powershell
-rg "MapPanel|map|modifier|monsterList|petList" 'C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts'
-rg "MapWindow|map|modifier|monsterList|petList" 'C:\Users\zero_\Desktop\bwe-r\BWE\src'
+rg "MapPanel|map|modifier|monsterList|petList" 'reference/as3/BOE-O/scripts'
+rg "MapWindow|map|modifier|monsterList|petList" 'src'
 ```
 
 Expected: the final card lists real AS3 and React files that were inspected.
@@ -514,11 +515,11 @@ Needs repair
 
 ## AS3 Source of Truth
 
-- `C:\Users\zero_\Desktop\bwe-r\BOE-O\scripts\iData\iMap\MapList.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as`
 
 ## React Targets
 
-- `C:\Users\zero_\Desktop\bwe-r\BWE\src\components\windows\MapWindow.tsx`
+- `src/components/windows/MapWindow.tsx`
 
 ## Guard Plan
 
@@ -544,7 +545,7 @@ Expected: the card can be executed by another agent without reading chat history
 
 - [ ] **Step 3: Add the manifest row**
 
-Update `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md` with one new row containing ID, priority, module, status, card, AS3 sources, React targets, symptom, and acceptance command.
+Update `docs/parity/manifest.md` with one new row containing ID, priority, module, status, card, AS3 sources, React targets, symptom, and acceptance command.
 
 Expected: the manifest row points to the new card and does not combine unrelated symptoms.
 
@@ -553,25 +554,25 @@ Expected: the manifest row points to the new card and does not combine unrelated
 ## Task V4-FOCUSED-REPAIR: Execute One Card With Guard First
 
 **Files:**
-- Read: one named card under `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity`
+- Read: one named card under `docs/parity`
 - Read AS3: files listed in that card
 - Modify React: files listed in that card
-- Modify scripts: one focused guard under `C:\Users\zero_\Desktop\bwe-r\BWE\scripts` only when the card lacks a reusable guard
-- Modify after verification: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Modify scripts: one focused guard under `scripts` only when the card lacks a reusable guard
+- Modify after verification: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Re-read the card and AS3 source**
 
 Run the exact card named by the user. For example, when the user asks to execute `p0-map-selection.md`, run:
 
 ```powershell
-Get-Content -LiteralPath 'C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\p0-map-selection.md'
+Get-Content -LiteralPath 'docs/parity/p0-map-selection.md'
 ```
 
 Expected: the task scope is exactly one card.
 
 - [ ] **Step 2: Confirm or create the red guard**
 
-Run the card's listed assert. If it already fails for the expected current behavior, keep the guard. If no guard exists, create one minimal script under `C:\Users\zero_\Desktop\bwe-r\BWE\scripts` and register it in `C:\Users\zero_\Desktop\bwe-r\BWE\package.json`.
+Run the card's listed assert. If it already fails for the expected current behavior, keep the guard. If no guard exists, create one minimal script under `scripts` and register it in `package.json`.
 
 Expected: the guard exposes the current parity bug before production code changes.
 
@@ -624,16 +625,16 @@ Expected: `git diff --check` exits with code `0`, and `git status --short` shows
 ## Task V5-WEEKLY-REVIEW: Weekly Queue Reset
 
 **Files:**
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
-- Read: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\superpowers\plans\2026-05-25-bwe-parity-verification-roadmap.md`
-- Modify: `C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md`
+- Read: `docs/parity/manifest.md`
+- Read: `docs/superpowers/plans/2026-05-25-bwe-parity-verification-roadmap.md`
+- Modify: `docs/parity/manifest.md`
 
 - [ ] **Step 1: Count statuses**
 
 Run:
 
 ```powershell
-Select-String -LiteralPath 'C:\Users\zero_\Desktop\bwe-r\BWE\docs\parity\manifest.md' -Pattern 'Needs repair|Guard needed|Guarded|Verified'
+Select-String -LiteralPath 'docs/parity/manifest.md' -Pattern 'Needs repair|Guard needed|Guarded|Verified'
 ```
 
 Expected: the output shows every remaining manifest status line.

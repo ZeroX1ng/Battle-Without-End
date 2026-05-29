@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -44,9 +45,9 @@ function extractCase(source, caseName) {
   return source.slice(start, end);
 }
 
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3SaveScene = read('../BOE-O/scripts/iPanel/iScene/SaveScene.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3SaveScene = readAs3('scripts/iPanel/iScene/SaveScene.as');
 
 const packageJson = JSON.parse(read('package.json'));
 const saveSystem = read('src/core/systems/SaveSystem.ts');

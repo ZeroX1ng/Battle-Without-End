@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-map-selection');
@@ -71,11 +72,11 @@ function createConfig() {
   };
 }
 
-const as3MapList = read('../BOE-O/scripts/iData/iMap/MapList.as');
-const as3Map = read('../BOE-O/scripts/iData/iMap/Map.as');
-const as3MapCell = read('../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as');
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3Global = read('../BOE-O/scripts/iGlobal/Global.as');
+const as3MapList = readAs3('scripts/iData/iMap/MapList.as');
+const as3Map = readAs3('scripts/iData/iMap/Map.as');
+const as3MapCell = readAs3('scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3Global = readAs3('scripts/iGlobal/Global.as');
 const gameContext = read('src/state/GameContext.tsx');
 const mapWindow = read('src/components/windows/MapWindow.tsx');
 const saveSystem = read('src/core/systems/SaveSystem.ts');

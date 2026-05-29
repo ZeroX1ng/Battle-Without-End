@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-battle-active-skill-single-roll');
@@ -153,10 +154,10 @@ async function withRandomSequence(values, fn) {
   }
 }
 
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3SkillDataList = read('../BOE-O/scripts/iData/iSkill/SkillDataList.as');
-const as3ActiveSkillData = read('../BOE-O/scripts/iData/iSkill/ActiveSkillData.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3SkillDataList = readAs3('scripts/iData/iSkill/SkillDataList.as');
+const as3ActiveSkillData = readAs3('scripts/iData/iSkill/ActiveSkillData.as');
 const battleModelSource = read('src/core/models/Battle.ts');
 const playerModelSource = read('src/core/models/Player.ts');
 const skillBehaviorsSource = read('src/core/data/skillBehaviors.ts');

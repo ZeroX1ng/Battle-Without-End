@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-skill-eligibility-effects');
@@ -52,8 +53,8 @@ function clonePlayer(player) {
   };
 }
 
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3BattleSkillPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3BattleSkillPanel = readAs3('scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as');
 const playerModel = read('src/core/models/Player.ts');
 const battleModel = read('src/core/models/Battle.ts');
 const battleSkillPanel = read('src/components/panels/BattleSkillPanel.tsx');

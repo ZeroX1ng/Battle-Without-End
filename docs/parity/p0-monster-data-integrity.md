@@ -14,14 +14,14 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMonster/MonsterList.as` - 119 个怪物静态常量和 `list` 顺序。
-- `../BOE-O/scripts/iData/iMonster/MonsterData.as` - `name`、`realName`、HP、attack、defence、protection、crit、balance、CP 字段顺序。
-- `../BOE-O/scripts/iData/iMonster/MonsterTitleList.as` - 22 个怪物标题、`REGION_BOSS`、名称尾随空格和倍率。
-- `../BOE-O/scripts/iData/iMonster/MonsterTitle.as` - title 数据结构。
-- `../BOE-O/scripts/iData/iMonster/StatMul.as` - title multiplier 结构。
-- `../BOE-O/scripts/iData/iPet/PetDataList.as` - 宠物数据及 `mc` 类型集合。
-- `../BOE-O/scripts/iData/iPet/PetTypeList.as` - AS3 宠物类型定义。
-- `../BOE-O/scripts/iData/iMap/MapList.as` - 地图 `monsterList` 对怪物常量的引用。
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterList.as` - 119 个怪物静态常量和 `list` 顺序。
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterData.as` - `name`、`realName`、HP、attack、defence、protection、crit、balance、CP 字段顺序。
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterTitleList.as` - 22 个怪物标题、`REGION_BOSS`、名称尾随空格和倍率。
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterTitle.as` - title 数据结构。
+- `reference/as3/BOE-O/scripts/iData/iMonster/StatMul.as` - title multiplier 结构。
+- `reference/as3/BOE-O/scripts/iData/iPet/PetDataList.as` - 宠物数据及 `mc` 类型集合。
+- `reference/as3/BOE-O/scripts/iData/iPet/PetTypeList.as` - AS3 宠物类型定义。
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as` - 地图 `monsterList` 对怪物常量的引用。
 
 ### React Targets
 
@@ -124,14 +124,14 @@ This card only covers static data integrity for monsters, monster titles, and pe
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMonster/MonsterList.as` - 119 monster constants and `list` order.
-- `../BOE-O/scripts/iData/iMonster/MonsterData.as` - `name`, `realName`, HP, attack, defence, protection, crit, balance, and CP field order.
-- `../BOE-O/scripts/iData/iMonster/MonsterTitleList.as` - 22 monster titles, `REGION_BOSS`, trailing spaces, and multipliers.
-- `../BOE-O/scripts/iData/iMonster/MonsterTitle.as` - title data structure.
-- `../BOE-O/scripts/iData/iMonster/StatMul.as` - title multiplier structure.
-- `../BOE-O/scripts/iData/iPet/PetDataList.as` - pet data and `mc` type set.
-- `../BOE-O/scripts/iData/iPet/PetTypeList.as` - AS3 pet-type definitions.
-- `../BOE-O/scripts/iData/iMap/MapList.as` - map `monsterList` references to monster constants.
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterList.as` - 119 monster constants and `list` order.
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterData.as` - `name`, `realName`, HP, attack, defence, protection, crit, balance, and CP field order.
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterTitleList.as` - 22 monster titles, `REGION_BOSS`, trailing spaces, and multipliers.
+- `reference/as3/BOE-O/scripts/iData/iMonster/MonsterTitle.as` - title data structure.
+- `reference/as3/BOE-O/scripts/iData/iMonster/StatMul.as` - title multiplier structure.
+- `reference/as3/BOE-O/scripts/iData/iPet/PetDataList.as` - pet data and `mc` type set.
+- `reference/as3/BOE-O/scripts/iData/iPet/PetTypeList.as` - AS3 pet-type definitions.
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as` - map `monsterList` references to monster constants.
 
 ### React Targets
 

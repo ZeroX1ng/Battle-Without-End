@@ -1,9 +1,10 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveAs3Path } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const originalRoot = join(root, '..', 'BOE-O');
+const originalRoot = resolveAs3Path();
 const publicRoot = join(root, 'public');
 
 const assetModules = ['sprites', 'buttons', 'frames', 'morphshapes', 'movies'];

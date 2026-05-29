@@ -10,12 +10,12 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iItem/Equipment.as`
-- `../BOE-O/scripts/iData/iItem/Weapon.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as`
-- `../BOE-O/scripts/iPanel/iCell/EquipmentCell.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Equipment.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Weapon.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as`
+- `reference/as3/BOE-O/scripts/iPanel/iCell/EquipmentCell.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as`
 
 ### React Targets
 
@@ -80,12 +80,12 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iItem/Equipment.as`
-- `../BOE-O/scripts/iData/iItem/Weapon.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as`
-- `../BOE-O/scripts/iPanel/iCell/EquipmentCell.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Equipment.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/Weapon.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as`
+- `reference/as3/BOE-O/scripts/iPanel/iCell/EquipmentCell.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as`
 
 ### React Targets
 

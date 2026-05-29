@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-battle-pet-flow-logs');
@@ -173,9 +174,9 @@ function assertNoTemplateFragments(logText, message) {
   assert(!/\{mon(?:\.|\b)/.test(logText), message);
 }
 
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3Pet = read('../BOE-O/scripts/iData/iPet/Pet.as');
-const as3PetSkillList = read('../BOE-O/scripts/iData/iPet/iPetSkill/PetSkillList.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3Pet = readAs3('scripts/iData/iPet/Pet.as');
+const as3PetSkillList = readAs3('scripts/iData/iPet/iPetSkill/PetSkillList.as');
 const battleModelSource = read('src/core/models/Battle.ts');
 const petModelSource = read('src/core/models/Pet.ts');
 const petSkillDataSource = read('src/core/data/petSkillData.ts');

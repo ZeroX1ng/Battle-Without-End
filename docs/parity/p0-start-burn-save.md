@@ -14,9 +14,9 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as` - `burn()` 中初始属性、12 个初始技能、初始斧头装备和结尾 `save()` 调用。
-- `../BOE-O/scripts/iGlobal/Player.as` - `equipItem()` / `unEquip()` 中装备槽、双手武器和 `updateSkillInfo()` / `updateEquipInfo()` 流程。
-- `../BOE-O/scripts/iPanel/iScene/RaceScene.as` - 角色确认后调用 `Player.burn()` 并进入主场景的流程。
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `burn()` 中初始属性、12 个初始技能、初始斧头装备和结尾 `save()` 调用。
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - `equipItem()` / `unEquip()` 中装备槽、双手武器和 `updateSkillInfo()` / `updateEquipInfo()` 流程。
+- `reference/as3/BOE-O/scripts/iPanel/iScene/RaceScene.as` - 角色确认后调用 `Player.burn()` 并进入主场景的流程。
 
 ### React Targets
 
@@ -107,9 +107,9 @@ This card only covers the `Player.burn()` / `playerBurn()` startup state flow du
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iGlobal/Player.as` - starter stats, 12 starter skills, starter axe equipment, and the final `save()` call in `burn()`.
-- `../BOE-O/scripts/iGlobal/Player.as` - equipment slot, two-handed weapon, `updateSkillInfo()`, and `updateEquipInfo()` behavior in `equipItem()` / `unEquip()`.
-- `../BOE-O/scripts/iPanel/iScene/RaceScene.as` - confirming character creation, calling `Player.burn()`, and entering the main scene.
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - starter stats, 12 starter skills, starter axe equipment, and the final `save()` call in `burn()`.
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as` - equipment slot, two-handed weapon, `updateSkillInfo()`, and `updateEquipInfo()` behavior in `equipItem()` / `unEquip()`.
+- `reference/as3/BOE-O/scripts/iPanel/iScene/RaceScene.as` - confirming character creation, calling `Player.burn()`, and entering the main scene.
 
 ### React Targets
 

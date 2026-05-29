@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-battle-damage-log-death');
@@ -147,10 +148,10 @@ async function withRandom(value, fn) {
   }
 }
 
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3MainScene = read('../BOE-O/scripts/iPanel/iScene/MainScene.as');
-const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-const as3PlayerInfoPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3MainScene = readAs3('scripts/iPanel/iScene/MainScene.as');
+const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3PlayerInfoPanel = readAs3('scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
 const battleModelSource = read('src/core/models/Battle.ts');
 const gameContextSource = read('src/state/GameContext.tsx');
 const playerInfoPanelSource = read('src/components/panels/PlayerInfoPanel.tsx');

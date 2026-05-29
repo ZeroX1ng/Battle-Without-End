@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const playerOutRoot = join(root, '.tmp-age-growth-visible-player');
@@ -28,10 +29,10 @@ function assertEqual(actual, expected, message) {
 }
 
 try {
-  const as3PlayerInfoPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
-  const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-  const as3Race = read('../BOE-O/scripts/iData/Race.as');
-  const as3MainScene = read('../BOE-O/scripts/iPanel/iScene/MainScene.as');
+  const as3PlayerInfoPanel = readAs3('scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
+  const as3Player = readAs3('scripts/iGlobal/Player.as');
+  const as3Race = readAs3('scripts/iData/Race.as');
+  const as3MainScene = readAs3('scripts/iPanel/iScene/MainScene.as');
   const reactPlayerInfoPanel = read('src/components/panels/PlayerInfoPanel.tsx');
   const reactPlayer = read('src/core/models/Player.ts');
   const reactGameContext = read('src/state/GameContext.tsx');

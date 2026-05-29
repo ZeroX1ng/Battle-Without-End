@@ -10,17 +10,17 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SkillWindow.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/CombatInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/MagicInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/PassiveInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as`
-- `../BOE-O/scripts/iData/iSkill/SkillDataList.as`
-- `../BOE-O/scripts/iData/iSkill/ActiveSkill.as`
-- `../BOE-O/scripts/iData/iSkill/PassiveSkill.as`
-- `../BOE-O/scripts/iData/iSkill/SkillType.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iItem/WeaponType.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SkillWindow.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/CombatInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/MagicInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/PassiveInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillDataList.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/ActiveSkill.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/PassiveSkill.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillType.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/WeaponType.as`
 
 ### React Targets
 
@@ -91,17 +91,17 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SkillWindow.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/CombatInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/MagicInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/PassiveInnerPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as`
-- `../BOE-O/scripts/iData/iSkill/SkillDataList.as`
-- `../BOE-O/scripts/iData/iSkill/ActiveSkill.as`
-- `../BOE-O/scripts/iData/iSkill/PassiveSkill.as`
-- `../BOE-O/scripts/iData/iSkill/SkillType.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iData/iItem/WeaponType.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/SkillWindow.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/CombatInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/MagicInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSkill/PassiveInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iBattleSkill/BattleSkillInnerPanel.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillDataList.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/ActiveSkill.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/PassiveSkill.as`
+- `reference/as3/BOE-O/scripts/iData/iSkill/SkillType.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iData/iItem/WeaponType.as`
 
 ### React Targets
 

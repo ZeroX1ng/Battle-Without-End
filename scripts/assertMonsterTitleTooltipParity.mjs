@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const outRoot = join(root, '.tmp-parity-monster-title-tooltip');
@@ -36,8 +37,8 @@ function sliceAfter(source, startNeedle, endNeedle) {
 }
 
 try {
-  const as3MonsterInfoPanel = read('../BOE-O/scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as');
-  const as3MonsterTitle = read('../BOE-O/scripts/iData/iMonster/MonsterTitle.as');
+  const as3MonsterInfoPanel = readAs3('scripts/iPanel/iScene/iPanel/MonsterInfoPanel.as');
+  const as3MonsterTitle = readAs3('scripts/iData/iMonster/MonsterTitle.as');
   const reactMonsterInfoPanel = read('src/components/panels/MonsterInfoPanel.tsx');
   const reactMonsterData = read('src/core/data/monsterData.ts');
   const reactInfoWindow = read('src/components/common/InfoWindow.tsx');

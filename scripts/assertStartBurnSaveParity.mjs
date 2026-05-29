@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const outRoot = join(root, '.tmp-start-burn-save');
@@ -52,8 +53,8 @@ function statValue(status, statName) {
 }
 
 try {
-  const as3Player = read('../BOE-O/scripts/iGlobal/Player.as');
-  const as3RaceScene = read('../BOE-O/scripts/iPanel/iScene/RaceScene.as');
+  const as3Player = readAs3('scripts/iGlobal/Player.as');
+  const as3RaceScene = readAs3('scripts/iPanel/iScene/RaceScene.as');
   const reactPlayer = read('src/core/models/Player.ts');
   const reactGameContext = read('src/state/GameContext.tsx');
   const packageJson = JSON.parse(read('package.json'));

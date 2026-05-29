@@ -10,13 +10,13 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMap/MapList.as`
-- `../BOE-O/scripts/iData/iMap/Map.as`
-- `../BOE-O/scripts/iData/iMap/MapData.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iGlobal/Global.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/Map.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapData.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Global.as`
 
 ### React Targets
 
@@ -82,13 +82,13 @@ Last updated: 2026-05-23
 
 ### AS3 Source of Truth
 
-- `../BOE-O/scripts/iData/iMap/MapList.as`
-- `../BOE-O/scripts/iData/iMap/Map.as`
-- `../BOE-O/scripts/iData/iMap/MapData.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapPanel.as`
-- `../BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as`
-- `../BOE-O/scripts/iGlobal/Player.as`
-- `../BOE-O/scripts/iGlobal/Global.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapList.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/Map.as`
+- `reference/as3/BOE-O/scripts/iData/iMap/MapData.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapPanel.as`
+- `reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iSystem/iMap/MapCell.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Player.as`
+- `reference/as3/BOE-O/scripts/iGlobal/Global.as`
 
 ### React Targets
 

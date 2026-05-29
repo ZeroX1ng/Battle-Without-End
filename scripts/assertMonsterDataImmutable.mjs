@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
+import { readAs3 } from './lib/as3Source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const outRoot = join(root, '.tmp-parity-monster-data-immutable');
@@ -50,10 +51,10 @@ function assertAttackEqual(actual, expected, message) {
   assertEqual(actual.max, expected.max, `${message} max`);
 }
 
-const as3Monster = read('../BOE-O/scripts/iData/iMonster/Monster.as');
-const as3MonsterTitle = read('../BOE-O/scripts/iData/iMonster/MonsterTitle.as');
-const as3Battle = read('../BOE-O/scripts/iData/Battle.as');
-const as3MonsterData = read('../BOE-O/scripts/iData/iMonster/MonsterData.as');
+const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
+const as3MonsterTitle = readAs3('scripts/iData/iMonster/MonsterTitle.as');
+const as3Battle = readAs3('scripts/iData/Battle.as');
+const as3MonsterData = readAs3('scripts/iData/iMonster/MonsterData.as');
 const monsterModelSource = read('src/core/models/Monster.ts');
 const monsterDataSource = read('src/core/data/monsterData.ts');
 const packageJson = JSON.parse(read('package.json'));
