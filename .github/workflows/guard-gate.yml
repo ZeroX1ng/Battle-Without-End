@@ -1,0 +1,72 @@
+name: Guard Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Guard gate mode to run
+        required: true
+        default: changed
+        type: choice
+        options:
+          - changed
+          - baseline
+          - all
+
+jobs:
+  guard-gate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run guard gate
+        shell: pwsh
+        run: |
+          $mode = "changed"
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $mode = "${{ inputs.mode }}"
+          }
+
+          if ($mode -eq "baseline") {
+            npm run assert:gate:baseline
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            exit 0
+          }
+
+          if ($mode -eq "all") {
+            npm run assert:gate:all
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            exit 0
+          }
+
+          $base = ""
+          if ("${{ github.event_name }}" -eq "pull_request") {
+            $base = "${{ github.event.pull_request.base.sha }}"
+          } elseif ("${{ github.event_name }}" -eq "push") {
+            $base = "${{ github.event.before }}"
+          }
+
+          if ($base -and $base -notmatch "^0+$") {
+            npm run assert:gate:ci -- --base=$base
+          } else {
+            npm run assert:gate:ci
+          }
+
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

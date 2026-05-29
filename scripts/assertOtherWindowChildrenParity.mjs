@@ -18,6 +18,12 @@ function assertIncludes(source, needle, message) {
   }
 }
 
+function assertNotIncludes(source, needle, message) {
+  if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
 function assertMatches(source, pattern, message) {
   if (!pattern.test(source)) {
     throw new Error(message);
@@ -26,6 +32,7 @@ function assertMatches(source, pattern, message) {
 
 const packageJson = JSON.parse(read('package.json'));
 const otherWindow = read('src/components/windows/OtherWindow.tsx');
+const mainScene = read('src/components/scenes/MainScene.tsx');
 const mapWindow = read('src/components/windows/MapWindow.tsx');
 const helpWindow = read('src/components/windows/HelpWindow.tsx');
 const shopWindow = read('src/components/windows/ShopWindow.tsx');
@@ -46,19 +53,24 @@ for (const [id, component] of [
   ['save', 'SaveWindow'],
 ]) {
   assertIncludes(otherWindow, `id: '${id}'`, `OtherWindow must expose the AS3 ${id} entry`);
-  assertIncludes(otherWindow, `<${component} />`, `OtherWindow must mount ${component}`);
+  assertNotIncludes(otherWindow, `<${component} />`, `OtherWindow must not embed ${component}; AS3 opens these panels on the stage`);
+  assertIncludes(mainScene, `<${component} />`, `MainScene must mount ${component} as a stage overlay option`);
 }
 
 assertIncludes(otherWindow, "id: 'rebirth'", 'OtherWindow must expose the AS3 rebirth entry');
 assertIncludes(otherWindow, "state.player.age >= 20", 'rebirth must unlock at age 20 like AS3 OtherWindow.updateBirth');
 assertIncludes(otherWindow, "dispatch({ type: 'START_REBIRTH' })", 'rebirth entry must dispatch START_REBIRTH');
+assertIncludes(otherWindow, "dispatch({ type: 'UI_OPEN_WINDOW', window: id })", 'non-rebirth entries must request the MainScene overlay');
 assertIncludes(otherWindow, 'MenuButton', 'OtherWindow entries must use the shared menu button behavior');
+assertIncludes(mainScene, 'main-scene__overlay', 'MainScene must expose the stage overlay surface');
+assertIncludes(mainScene, 'UI_CLOSE_WINDOW', 'MainScene must provide an overlay close action');
 
 assertIncludes(mapWindow, "dispatch({ type: 'MAP_SWITCH', map: newMap })", 'MapWindow must switch maps through MAP_SWITCH');
 assertIncludes(mapWindow, 'new Map(mapData)', 'MapWindow must initialize the runtime map from selected MapData');
 assertIncludes(mapWindow, 'MapList.map', 'MapWindow must render every AS3 MapList entry');
-assertIncludes(mapWindow, 'gridColumn: mapData.x + 1', 'MapWindow must lay out maps from AS3 x coordinates');
-assertIncludes(mapWindow, 'gridRow: mapData.y + 1', 'MapWindow must lay out maps from AS3 y coordinates');
+assertIncludes(mapWindow, 'position: \'absolute\'', 'MapWindow must render AS3 map cells as visible positioned markers');
+assertIncludes(mapWindow, 'left: `${(mapData.x / MAP_WIDTH) * 100}%`', 'MapWindow must scale AS3 x coordinates into the visible map surface');
+assertIncludes(mapWindow, 'top: `${(mapData.y / MAP_HEIGHT) * 100}%`', 'MapWindow must scale AS3 y coordinates into the visible map surface');
 
 assertIncludes(helpWindow, 'QualityName', 'HelpWindow must explain equipment quality names');
 assertIncludes(helpWindow, 'QualityColor', 'HelpWindow must render quality colors');

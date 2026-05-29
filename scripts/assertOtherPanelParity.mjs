@@ -18,6 +18,12 @@ function assertIncludes(source, needle, message) {
   }
 }
 
+function assertNotIncludes(source, needle, message) {
+  if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
 const otherPanel = read('src/components/panels/OtherPanel.tsx');
 const otherWindow = read('src/components/windows/OtherWindow.tsx');
 const mainScene = read('src/components/scenes/MainScene.tsx');
@@ -40,11 +46,15 @@ assertIncludes(otherPanel, '<SystemWindow />', 'OtherPanel must own SystemWindow
 assertIncludes(otherPanel, '<OtherWindow />', 'OtherPanel must own OtherWindow');
 assertIncludes(otherPanel, 'display: activeTab === id ?', 'OtherPanel must keep all original windows mounted and toggle visibility');
 
-assertIncludes(otherWindow, '<MapWindow />', 'OtherWindow must own MapWindow');
-assertIncludes(otherWindow, '<HelpWindow />', 'OtherWindow must own HelpWindow');
-assertIncludes(otherWindow, '<ShopWindow />', 'OtherWindow must own ShopWindow');
-assertIncludes(otherWindow, '<SpecialShopWindow />', 'OtherWindow must own SpecialShopWindow');
-assertIncludes(otherWindow, '<SaveWindow />', 'OtherWindow must own SaveWindow');
+for (const component of ['MapWindow', 'HelpWindow', 'ShopWindow', 'SpecialShopWindow', 'SaveWindow']) {
+  assertNotIncludes(otherWindow, `<${component} />`, `OtherWindow must not embed ${component}; AS3 opens these panels on the stage`);
+  assertIncludes(mainScene, `<${component} />`, `MainScene must own ${component} overlay rendering`);
+}
+
+assertIncludes(otherWindow, "dispatch({ type: 'UI_OPEN_WINDOW', window: id })", 'OtherWindow entries must hand off overlay ownership to MainScene');
+assertIncludes(mainScene, 'state.ui.activeWindow', 'MainScene must read active overlay state');
+assertIncludes(mainScene, 'main-scene__overlay', 'MainScene must render the stage overlay surface');
+assertIncludes(mainScene, 'UI_CLOSE_WINDOW', 'MainScene must provide an overlay close path');
 
 assertIncludes(mainScene, '<OtherPanel />', 'MainScene must render the OtherPanel hub');
 assertIncludes(windowsIndex, "export { OtherWindow } from './OtherWindow'", 'OtherWindow must be exported with other windows');
