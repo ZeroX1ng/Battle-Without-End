@@ -260,15 +260,23 @@ export function levelUp(state: PlayerState): PlayerState {
 export function ageup(state: PlayerState): PlayerState {
   let s: PlayerState = { ...state, caculate: 0, age: state.age + 1 };
   s.basicStatus = s.basicStatus.clone();
-  const growthInfo = getAgeGrowthInfo(state);
-  s.basicStatus.hp += growthInfo.nextGrowth.hp;
-  s.basicStatus.mp += growthInfo.nextGrowth.mp;
-  s.basicStatus.str += growthInfo.nextGrowth.str;
-  s.basicStatus.dex += growthInfo.nextGrowth.dex;
-  s.basicStatus.will += growthInfo.nextGrowth.will;
-  s.basicStatus.intelligence += growthInfo.nextGrowth.intelligence;
-  s.basicStatus.luck += growthInfo.nextGrowth.luck;
-  if (growthInfo.nextApGain > 0) s.ap += growthInfo.nextApGain;
+  const ageupIndex = s.age - 11;
+  const ageGrowth = s.race && ageupIndex >= 0 ? s.race.ageupList[ageupIndex] : undefined;
+  if (s.age <= 25 && s.race && ageGrowth) {
+    s.basicStatus.hp += ageGrowth.hp + 1;
+    s.basicStatus.mp += ageGrowth.mp + 1;
+    s.basicStatus.str += ageGrowth.str;
+    s.basicStatus.dex += ageGrowth.dex;
+    s.basicStatus.will += ageGrowth.will;
+    s.basicStatus.intelligence += ageGrowth.intelligence;
+    s.basicStatus.luck += ageGrowth.luck;
+  } else {
+    s.basicStatus.hp += 1;
+    s.basicStatus.mp += 1;
+  }
+  let apGain = 18 - s.age;
+  if (apGain < 1 && s.age <= 25) apGain = 1;
+  if (apGain > 0) s.ap += apGain;
   return s;
 }
 
