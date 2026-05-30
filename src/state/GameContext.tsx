@@ -644,7 +644,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           playerState = addSkill(playerState, sd);
           newState = addLog(
             { ...newState, player: playerState },
-            `<font color='#FFA640'>绉板彿瑙ｉ攣浜嗘柊鎶€鑳?${sd.realName || skillName}!</font>`
+            `<font color='#FFA640'>称号解锁了新技能 ${sd.realName || skillName}!</font>`
           );
         }
       }
