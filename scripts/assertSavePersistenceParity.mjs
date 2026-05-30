@@ -84,20 +84,24 @@ const manualSaveCase = extractCase(gameContext, 'MANUAL_SAVE');
 const manualLoadCase = extractCase(gameContext, 'MANUAL_LOAD');
 
 assertIncludes(playerBurnCase, 'serializeSave(', 'PLAYER_BURN must serialize the newly created player');
-assertIncludes(playerBurnCase, 'localSave(player.playerName, activeSaveSlot, saveStr);', 'PLAYER_BURN must save immediately after character creation');
+assertIncludes(playerBurnCase, 'queueLocalSave(ctx, player.playerName, activeSaveSlot, saveStr);', 'PLAYER_BURN must queue an immediate save after character creation');
 assertIncludes(playerBurnCase, "state.activeSaveSlot ?? 'slot1'", 'PLAYER_BURN must fall back to slot1 only when no active slot exists');
 
-assertIncludes(playerSetNameCase, 'localSave(', 'PLAYER_SET_NAME must immediately synchronize slot metadata');
+assertIncludes(playerSetNameCase, 'queueLocalSave(ctx, nextPlayer.playerName, activeSaveSlot, saveStr);', 'PLAYER_SET_NAME must immediately queue slot metadata synchronization');
 assertIncludes(playerSetNameCase, 'serializeSave(', 'PLAYER_SET_NAME must write a valid save payload, not just metadata');
 
 assertNotIncludes(battleTickCase, 'if (!activeSaveSlot) {\n          return withBattlePlayer(newState, playerState);\n        }', 'BATTLE_TICK must not silently skip auto-save when activeSaveSlot is missing');
 assertIncludes(battleTickCase, "activeSaveSlot: 'slot1'", 'BATTLE_TICK must use a diagnosable default slot when activeSaveSlot is missing');
-assertIncludes(battleTickCase, 'localSave(playerState.playerName, activeSaveSlot, saveStr);', 'BATTLE_TICK shouldSave must persist through SaveSystem.localSave');
+assertIncludes(battleTickCase, 'queueLocalSave(ctx, playerState.playerName, activeSaveSlot, saveStr);', 'BATTLE_TICK shouldSave must queue persistence through SaveSystem.localSave');
 
 assertIncludes(saveGameCase, 'hasValidPlayerName(', 'SAVE_GAME must reject empty player.playerName before writing');
-assertIncludes(saveGameCase, 'localSave(state.player.playerName, action.slot, saveStr);', 'SAVE_GAME must persist through SaveSystem.localSave');
+assertIncludes(saveGameCase, 'queueLocalSave(ctx, state.player.playerName, action.slot, saveStr);', 'SAVE_GAME must queue persistence through SaveSystem.localSave');
 assertIncludes(manualSaveCase, 'hasValidPlayerName(', 'MANUAL_SAVE must reject empty player.playerName before exporting');
-assertIncludes(manualSaveCase, 'manuallySave(state.player, state.config, mapName, action.slot);', 'MANUAL_SAVE must keep using SaveSystem.manuallySave');
+assertIncludes(manualSaveCase, 'queueManualSave(ctx, state.player, state.config, mapName, action.slot);', 'MANUAL_SAVE must keep using SaveSystem.manuallySave through the effect layer');
+assertIncludes(gameContext, "case 'localSave':", 'Game effects must execute queued local save writes');
+assertIncludes(gameContext, 'localSave(effect.playerName, effect.slot, effect.saveString);', 'Queued local-save effects must call SaveSystem.localSave');
+assertIncludes(gameContext, "case 'manualSave':", 'Game effects must execute queued manual save exports');
+assertIncludes(gameContext, 'manuallySave(effect.player, effect.config, effect.mapName, effect.slot);', 'Queued manual-save effects must call SaveSystem.manuallySave');
 
 assertIncludes(manualLoadCase, 'deserializeSave(action.saveData.info, action.saveData.playerName)', 'MANUAL_LOAD must deserialize the imported .boe payload');
 assertIncludes(manualLoadCase, 'activeSaveSlot: action.saveData.slot', 'MANUAL_LOAD must restore the imported SaveScene.slot equivalent');

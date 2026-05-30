@@ -93,8 +93,10 @@ try {
 
   const playerBurnCase = extractCase(reactGameContext, 'PLAYER_BURN');
   assert(playerBurnCase.includes('serializeSave('), 'PLAYER_BURN must serialize the newly created state');
-  assert(playerBurnCase.includes('localSave('), 'PLAYER_BURN must persist the newly created state');
+  assert(playerBurnCase.includes('queueLocalSave(ctx, player.playerName, activeSaveSlot, saveStr)'), 'PLAYER_BURN must queue persistence for the newly created state');
   assert(playerBurnCase.includes('state.activeSaveSlot'), 'PLAYER_BURN must save to the active slot');
+  assert(reactGameContext.includes("case 'localSave':"), 'GameProvider effects must execute queued local-save writes after reducer commit');
+  assert(reactGameContext.includes('localSave(effect.playerName, effect.slot, effect.saveString)'), 'Queued local-save effects must persist through SaveSystem.localSave');
 
   const playerOutRoot = join(outRoot, 'player');
   const raceOutRoot = join(outRoot, 'race');

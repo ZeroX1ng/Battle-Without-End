@@ -3,9 +3,9 @@
 // 统一管理所有游戏状态，React 组件通过 useContext 读取，
 // 通过 dispatch 触发状态变更。
 
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
 import type { GameState, PlayerState, GlobalConfig, LootState, WeaponData } from '../core/types';
-import type { GameAction } from './actions';
+import type { GameAction, GameActionMeta } from './actions';
 import { createInitialPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
 import { TitleList, updateTitleInfo, getPendingSkillUnlocks } from '../core/data/titleData';
 import { Battle } from '../core/models/Battle';
@@ -15,7 +15,7 @@ import { Equipment } from '../core/models/Equipment';
 import { Weapon } from '../core/models/Weapon';
 import { EquipmentList } from '../core/data/equipmentData';
 import { serializeSave, localSave, manuallySave, localLoad, deserializeSave } from '../core/systems/SaveSystem';
-import { playForgeSound, setSoundEnabled } from '../core/systems/SoundSystem';
+import { playForgeSound, setSoundEnabled, type ForgeSoundType } from '../core/systems/SoundSystem';
 import { shouldDisplayLog } from '../core/systems/SystemConfig';
 import { getAutoForgeTarget, getForgeCost, getForgeSuccessRate, resolveForgeFailure } from '../core/systems/ForgeSystem';
 import { Stat } from '../core/constants';
@@ -116,9 +116,94 @@ function createInitialState(): GameState {
 
 // ═══ Reducer ═══
 
-let _msgId = 0;
+type TitleEffectEvent = { name: string; maxVal?: number; countVal?: number };
+
+type GameEffectPayload =
+  | { type: 'localSave'; playerName: string; slot: string; saveString: string }
+  | { type: 'manualSave'; player: PlayerState; config: GlobalConfig; mapName: string; slot: string }
+  | { type: 'forgeSound'; sound: ForgeSoundType }
+  | { type: 'title'; event: TitleEffectEvent }
+  | { type: 'flushTitleUnlocks' }
+  | { type: 'setSoundEnabled'; enabled: boolean };
+
+type GameEffect = GameEffectPayload & { id: string };
+
+interface ReducerContext {
+  action: GameAction;
+  effects: GameEffect[];
+  randomIndex: number;
+}
+
+function createReducerContext(action: GameAction): ReducerContext {
+  return { action, effects: [], randomIndex: 0 };
+}
+
+function nextEffectId(ctx: ReducerContext): string {
+  return `${ctx.action.meta?.effectBatchId ?? 0}:${ctx.effects.length}`;
+}
+
+function queueEffect(ctx: ReducerContext, effect: GameEffectPayload): void {
+  ctx.effects.push({ ...effect, id: nextEffectId(ctx) } as GameEffect);
+}
+
+function queueLocalSave(ctx: ReducerContext, playerName: string, slot: string, saveString: string): void {
+  queueEffect(ctx, { type: 'localSave', playerName, slot, saveString });
+}
+
+function queueManualSave(ctx: ReducerContext, player: PlayerState, config: GlobalConfig, mapName: string, slot: string): void {
+  queueEffect(ctx, { type: 'manualSave', player, config, mapName, slot });
+}
+
+function queueForgeSound(ctx: ReducerContext, sound: ForgeSoundType): void {
+  queueEffect(ctx, { type: 'forgeSound', sound });
+}
+
+function queueTitleEvent(ctx: ReducerContext, name: string, maxVal: number = 0, countVal: number = 0): void {
+  queueEffect(ctx, { type: 'title', event: { name, maxVal, countVal } });
+}
+
+function queueTitleEvents(ctx: ReducerContext, events?: TitleEffectEvent[]): void {
+  if (!events?.length) return;
+  for (const event of events) {
+    queueTitleEvent(ctx, event.name, event.maxVal ?? 0, event.countVal ?? 0);
+  }
+}
+
+function queueTitleUnlockFlush(ctx: ReducerContext): void {
+  queueEffect(ctx, { type: 'flushTitleUnlocks' });
+}
+
+function queueSoundToggle(ctx: ReducerContext, enabled: boolean): void {
+  queueEffect(ctx, { type: 'setSoundEnabled', enabled });
+}
+
+function nextRandomPercent(ctx: ReducerContext): number {
+  const value = ctx.action.meta?.randomPercents?.[ctx.randomIndex];
+  ctx.randomIndex += 1;
+  return typeof value === 'number' ? value : 0;
+}
+
+function cloneEquipmentInstance<T extends object>(equip: T): T {
+  return Object.create(
+    Object.getPrototypeOf(equip),
+    Object.getOwnPropertyDescriptors(equip)
+  );
+}
+
+function clearPendingEffects(state: GameState): GameState {
+  if (!state.pendingEffects?.length) return state;
+  const { pendingEffects: _pendingEffects, ...rest } = state;
+  return rest as GameState;
+}
+
+function withQueuedEffects(state: GameState, ctx: ReducerContext): GameState {
+  if (!ctx.effects.length) return state;
+  return { ...state, pendingEffects: ctx.effects };
+}
 
 function gameReducer(state: GameState, action: GameAction): GameState {
+  state = clearPendingEffects(state);
+  const ctx = createReducerContext(action);
   switch (action.type) {
     case 'SET_SCENE':
       return { ...state, scene: action.scene };
@@ -132,7 +217,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'PLAYER_BURN':
-      updateTitleInfo('begin');
+      queueTitleEvent(ctx, 'begin');
       {
         const player = playerBurn(state.player, action.age, action.race);
         const activeSaveSlot = state.activeSaveSlot ?? 'slot1';
@@ -140,13 +225,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           activeSaveSlot,
           player,
-          shop: createInitialShopState(player),
+          shop: action.meta?.shop ?? state.shop,
           scene: 'main',
         };
         const mapName = getCurrentMapName(nextState);
         const saveStr = serializeSave(player, nextState.config, mapName, activeSaveSlot);
-        localSave(player.playerName, activeSaveSlot, saveStr);
-        return nextState;
+        queueLocalSave(ctx, player.playerName, activeSaveSlot, saveStr);
+        return withQueuedEffects(nextState, ctx);
       }
 
     case 'PLAYER_SET_NAME': {
@@ -156,9 +241,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (activeSaveSlot && hasValidPlayerName(nextPlayer)) {
         const mapName = getCurrentMapName(nextState);
         const saveStr = serializeSave(nextPlayer, nextState.config, mapName, activeSaveSlot);
-        localSave(nextPlayer.playerName, activeSaveSlot, saveStr);
+        queueLocalSave(ctx, nextPlayer.playerName, activeSaveSlot, saveStr);
       }
-      return withBattlePlayer(nextState, nextPlayer);
+      return withQueuedEffects(withBattlePlayer(nextState, nextPlayer), ctx);
     }
 
     case 'EQUIP_ITEM': {
@@ -225,7 +310,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SHOP_GENERATE': {
-      return { ...state, shop: createInitialShopState(state.player) };
+      return action.meta?.shop ? { ...state, shop: action.meta.shop } : state;
     }
     case 'SHOP_BUY_SELL': {
       const item = state.shop.sellItems[action.index];
@@ -247,55 +332,60 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'FORGE_EQUIPMENT': {
-      const equip = state.player.itemList[action.equipIndex] as any;
-      if (!equip || equip.level >= 15) return state;
-      const cost = getForgeCost(equip.getMoney(), equip.level);
+      const originalEquip = state.player.itemList[action.equipIndex] as any;
+      if (!originalEquip || originalEquip.level >= 15) return state;
+      const cost = getForgeCost(originalEquip.getMoney(), originalEquip.level);
       if (state.player.gold < cost) return state;
-      const targetLevel = equip.level + 1;
+      const targetLevel = originalEquip.level + 1;
       const luck = getLuck(state.player);
       const rate = getForgeSuccessRate(targetLevel, luck, action.blacksmithLevel);
+      let equip = originalEquip;
 
       let newPlayer = loseGold(state.player, cost);
 
-      if (Math.random() * 100 < rate) {
-        equip.levelup();
-        playForgeSound('success');
+      if (nextRandomPercent(ctx) < rate) {
+        const forgedEquip = cloneEquipmentInstance(originalEquip) as any;
+        forgedEquip.levelup();
+        equip = forgedEquip;
+        queueForgeSound(ctx, 'success');
         const newList = [...newPlayer.itemList];
-        newList[action.equipIndex] = equip;
+        newList[action.equipIndex] = forgedEquip;
         newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
-        updateTitleInfo('forge', equip.level, 1);
-        updateTitleInfo('fail', 0, -1);
+        queueTitleEvent(ctx, 'forge', forgedEquip.level, 1);
+        queueTitleEvent(ctx, 'fail', 0, -1);
         const newState = addLog(
           withBattlePlayer(state, newPlayer),
           `<font color='#4BEA14'>锻造成功</font> 你获得了${equip.getNameHTML()}<font color='#4BEA14'>+${equip.level}!</font>`,
           'item'
         );
-        return newState;
+        return withQueuedEffects(newState, ctx);
       }
-      const { newLevel } = resolveForgeFailure(equip.level, equip.quality ?? 0, action.blacksmithLevel, Math.random() * 100);
-      updateTitleInfo('fail', 0, 1);
+      const { newLevel } = resolveForgeFailure(originalEquip.level, originalEquip.quality ?? 0, action.blacksmithLevel, nextRandomPercent(ctx));
+      queueTitleEvent(ctx, 'fail', 0, 1);
       newPlayer = updateEquipInfo({ ...newPlayer, itemList: newPlayer.itemList });
       if (newLevel === null) {
-        playForgeSound('destroy');
+        queueForgeSound(ctx, 'destroy');
         const newList = [...newPlayer.itemList];
         newList.splice(action.equipIndex, 1);
         newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
-        return addLog(
+        return withQueuedEffects(addLog(
           withBattlePlayer(state, newPlayer),
           `锻造失败 ${equip.getNameHTML()} 消失了`,
           'item'
-        );
+        ), ctx);
       }
-      equip.setLevel(newLevel);
-      playForgeSound('fail');
+      const downgradedEquip = cloneEquipmentInstance(originalEquip) as any;
+      downgradedEquip.setLevel(newLevel);
+      equip = downgradedEquip;
+      queueForgeSound(ctx, 'fail');
       const newList = [...newPlayer.itemList];
-      newList[action.equipIndex] = equip;
+      newList[action.equipIndex] = downgradedEquip;
       newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
-      return addLog(
+      return withQueuedEffects(addLog(
         withBattlePlayer(state, newPlayer),
         `锻造失败 ${equip.getNameHTML()} 等级降为 <font color='#ff4040'>+${newLevel}</font>`,
         'item'
-      );
+      ), ctx);
     }
 
     case 'AUTO_FORGE_EQUIPMENT': {
@@ -321,18 +411,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
         let newPlayer = loseGold(curState.player, cost);
 
-        if (Math.random() * 100 < rate) {
+        if (nextRandomPercent(ctx) < rate) {
           equipState = Object.create(Object.getPrototypeOf(equipState), Object.getOwnPropertyDescriptors(equipState));
           equipState.levelup();
-          playForgeSound('success');
+          queueForgeSound(ctx, 'success');
           forgedCount++;
-          updateTitleInfo('forge', equipState.level, 1);
-          updateTitleInfo('fail', 0, -1);
+          queueTitleEvent(ctx, 'forge', equipState.level, 1);
+          queueTitleEvent(ctx, 'fail', 0, -1);
         } else {
-          updateTitleInfo('fail', 0, 1);
-          const { newLevel } = resolveForgeFailure(equipState.level, equipState.quality ?? 0, bl, Math.random() * 100);
+          queueTitleEvent(ctx, 'fail', 0, 1);
+          const { newLevel } = resolveForgeFailure(equipState.level, equipState.quality ?? 0, bl, nextRandomPercent(ctx));
           if (newLevel === null) {
-            playForgeSound('destroy');
+            queueForgeSound(ctx, 'destroy');
             const newList = [...newPlayer.itemList];
             newList.splice(equipIndex, 1);
             newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
@@ -346,7 +436,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           }
           equipState = Object.create(Object.getPrototypeOf(equipState), Object.getOwnPropertyDescriptors(equipState));
           equipState.setLevel(newLevel);
-          playForgeSound('fail');
+          queueForgeSound(ctx, 'fail');
         }
 
         const newList = [...newPlayer.itemList];
@@ -362,13 +452,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           'item'
         );
       }
-      return withBattlePlayer(curState, curState.player);
+      return withQueuedEffects(withBattlePlayer(curState, curState.player), ctx);
     }
 
     case 'SKILL_LEARN': {
       const newPlayer = addSkill(state.player, action.skill);
-      updateTitleInfo(action.skill.skillData.name, 0);
-      return withBattlePlayer(state, newPlayer);
+      queueTitleEvent(ctx, action.skill.skillData.name, 0);
+      return withQueuedEffects(withBattlePlayer(state, newPlayer), ctx);
     }
     case 'SKILL_LEVELUP': {
       const skill = action.skill;
@@ -390,11 +480,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         skillList: newList,
         equipSkillList: newEquipList,
       });
-      updateTitleInfo(updatedSkill.skillData.name, updatedSkill.level);
-      return addLog(
+      queueTitleEvent(ctx, updatedSkill.skillData.name, updatedSkill.level);
+      return withQueuedEffects(addLog(
         withBattlePlayer(state, newPlayer),
         `${updatedSkill.skillData.realName} 升级至 Rank ${(15 - updatedSkill.level).toString(16).toUpperCase()}!`
-      );
+      ), ctx);
     }
     case 'SKILL_EQUIP': {
       return withBattlePlayer(state, equipSkill(state.player, action.skill));
@@ -417,7 +507,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       let playerState = battle.playerState as PlayerState;
       let newState = { ...state, tick: state.tick + 1 };
       if (result.shouldRefreshShop) {
-        newState = { ...newState, shop: generateShopState(playerState) };
+        newState = { ...newState, shop: action.meta?.shop ?? state.shop };
       }
 
       // 分发战斗产生的日志消息
@@ -431,7 +521,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
-      applyTitleEvents(result.titleEvents);
+      queueTitleEvents(ctx, result.titleEvents);
 
       if (result.loot) {
         newState = { ...newState, loot: { ...newState.loot } };
@@ -442,7 +532,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       if (result.shouldAgeup) {
         playerState = ageup(playerState);
-        updateTitleInfo('age', playerState.age);
+        queueTitleEvent(ctx, 'age', playerState.age);
         newState = addLog(
           { ...newState, player: playerState },
           `<font color='#ff4040'>你长大了! 你现在${playerState.age}岁了!</font>`
@@ -452,17 +542,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // 称号追踪：每 tick 更新 stat 和 age10
-      updateTitleInfo(Stat.str, getStr(playerState));
-      updateTitleInfo(Stat.dex, getDex(playerState));
-      updateTitleInfo(Stat.intelligence, getIntelligence(playerState));
-      updateTitleInfo(Stat.will, getWill(playerState));
-      updateTitleInfo(Stat.luck, getLuck(playerState));
+      queueTitleEvent(ctx, Stat.str, getStr(playerState));
+      queueTitleEvent(ctx, Stat.dex, getDex(playerState));
+      queueTitleEvent(ctx, Stat.intelligence, getIntelligence(playerState));
+      queueTitleEvent(ctx, Stat.will, getWill(playerState));
+      queueTitleEvent(ctx, Stat.luck, getLuck(playerState));
       if (playerState.age === 10) {
-        updateTitleInfo('age10', playerState.lv);
+        queueTitleEvent(ctx, 'age10', playerState.lv);
       }
 
       // 消费待解锁的大师技能
-      const pendingUnlocks = getPendingSkillUnlocks();
+      queueTitleUnlockFlush(ctx);
+      const pendingUnlocks: string[] = [];
       for (const skillName of pendingUnlocks) {
         const sd = SkillDataList.find(d => d.name === skillName);
         if (sd && !playerState.skillList.find((s: any) => s.skillData.name === skillName)) {
@@ -491,14 +582,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           throw new Error('Auto-save slot fallback failed.');
         }
         if (!hasValidPlayerName(playerState)) {
-          return addLog(withBattlePlayer(newState, playerState), 'Save skipped: player name is empty.');
+          return withQueuedEffects(addLog(withBattlePlayer(newState, playerState), 'Save skipped: player name is empty.'), ctx);
         }
         const mapName = battle.map?.mapData?.name ?? MapList[0].name;
         const saveStr = serializeSave(playerState, newState.config, mapName, activeSaveSlot);
-        localSave(playerState.playerName, activeSaveSlot, saveStr);
+        queueLocalSave(ctx, playerState.playerName, activeSaveSlot, saveStr);
       }
 
-      return withBattlePlayer(newState, playerState);
+      return withQueuedEffects(withBattlePlayer(newState, playerState), ctx);
     }
 
     case 'BATTLE_END':
@@ -506,9 +597,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'PLAYER_AGEUP': {
       const newPlayer = ageup(state.player);
-      updateTitleInfo('age', newPlayer.age);
-      return addLog(withBattlePlayer({ ...state, tick: state.tick + 1 }, newPlayer),
+      queueTitleEvent(ctx, 'age', newPlayer.age);
+      const newState = addLog(withBattlePlayer({ ...state, tick: state.tick + 1 }, newPlayer),
         `<font color='#ff4040'>你长大了! 你现在${newPlayer.age}岁了!</font>`);
+      return withQueuedEffects(newState, ctx);
     }
     case 'PLAYER_ADD_EXP': {
       return addLog(withBattlePlayer({ ...state, loot: { ...state.loot, exp: state.loot.exp + action.amount } }, addExp(state.player, action.amount)),
@@ -543,13 +635,28 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'TITLE_SET': {
       return withBattlePlayer(state, setTitle(state.player, action.title));
     }
+    case 'TITLE_UNLOCK_SKILLS': {
+      let playerState = state.player;
+      let newState = state;
+      for (const skillName of action.skillNames) {
+        const sd = SkillDataList.find(d => d.name === skillName);
+        if (sd && !playerState.skillList.find((s: any) => s.skillData.name === skillName)) {
+          playerState = addSkill(playerState, sd);
+          newState = addLog(
+            { ...newState, player: playerState },
+            `<font color='#FFA640'>绉板彿瑙ｉ攣浜嗘柊鎶€鑳?${sd.realName || skillName}!</font>`
+          );
+        }
+      }
+      return withBattlePlayer(newState, playerState);
+    }
 
     case 'START_REBIRTH': {
       return { ...state, isRebirth: true, scene: 'race', player: { ...state.player, caculate: 0 } };
     }
 
     case 'DO_REBIRTH': {
-      updateTitleInfo('reborn');
+      queueTitleEvent(ctx, 'reborn');
       const rebornTitle = TitleList.find(t => t.name === 'the Reborn');
       let newPlayer2 = playerBurn(state.player, action.age, action.race);
       newPlayer2 = { ...newPlayer2, caculate: 0 };
@@ -559,10 +666,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         }
         newPlayer2 = setTitle(newPlayer2, rebornTitle);
       }
-      return addLog(
-        { ...state, player: newPlayer2, shop: createInitialShopState(newPlayer2), scene: 'main', isRebirth: false },
+      const newState = addLog(
+        { ...state, player: newPlayer2, shop: action.meta?.shop ?? state.shop, scene: 'main', isRebirth: false },
         `<font color='#ff4040'>你在转生中获得了新的生命! 你现在是${action.race.name}族，${action.age}岁!</font>`
       );
+      return withQueuedEffects(newState, ctx);
     }
 
     case 'CONFIG_TOGGLE': {
@@ -570,9 +678,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (!(key in state.config)) return state;
       const newVal = !state.config[key];
       if (key === 'sound_toggle') {
-        setSoundEnabled(newVal);
+        queueSoundToggle(ctx, newVal);
       }
-      return { ...state, config: { ...state.config, [key]: newVal } };
+      return withQueuedEffects({ ...state, config: { ...state.config, [key]: newVal } }, ctx);
     }
 
     case 'UI_OPEN_WINDOW':
@@ -581,9 +689,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, ui: { ...state.ui, activeWindow: null } };
 
     case 'UI_ADD_LOG': {
-      if (!shouldDisplayLog(state.config, action.category)) return state;
-      const msg = { id: ++_msgId, text: action.text, category: action.category, timestamp: Date.now() };
-      return { ...state, ui: { ...state.ui, infoMessages: [...state.ui.infoMessages.slice(-199), msg] } };
+      return addLog(state, action.text, action.category, action.meta?.now);
     }
 
     case 'MAP_SWITCH': {
@@ -617,8 +723,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
       const mapName = getCurrentMapName(state);
       const saveStr = serializeSave(state.player, state.config, mapName, action.slot);
-      localSave(state.player.playerName, action.slot, saveStr);
-      return addLog({ ...state, activeSaveSlot: action.slot }, `游戏已保存至 ${action.slot}!`);
+      queueLocalSave(ctx, state.player.playerName, action.slot, saveStr);
+      const newState = addLog({ ...state, activeSaveSlot: action.slot }, `游戏已保存至 ${action.slot}!`);
+      return withQueuedEffects(newState, ctx);
     }
 
     case 'MANUAL_SAVE': {
@@ -626,8 +733,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         return addLog(state, 'Save skipped: player name is empty.');
       }
       const mapName = getCurrentMapName(state);
-      manuallySave(state.player, state.config, mapName, action.slot);
-      return addLog({ ...state, activeSaveSlot: action.slot }, `存档已导出至 ${action.slot}.boe 文件!`);
+      queueManualSave(ctx, state.player, state.config, mapName, action.slot);
+      const newState = addLog({ ...state, activeSaveSlot: action.slot }, `存档已导出至 ${action.slot}.boe 文件!`);
+      return withQueuedEffects(newState, ctx);
     }
 
     case 'MANUAL_LOAD': {
@@ -635,15 +743,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const mapData = getMapByName(mapName) ?? MapList[0];
       const battle = new Battle(player, new GameMap(mapData), config) as any;
       battle.init();
-      localSave(action.saveData.playerName, action.saveData.slot, action.saveData.info);
-      return addLog(
-        { ...state, player, config, activeSaveSlot: action.saveData.slot, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
+      queueLocalSave(ctx, action.saveData.playerName, action.saveData.slot, action.saveData.info);
+      return withQueuedEffects(addLog(
+        { ...state, player, config, activeSaveSlot: action.saveData.slot, scene: 'main', battle, loot: createInitialLoot(), shop: action.meta?.shop ?? state.shop, tick: 0 },
         `Manual save ${action.saveData.slot} imported for ${playerName}.`
-      );
+      ), ctx);
     }
 
     case 'LOAD_GAME': {
-      const saveData = localLoad(action.slot);
+      const saveData = action.meta?.loadSaveData;
       if (!saveData) {
         return addLog(state, `存档 ${action.slot} 不存在`);
       }
@@ -652,7 +760,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const battle = new Battle(player, new GameMap(mapData), config) as any;
       battle.init();
       return addLog(
-        { ...state, player, config, activeSaveSlot: action.slot, scene: 'main', battle, loot: createInitialLoot(), shop: createInitialShopState(player), tick: 0 },
+        { ...state, player, config, activeSaveSlot: action.slot, scene: 'main', battle, loot: createInitialLoot(), shop: action.meta?.shop ?? state.shop, tick: 0 },
         `欢迎回来，${playerName}。存档 ${action.slot} 已读取。`
       );
     }
@@ -671,16 +779,96 @@ function withBattlePlayer(state: GameState, player: PlayerState): GameState {
   return { ...state, player, battle };
 }
 
-function addLog(state: GameState, text: string, category?: string): GameState {
+function addLog(state: GameState, text: string, category?: string, timestamp: number = state.tick): GameState {
   if (!shouldDisplayLog(state.config, category)) return state;
-  const msg = { id: ++_msgId, text, category, timestamp: Date.now() };
+  const previous = state.ui.infoMessages[state.ui.infoMessages.length - 1];
+  const msg = { id: (previous?.id ?? 0) + 1, text, category, timestamp };
   return { ...state, ui: { ...state.ui, infoMessages: [...state.ui.infoMessages.slice(-199), msg] } };
 }
 
-function applyTitleEvents(events?: Array<{ name: string; maxVal?: number; countVal?: number }>): void {
-  if (!events?.length) return;
-  for (const event of events) {
-    updateTitleInfo(event.name, event.maxVal ?? 0, event.countVal ?? 0);
+function processGameEffects(
+  effects: readonly GameEffect[] | undefined,
+  processedEffectIds: Set<string>,
+  dispatch: React.Dispatch<GameAction>
+): void {
+  if (!effects?.length) return;
+  let shouldFlushTitleUnlocks = false;
+  for (const effect of effects) {
+    if (processedEffectIds.has(effect.id)) continue;
+    processedEffectIds.add(effect.id);
+    switch (effect.type) {
+      case 'localSave':
+        localSave(effect.playerName, effect.slot, effect.saveString);
+        break;
+      case 'manualSave':
+        manuallySave(effect.player, effect.config, effect.mapName, effect.slot);
+        break;
+      case 'forgeSound':
+        playForgeSound(effect.sound);
+        break;
+      case 'title':
+        updateTitleInfo(effect.event.name, effect.event.maxVal ?? 0, effect.event.countVal ?? 0);
+        break;
+      case 'flushTitleUnlocks':
+        shouldFlushTitleUnlocks = true;
+        break;
+      case 'setSoundEnabled':
+        setSoundEnabled(effect.enabled);
+        break;
+    }
+  }
+  if (shouldFlushTitleUnlocks) {
+    const skillNames = getPendingSkillUnlocks();
+    if (skillNames.length) {
+      dispatch({ type: 'TITLE_UNLOCK_SKILLS', skillNames });
+    }
+  }
+}
+
+function createRandomPercents(count: number): number[] {
+  return Array.from({ length: count }, () => Math.random() * 100);
+}
+
+function createActionMeta(action: GameAction, effectBatchId: number): GameActionMeta {
+  return {
+    ...action.meta,
+    now: action.meta?.now ?? Date.now(),
+    effectBatchId: action.meta?.effectBatchId ?? effectBatchId,
+    randomPercents: action.meta?.randomPercents ?? createRandomPercents(256),
+  };
+}
+
+function shopForLoadedSave(saveData: { userName: string; info: string } | null | undefined): ReturnType<typeof generateShopState> | undefined {
+  if (!saveData) return undefined;
+  const { player } = deserializeSave(saveData.info, saveData.userName);
+  return generateShopState(player);
+}
+
+function prepareActionForReducer(action: GameAction, state: GameState, effectBatchId: number): GameAction {
+  const meta = createActionMeta(action, effectBatchId);
+  switch (action.type) {
+    case 'PLAYER_BURN': {
+      const player = playerBurn(state.player, action.age, action.race);
+      return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(player) } };
+    }
+    case 'DO_REBIRTH': {
+      const player = playerBurn(state.player, action.age, action.race);
+      return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(player) } };
+    }
+    case 'SHOP_GENERATE':
+      return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(state.player) } };
+    case 'BATTLE_TICK': {
+      const battlePlayer = (state.battle as any)?.playerState as PlayerState | undefined;
+      return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(battlePlayer ?? state.player) } };
+    }
+    case 'MANUAL_LOAD':
+      return { ...action, meta: { ...meta, shop: meta.shop ?? shopForLoadedSave({ userName: action.saveData.playerName, info: action.saveData.info }) } };
+    case 'LOAD_GAME': {
+      const loadSaveData = meta.loadSaveData ?? localLoad(action.slot);
+      return { ...action, meta: { ...meta, loadSaveData, shop: meta.shop ?? shopForLoadedSave(loadSaveData) } };
+    }
+    default:
+      return { ...action, meta };
   }
 }
 
@@ -694,7 +882,21 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const [state, baseDispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const stateRef = useRef(state);
+  const effectBatchIdRef = useRef(1);
+  const processedEffectIdsRef = useRef(new Set<string>());
+  stateRef.current = state;
+
+  const dispatch = useCallback((action: GameAction) => {
+    const preparedAction = prepareActionForReducer(action, stateRef.current, effectBatchIdRef.current++);
+    baseDispatch(preparedAction);
+  }, []);
+
+  useEffect(() => {
+    processGameEffects(state.pendingEffects as GameEffect[] | undefined, processedEffectIdsRef.current, dispatch);
+  }, [state.pendingEffects, dispatch]);
+
   return (
     <GameContext.Provider value={{ state, dispatch }}>
       {children}

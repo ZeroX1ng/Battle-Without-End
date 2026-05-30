@@ -50,13 +50,18 @@ assertIncludes(
 );
 assertIncludes(
   gameContext,
-  'applyTitleEvents(result.titleEvents)',
-  'BATTLE_TICK must consume battle titleEvents at the reducer boundary.'
+  'queueTitleEvents(ctx, result.titleEvents)',
+  'BATTLE_TICK must queue battle titleEvents as explicit reducer effects.'
 );
 assertIncludes(
   gameContext,
-  'function applyTitleEvents',
-  'GameContext must keep title mutation in one reducer-side helper.'
+  'function processGameEffects',
+  'GameContext must process title mutation outside reducer evaluation.'
+);
+assertIncludes(
+  gameContext,
+  "case 'title':",
+  'Game effects must include a title effect handler.'
 );
 
 if (packageJson.scripts?.['assert:architecture'] !== 'node scripts/assertArchitectureBoundaries.mjs') {

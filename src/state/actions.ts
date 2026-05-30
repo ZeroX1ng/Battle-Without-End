@@ -2,14 +2,22 @@
 // 所有状态的修改都通过 dispatch(action) 触发，由 GameReducer 处理。
 // React 组件通过 dispatch 与 core/ 纯逻辑层交互。
 
-import type { PlayerState } from '../core/types';
+import type { ShopState } from '../core/types';
 import type { Race } from '../core/models/Race';
 import type { Equipment } from '../core/models/Equipment';
 import type { Skill } from '../core/models/Skill';
 import type { Map } from '../core/models/Map';
 import type { Battle } from '../core/models/Battle';
 
-export type GameAction =
+export interface GameActionMeta {
+  now?: number;
+  effectBatchId?: number;
+  shop?: ShopState;
+  randomPercents?: number[];
+  loadSaveData?: { userName: string; time: string; info: string } | null;
+}
+
+type GameActionCore =
   // ── 场景切换 ──
   | { type: 'SET_SCENE'; scene: string }
   | { type: 'OPEN_CONFIRM'; message: string }
@@ -72,6 +80,7 @@ export type GameAction =
   // ── 称号 ──
   | { type: 'TITLE_ADD'; title: any }
   | { type: 'TITLE_SET'; title: any }
+  | { type: 'TITLE_UNLOCK_SKILLS'; skillNames: string[] }
 
   // ── 转生 ──
   | { type: 'START_REBIRTH' }
@@ -99,3 +108,5 @@ export type GameAction =
 
   // ── Tick 计数 ──
   | { type: 'GAME_TICK' };
+
+export type GameAction = GameActionCore & { meta?: GameActionMeta };

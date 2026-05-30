@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-05-27
+Last updated: 2026-05-30
 
 ## 中文
 
@@ -57,6 +57,20 @@ Last updated: 2026-05-27
 | P1-MONSTER-TITLE-TOOLTIP | P1 | 怪物称号 HTML 浮窗 | Verified | `playtest-followups-2026-05-25.md#p1-monster-title-tooltip` | AS3 `MonsterTitle.description` 只展示 `statMulList` 属性加值/倍率；`assert:monster-title-tooltip`、相邻 monster guards、`npx tsc -b` 和浏览器 smoke 已通过 |
 | P2-TEST-SPEED-CONTROL | P2 | 临时测试倍率控件 | Verified | `playtest-followups-2026-05-25.md#p2-test-speed-control` | 临时 feature flag 下提供 `1x/2x/5x/10x` 主界面控件，只改变 `useGameLoop` effective interval，不进入存档；`assert:test-speed-control`、相邻 loop/age guards、`npx tsc -b` 和浏览器 smoke 已通过 |
 
+### Architecture Review Queue
+
+2026-05-30 新增架构审阅队列：`architecture-review-queue-2026-05-30.md`。这些条目每次只处理一张；`No AS3; React architecture review` 条目不强行寻找 AS3，但必须保持已有 AS3 parity guard 绿色。
+
+| ID | Priority | Module | Status | Card | Acceptance |
+| --- | --- | --- | --- | --- | --- |
+| A-R1 | P0 | Reducer purity and StrictMode | Guarded | `p0-architecture-reducer-purity-strictmode.md` | Existing: `assert:reducer-purity-strictmode`; Adjacent: `assert:architecture`, `assert:forge-logic`, `assert:start-burn-save`, `assert:save-persistence`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
+| A-R2 | P0 | Title state ownership | Needs repair | `p0-title-state-ownership.md` | Needed: `assert:title-state-ownership`; Adjacent: `assert:title-data-save-parity`, `assert:title-window`, `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
+| A-R3 | P1 | Battle state immutability | Guard needed | `p1-battle-state-immutability.md` | Needed: `assert:battle-state-immutability`; Adjacent: `assert:battle-player-state`, `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:architecture`; Always: `npx tsc -b` |
+| A-R4 | P1 | Domain type boundaries | Guard needed | `p1-domain-type-boundaries.md` | Needed: `assert:domain-type-boundaries`; Adjacent: `assert:architecture`, `assert:battle-player-state`, `assert:equipment-ownership`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
+| A-R5 | P2 | Guard gate reproducibility | Mostly guarded | `p2-guard-gate-reproducibility.md` | Existing: `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; Add conventional `npm test` only if this card is selected |
+| A-R6 | P2 | Build artifact and Vite config hygiene | Guard needed | `p2-build-artifact-config-hygiene.md` | Needed: focused repo-hygiene guard; Existing: `assert:source-encoding`, `assert:text-resources`; Build/package checks only if policy changes |
+| A-R7 | P2 | Module boundary decomposition | Queued | `p2-module-boundary-decomposition.md` | Run the focused guard for the extracted area, `assert:architecture`, `assert:gate:changed`, and `npx tsc -b` |
+
 ## English
 
 ### How To Use
@@ -87,6 +101,20 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 5. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
 6. New issue review: write a short audit before adding a new parity card.
 7. Refactor work: only make small refactors under existing guard coverage.
+
+### Architecture Review Queue
+
+The 2026-05-30 architecture queue is routed through `architecture-review-queue-2026-05-30.md`. Pick one item per session. Cards marked `No AS3; React architecture review` do not require forced AS3 lookup, but existing AS3 parity guards must remain green.
+
+| ID | Priority | Module | Status | Card | Acceptance |
+| --- | --- | --- | --- | --- | --- |
+| A-R1 | P0 | Reducer purity and StrictMode | Guarded | `p0-architecture-reducer-purity-strictmode.md` | Existing: `assert:reducer-purity-strictmode`; Adjacent: `assert:architecture`, `assert:forge-logic`, `assert:start-burn-save`, `assert:save-persistence`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
+| A-R2 | P0 | Title state ownership | Needs repair | `p0-title-state-ownership.md` | Needed: `assert:title-state-ownership`; Adjacent: `assert:title-data-save-parity`, `assert:title-window`, `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
+| A-R3 | P1 | Battle state immutability | Guard needed | `p1-battle-state-immutability.md` | Needed: `assert:battle-state-immutability`; Adjacent: `assert:battle-player-state`, `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:architecture`; Always: `npx tsc -b` |
+| A-R4 | P1 | Domain type boundaries | Guard needed | `p1-domain-type-boundaries.md` | Needed: `assert:domain-type-boundaries`; Adjacent: `assert:architecture`, `assert:battle-player-state`, `assert:equipment-ownership`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
+| A-R5 | P2 | Guard gate reproducibility | Mostly guarded | `p2-guard-gate-reproducibility.md` | Existing: `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; add conventional `npm test` only if this card is selected |
+| A-R6 | P2 | Build artifact and Vite config hygiene | Guard needed | `p2-build-artifact-config-hygiene.md` | Needed: focused repo-hygiene guard; Existing: `assert:source-encoding`, `assert:text-resources`; build/package checks only if policy changes |
+| A-R7 | P2 | Module boundary decomposition | Queued | `p2-module-boundary-decomposition.md` | Run the focused guard for the extracted area, `assert:architecture`, `assert:gate:changed`, and `npx tsc -b` |
 
 ### Battle Core Formula Review Cards
 

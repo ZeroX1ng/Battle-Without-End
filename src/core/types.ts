@@ -474,6 +474,7 @@ export interface GameState {
   tick: number;
   isRebirth: boolean;
   confirm: ConfirmState | null;
+  pendingEffects?: unknown[];
 }
 
 // ═══ 玩家状态 ═══
