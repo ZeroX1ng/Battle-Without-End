@@ -76,8 +76,9 @@ assertIncludes(systemConfig, 'addItemWithAutoSell', 'system config must provide 
 assertIncludes(systemConfig, 'handleDroppedItem', 'system config must provide AS3 drop-to-gold fallback');
 
 assertIncludes(gameContext, "case 'CONFIG_TOGGLE'", 'reducer must handle CONFIG_TOGGLE');
-assertIncludes(gameContext, 'setSoundEnabled(newVal)', 'sound_toggle must update SoundSystem');
-assertIncludes(gameContext, 'shouldDisplayLog(state.config, action.category)', 'UI logs must respect config toggles');
+assertIncludes(gameContext, 'queueSoundToggle(ctx, newVal)', 'sound_toggle must queue a SoundSystem update');
+assertIncludes(gameContext, 'setSoundEnabled(effect.enabled)', 'queued sound_toggle effects must update SoundSystem after reducer commit');
+assertIncludes(gameContext, 'shouldDisplayLog(state.config, category)', 'UI logs must respect config toggles');
 assertIncludes(gameContext, 'battle.run(state.config)', 'battle ticks must receive the latest config');
 assertIncludes(battle, 'this.monster.dropItem(this.playerState, this.map.mapData.modifier, this.config)', 'battle must pass config into Monster/Boss dropItem');
 assertIncludes(monster, 'handleDroppedItem(playerState, drop, config)', 'monster drops must respect config toggles');

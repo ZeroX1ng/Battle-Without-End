@@ -67,7 +67,7 @@ Last updated: 2026-05-30
 | A-R2 | P0 | Title state ownership | Guarded | `p0-title-state-ownership.md` | Existing: `assert:title-state-ownership`; Adjacent: `assert:title-data-save-parity`, `assert:title-window`, `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
 | A-R3 | P1 | Battle state immutability | Guarded | `p1-battle-state-immutability.md` | Existing: `assert:battle-state-immutability`; Adjacent: `assert:battle-player-state`, `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:architecture`; Always: `npx tsc -b` |
 | A-R4 | P1 | Domain type boundaries | Guarded | `p1-domain-type-boundaries.md` | Existing: `assert:domain-type-boundaries`; Adjacent: `assert:architecture`, `assert:battle-player-state`, `assert:equipment-ownership`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
-| A-R5 | P2 | Guard gate reproducibility | Mostly guarded | `p2-guard-gate-reproducibility.md` | Existing: `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; Add conventional `npm test` only if this card is selected |
+| A-R5 | P2 | Guard gate reproducibility | Guarded | `p2-guard-gate-reproducibility.md` | Existing: `npm test`, `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; Always: `npx tsc -b` |
 | A-R6 | P2 | Build artifact and Vite config hygiene | Guarded | `p2-build-artifact-config-hygiene.md` | Existing: `assert:repo-hygiene`, `assert:source-encoding`, `assert:text-resources`; Build/package checks only if policy changes; Always: `npx tsc -b` |
 | A-R7 | P2 | Module boundary decomposition | Queued | `p2-module-boundary-decomposition.md` | Run the focused guard for the extracted area, `assert:architecture`, `assert:gate:changed`, and `npx tsc -b` |
 
@@ -112,7 +112,7 @@ The 2026-05-30 architecture queue is routed through `architecture-review-queue-2
 | A-R2 | P0 | Title state ownership | Guarded | `p0-title-state-ownership.md` | Existing: `assert:title-state-ownership`; Adjacent: `assert:title-data-save-parity`, `assert:title-window`, `assert:save-load-runtime-continuity`, `assert:architecture`; Always: `npx tsc -b` |
 | A-R3 | P1 | Battle state immutability | Guarded | `p1-battle-state-immutability.md` | Existing: `assert:battle-state-immutability`; Adjacent: `assert:battle-player-state`, `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:architecture`; Always: `npx tsc -b` |
 | A-R4 | P1 | Domain type boundaries | Guarded | `p1-domain-type-boundaries.md` | Existing: `assert:domain-type-boundaries`; Adjacent: `assert:architecture`, `assert:battle-player-state`, `assert:equipment-ownership`, `assert:title-data-save-parity`; Always: `npx tsc -b` |
-| A-R5 | P2 | Guard gate reproducibility | Mostly guarded | `p2-guard-gate-reproducibility.md` | Existing: `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; add conventional `npm test` only if this card is selected |
+| A-R5 | P2 | Guard gate reproducibility | Guarded | `p2-guard-gate-reproducibility.md` | Existing: `npm test`, `assert:preflight`, `assert:gate:ci`, `assert:gate:all`; Always: `npx tsc -b` |
 | A-R6 | P2 | Build artifact and Vite config hygiene | Guarded | `p2-build-artifact-config-hygiene.md` | Existing: `assert:repo-hygiene`, `assert:source-encoding`, `assert:text-resources`; build/package checks only if policy changes; Always: `npx tsc -b` |
 | A-R7 | P2 | Module boundary decomposition | Queued | `p2-module-boundary-decomposition.md` | Run the focused guard for the extracted area, `assert:architecture`, `assert:gate:changed`, and `npx tsc -b` |
 

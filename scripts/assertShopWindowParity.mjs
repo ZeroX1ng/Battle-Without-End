@@ -36,7 +36,7 @@ assertIncludes(actions, "type: 'SHOP_GENERATE'", 'Actions must expose an explici
 assertIncludes(actions, "type: 'SHOP_BUY_SELL'", 'Actions must expose sell-item purchase by index');
 assertIncludes(actions, "type: 'SHOP_BUY_GAMBLE'", 'Actions must expose gamble-item purchase by index');
 
-assertIncludes(gameContext, 'createInitialShopState(state.player)', 'Initial state must create shop stock outside ShopWindow mounting');
+assertIncludes(gameContext, 'shop: createInitialShopState(player)', 'Initial state must create shop stock outside ShopWindow mounting');
 assertIncludes(gameContext, "case 'SHOP_GENERATE'", 'Reducer must regenerate global shop stock');
 assertIncludes(gameContext, 'shouldRefreshShop', 'Battle ticks must surface the AS3 600 tick shop refresh signal');
 assertIncludes(gameContext, 'result.shouldRefreshShop', 'BATTLE_TICK must refresh the global shop when Battle.run reaches 600 ticks');

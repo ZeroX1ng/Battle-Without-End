@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --config vite.config.mjs --configLoader native",
     "build": "tsc -b && vite build --config vite.config.mjs --configLoader native",
+    "test": "npm run assert:gate:changed",
     "pack:exe": "npm run build && electron-builder --win portable --x64",
     "assert:gate:baseline": "node scripts/runGuardGate.mjs baseline",
     "assert:gate:changed": "node scripts/runGuardGate.mjs changed",

@@ -37,8 +37,9 @@ assertIncludes(actions, "{ type: 'ITEM_SORT'; mode: 'value' | 'type' }", 'GameAc
 assertIncludes(gameContext, "case 'ITEM_SORT'", 'reducer must sort the player bag');
 assertIncludes(gameContext, "getMoney() < b.getMoney()", 'value sort must match AS3 descending getMoney ordering');
 assertIncludes(gameContext, "sortWeight", 'type sort must match AS3 sortWeight ordering');
-assertIncludes(gameContext, "playForgeSound('success')", 'forge success must provide immediate feedback');
-assertIncludes(gameContext, "playForgeSound('destroy')", 'destroyed forge failure must provide immediate feedback');
+assertIncludes(gameContext, "queueForgeSound(ctx, 'success')", 'forge success must queue immediate feedback');
+assertIncludes(gameContext, "queueForgeSound(ctx, 'destroy')", 'destroyed forge failure must queue immediate feedback');
+assertIncludes(gameContext, "playForgeSound(effect.sound)", 'queued forge sound effects must be played after reducer commit');
 
 if (packageJson.scripts?.['assert:item-window'] !== 'node scripts/assertItemWindowParity.mjs') {
   throw new Error('package.json must expose assert:item-window');
