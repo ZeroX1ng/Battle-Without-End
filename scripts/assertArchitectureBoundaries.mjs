@@ -26,6 +26,7 @@ function assertNotIncludes(source, needle, message) {
 
 const battleModel = read('src/core/models/Battle.ts');
 const gameContext = read('src/state/GameContext.tsx');
+const titleData = read('src/core/data/titleData.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 assertNotIncludes(
@@ -56,12 +57,17 @@ assertIncludes(
 assertIncludes(
   gameContext,
   'function processGameEffects',
-  'GameContext must process title mutation outside reducer evaluation.'
+  'GameContext must process explicit side effects outside reducer evaluation.'
 );
 assertIncludes(
   gameContext,
-  "case 'title':",
-  'Game effects must include a title effect handler.'
+  'applyTitleEventsToPlayer',
+  'GameContext must apply Battle titleEvents to player-owned title state.'
+);
+assertIncludes(
+  titleData,
+  'export function applyTitleEvents',
+  'titleData must expose a pure helper for player-owned title state updates.'
 );
 
 if (packageJson.scripts?.['assert:architecture'] !== 'node scripts/assertArchitectureBoundaries.mjs') {

@@ -16,6 +16,7 @@ import { as3Int, balanceRandom } from '../math/MyMath';
 import { EquipmentList } from '../data/equipmentData';
 import type { WeaponData } from '../types';
 import { SkillDataList } from '../data/skillData';
+import { createTitleListState } from '../data/titleData';
 
 // ═══ 初始状态工厂 ═══
 
@@ -31,7 +32,7 @@ export function createInitialPlayerState(): PlayerState {
     playerName: 'Jason',
     skillStatus: new BasicStatus(0,0,0,0,0,0,0),
     equipStatus: new BasicStatus(0,0,0,0,0,0,0),
-    skillList: [], equipSkillList: [], itemList: [], titleList: [], petList: [],
+    skillList: [], equipSkillList: [], itemList: [], titleList: createTitleListState(), petList: [],
   };
 }
 

@@ -4,10 +4,10 @@
 // 通过 dispatch 触发状态变更。
 
 import React, { createContext, useCallback, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
-import type { GameState, PlayerState, GlobalConfig, LootState, WeaponData } from '../core/types';
+import type { GameState, PlayerState, GlobalConfig, LootState, WeaponData, TitleData } from '../core/types';
 import type { GameAction, GameActionMeta } from './actions';
 import { createInitialPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
-import { TitleList, updateTitleInfo, getPendingSkillUnlocks } from '../core/data/titleData';
+import { applyTitleEvents, getTitleDefinition } from '../core/data/titleData';
 import { Battle } from '../core/models/Battle';
 import { Map as GameMap } from '../core/models/Map';
 import { MapList, getMapByName } from '../core/data/mapData';
@@ -122,8 +122,6 @@ type GameEffectPayload =
   | { type: 'localSave'; playerName: string; slot: string; saveString: string }
   | { type: 'manualSave'; player: PlayerState; config: GlobalConfig; mapName: string; slot: string }
   | { type: 'forgeSound'; sound: ForgeSoundType }
-  | { type: 'title'; event: TitleEffectEvent }
-  | { type: 'flushTitleUnlocks' }
   | { type: 'setSoundEnabled'; enabled: boolean };
 
 type GameEffect = GameEffectPayload & { id: string };
@@ -131,11 +129,12 @@ type GameEffect = GameEffectPayload & { id: string };
 interface ReducerContext {
   action: GameAction;
   effects: GameEffect[];
+  titleEvents: TitleEffectEvent[];
   randomIndex: number;
 }
 
 function createReducerContext(action: GameAction): ReducerContext {
-  return { action, effects: [], randomIndex: 0 };
+  return { action, effects: [], titleEvents: [], randomIndex: 0 };
 }
 
 function nextEffectId(ctx: ReducerContext): string {
@@ -159,7 +158,7 @@ function queueForgeSound(ctx: ReducerContext, sound: ForgeSoundType): void {
 }
 
 function queueTitleEvent(ctx: ReducerContext, name: string, maxVal: number = 0, countVal: number = 0): void {
-  queueEffect(ctx, { type: 'title', event: { name, maxVal, countVal } });
+  ctx.titleEvents.push({ name, maxVal, countVal });
 }
 
 function queueTitleEvents(ctx: ReducerContext, events?: TitleEffectEvent[]): void {
@@ -167,10 +166,6 @@ function queueTitleEvents(ctx: ReducerContext, events?: TitleEffectEvent[]): voi
   for (const event of events) {
     queueTitleEvent(ctx, event.name, event.maxVal ?? 0, event.countVal ?? 0);
   }
-}
-
-function queueTitleUnlockFlush(ctx: ReducerContext): void {
-  queueEffect(ctx, { type: 'flushTitleUnlocks' });
 }
 
 function queueSoundToggle(ctx: ReducerContext, enabled: boolean): void {
@@ -201,6 +196,26 @@ function withQueuedEffects(state: GameState, ctx: ReducerContext): GameState {
   return { ...state, pendingEffects: ctx.effects };
 }
 
+function applyTitleEventsToPlayer(state: GameState, playerState: PlayerState, ctx: ReducerContext): GameState {
+  if (!ctx.titleEvents.length) {
+    return withBattlePlayer(state, playerState);
+  }
+  const result = applyTitleEvents(playerState.titleList as TitleData[], ctx.titleEvents);
+  let nextPlayer = { ...playerState, titleList: result.titleList };
+  let nextState = { ...state, player: nextPlayer };
+  for (const skillName of result.unlockedSkills) {
+    const sd = SkillDataList.find(d => d.name === skillName);
+    if (sd && !nextPlayer.skillList.find((s: any) => s.skillData.name === skillName)) {
+      nextPlayer = addSkill(nextPlayer, sd);
+      nextState = addLog(
+        { ...nextState, player: nextPlayer },
+        `<font color='#FFA640'>称号解锁了新技能 ${sd.realName || skillName}!</font>`
+      );
+    }
+  }
+  return withBattlePlayer(nextState, nextPlayer);
+}
+
 function gameReducer(state: GameState, action: GameAction): GameState {
   state = clearPendingEffects(state);
   const ctx = createReducerContext(action);
@@ -219,15 +234,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'PLAYER_BURN':
       queueTitleEvent(ctx, 'begin');
       {
-        const player = playerBurn(state.player, action.age, action.race);
+        let player = playerBurn(state.player, action.age, action.race);
         const activeSaveSlot = state.activeSaveSlot ?? 'slot1';
-        const nextState = {
+        let nextState: GameState = {
           ...state,
           activeSaveSlot,
           player,
           shop: action.meta?.shop ?? state.shop,
           scene: 'main',
         };
+        nextState = applyTitleEventsToPlayer(nextState, player, ctx);
+        player = nextState.player;
         const mapName = getCurrentMapName(nextState);
         const saveStr = serializeSave(player, nextState.config, mapName, activeSaveSlot);
         queueLocalSave(ctx, player.playerName, activeSaveSlot, saveStr);
@@ -358,7 +375,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           `<font color='#4BEA14'>锻造成功</font> 你获得了${equip.getNameHTML()}<font color='#4BEA14'>+${equip.level}!</font>`,
           'item'
         );
-        return withQueuedEffects(newState, ctx);
+        return withQueuedEffects(applyTitleEventsToPlayer(newState, newPlayer, ctx), ctx);
       }
       const { newLevel } = resolveForgeFailure(originalEquip.level, originalEquip.quality ?? 0, action.blacksmithLevel, nextRandomPercent(ctx));
       queueTitleEvent(ctx, 'fail', 0, 1);
@@ -368,11 +385,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         const newList = [...newPlayer.itemList];
         newList.splice(action.equipIndex, 1);
         newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
-        return withQueuedEffects(addLog(
+        return withQueuedEffects(applyTitleEventsToPlayer(addLog(
           withBattlePlayer(state, newPlayer),
           `锻造失败 ${equip.getNameHTML()} 消失了`,
           'item'
-        ), ctx);
+        ), newPlayer, ctx), ctx);
       }
       const downgradedEquip = cloneEquipmentInstance(originalEquip) as any;
       downgradedEquip.setLevel(newLevel);
@@ -381,11 +398,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newList = [...newPlayer.itemList];
       newList[action.equipIndex] = downgradedEquip;
       newPlayer = updateEquipInfo({ ...newPlayer, itemList: newList });
-      return withQueuedEffects(addLog(
+      return withQueuedEffects(applyTitleEventsToPlayer(addLog(
         withBattlePlayer(state, newPlayer),
         `锻造失败 ${equip.getNameHTML()} 等级降为 <font color='#ff4040'>+${newLevel}</font>`,
         'item'
-      ), ctx);
+      ), newPlayer, ctx), ctx);
     }
 
     case 'AUTO_FORGE_EQUIPMENT': {
@@ -452,13 +469,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           'item'
         );
       }
-      return withQueuedEffects(withBattlePlayer(curState, curState.player), ctx);
+      return withQueuedEffects(applyTitleEventsToPlayer(curState, curState.player, ctx), ctx);
     }
 
     case 'SKILL_LEARN': {
       const newPlayer = addSkill(state.player, action.skill);
-      queueTitleEvent(ctx, action.skill.skillData.name, 0);
-      return withQueuedEffects(withBattlePlayer(state, newPlayer), ctx);
+      return withBattlePlayer(state, newPlayer);
     }
     case 'SKILL_LEVELUP': {
       const skill = action.skill;
@@ -480,11 +496,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         skillList: newList,
         equipSkillList: newEquipList,
       });
-      queueTitleEvent(ctx, updatedSkill.skillData.name, updatedSkill.level);
-      return withQueuedEffects(addLog(
+      if (updatedSkill.level === 14) {
+        queueTitleEvent(ctx, updatedSkill.skillData.name);
+      }
+      return withQueuedEffects(applyTitleEventsToPlayer(addLog(
         withBattlePlayer(state, newPlayer),
         `${updatedSkill.skillData.realName} 升级至 Rank ${(15 - updatedSkill.level).toString(16).toUpperCase()}!`
-      ), ctx);
+      ), newPlayer, ctx), ctx);
     }
     case 'SKILL_EQUIP': {
       return withBattlePlayer(state, equipSkill(state.player, action.skill));
@@ -552,18 +570,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // 消费待解锁的大师技能
-      queueTitleUnlockFlush(ctx);
-      const pendingUnlocks: string[] = [];
-      for (const skillName of pendingUnlocks) {
-        const sd = SkillDataList.find(d => d.name === skillName);
-        if (sd && !playerState.skillList.find((s: any) => s.skillData.name === skillName)) {
-          playerState = addSkill(playerState, sd);
-          newState = addLog(
-            { ...newState, player: playerState },
-            `<font color='#FFA640'>称号解锁了新技能 ${sd.realName || skillName}!</font>`
-          );
-        }
-      }
+      newState = applyTitleEventsToPlayer(newState, playerState, ctx);
+      playerState = newState.player;
 
       if (result.playerDied) {
         newState = addLog(
@@ -600,7 +608,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       queueTitleEvent(ctx, 'age', newPlayer.age);
       const newState = addLog(withBattlePlayer({ ...state, tick: state.tick + 1 }, newPlayer),
         `<font color='#ff4040'>你长大了! 你现在${newPlayer.age}岁了!</font>`);
-      return withQueuedEffects(newState, ctx);
+      return withQueuedEffects(applyTitleEventsToPlayer(newState, newPlayer, ctx), ctx);
     }
     case 'PLAYER_ADD_EXP': {
       return addLog(withBattlePlayer({ ...state, loot: { ...state.loot, exp: state.loot.exp + action.amount } }, addExp(state.player, action.amount)),
@@ -657,19 +665,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'DO_REBIRTH': {
       queueTitleEvent(ctx, 'reborn');
-      const rebornTitle = TitleList.find(t => t.name === 'the Reborn');
       let newPlayer2 = playerBurn(state.player, action.age, action.race);
       newPlayer2 = { ...newPlayer2, caculate: 0 };
-      if (rebornTitle) {
-        if (!newPlayer2.titleList.find((t: any) => t.name === 'the Reborn')) {
-          newPlayer2 = addTitle(newPlayer2, rebornTitle);
-        }
-        newPlayer2 = setTitle(newPlayer2, rebornTitle);
-      }
-      const newState = addLog(
+      let newState = addLog(
         { ...state, player: newPlayer2, shop: action.meta?.shop ?? state.shop, scene: 'main', isRebirth: false },
         `<font color='#ff4040'>你在转生中获得了新的生命! 你现在是${action.race.name}族，${action.age}岁!</font>`
       );
+      newState = applyTitleEventsToPlayer(newState, newPlayer2, ctx);
+      newPlayer2 = newState.player;
+      const rebornTitle = newPlayer2.titleList.find((t: any) => t.name === 'the Reborn') ?? getTitleDefinition('the Reborn');
+      if (rebornTitle?.isGot) {
+        newPlayer2 = setTitle(newPlayer2, rebornTitle);
+        newState = withBattlePlayer(newState, newPlayer2);
+      }
       return withQueuedEffects(newState, ctx);
     }
 
@@ -788,11 +796,9 @@ function addLog(state: GameState, text: string, category?: string, timestamp: nu
 
 function processGameEffects(
   effects: readonly GameEffect[] | undefined,
-  processedEffectIds: Set<string>,
-  dispatch: React.Dispatch<GameAction>
+  processedEffectIds: Set<string>
 ): void {
   if (!effects?.length) return;
-  let shouldFlushTitleUnlocks = false;
   for (const effect of effects) {
     if (processedEffectIds.has(effect.id)) continue;
     processedEffectIds.add(effect.id);
@@ -806,21 +812,9 @@ function processGameEffects(
       case 'forgeSound':
         playForgeSound(effect.sound);
         break;
-      case 'title':
-        updateTitleInfo(effect.event.name, effect.event.maxVal ?? 0, effect.event.countVal ?? 0);
-        break;
-      case 'flushTitleUnlocks':
-        shouldFlushTitleUnlocks = true;
-        break;
       case 'setSoundEnabled':
         setSoundEnabled(effect.enabled);
         break;
-    }
-  }
-  if (shouldFlushTitleUnlocks) {
-    const skillNames = getPendingSkillUnlocks();
-    if (skillNames.length) {
-      dispatch({ type: 'TITLE_UNLOCK_SKILLS', skillNames });
     }
   }
 }
@@ -894,7 +888,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    processGameEffects(state.pendingEffects as GameEffect[] | undefined, processedEffectIdsRef.current, dispatch);
+    processGameEffects(state.pendingEffects as GameEffect[] | undefined, processedEffectIdsRef.current);
   }, [state.pendingEffects, dispatch]);
 
   return (

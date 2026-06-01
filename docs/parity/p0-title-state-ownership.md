@@ -6,7 +6,7 @@ Last updated: 2026-05-30
 
 ### 当前状态
 
-Needs repair. 称号进度目前由模块级 `TitleList` 和 `_pendingUnlocks` 持有，`updateTitleInfo()` 直接修改全局称号对象。存档加载会创建一份 `player.titleList`，但运行时称号进度仍主要写入全局表，TitleWindow 又混用全局表和玩家表。这会让多存档、多周目、读档后称号进度和技能解锁队列的所有权变得含糊。
+Guarded. 称号进度现在由 `GameState.player.titleList` 持有，`TitleList` 保留为冻结的静态定义表。`applyTitleEvents` 返回新的玩家称号状态和显式技能解锁事件，不再通过模块级 `_pendingUnlocks` 或全局 `TitleList` 保存运行时进度。
 
 ### AS3 Source of Truth
 
@@ -64,7 +64,7 @@ Add or extend `assert:title-state-ownership` so it fails while:
 
 ### Acceptance Tests
 
-- Needed: `npm run assert:title-state-ownership`
+- Existing: `npm run assert:title-state-ownership`
 - Existing adjacent: `npm run assert:title-data-save-parity`
 - Existing adjacent: `npm run assert:title-window`
 - Existing adjacent: `npm run assert:save-load-runtime-continuity`
@@ -82,7 +82,7 @@ Add or extend `assert:title-state-ownership` so it fails while:
 
 ### Current Status
 
-Needs repair. Title progress is held by module-level `TitleList` and `_pendingUnlocks`. Runtime updates mutate global title objects, while loaded saves create player-local title instances. This makes multi-save and multi-run ownership ambiguous.
+Guarded. Title progress belongs to `GameState.player.titleList`; `TitleList` is static definition data, and `applyTitleEvents` returns player-owned title state plus explicit skill-unlock events.
 
 ### AS3 Source of Truth
 
@@ -102,7 +102,7 @@ AS3 static state is an external behavior reference, not a required React archite
 
 ### Acceptance Tests
 
-- Needed: `npm run assert:title-state-ownership`
+- Existing: `npm run assert:title-state-ownership`
 - Existing adjacent: `npm run assert:title-data-save-parity`
 - Existing adjacent: `npm run assert:title-window`
 - Existing adjacent: `npm run assert:save-load-runtime-continuity`

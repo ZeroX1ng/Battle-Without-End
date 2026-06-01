@@ -6,7 +6,7 @@ Last updated: 2026-05-30
 
 ### 当前状态
 
-Guard needed. `dist/` 目前被 git 跟踪，约 1349 个文件；`package.json` 的 Electron packaging 也显式打包 `dist/**/*`。这在一般前端工程里是构建产物污染，但本仓库历史上 `dist/` 已作为发布/桌面打包输入存在，不能默认当垃圾删除。另有 `vite.config.ts` 和 `vite.config.mjs` 两份几乎相同配置，实际 npm scripts 使用 `.mjs`，容易误导后续工具。
+Guarded. `dist/` 目前被 git 跟踪，约 1349 个文件；`package.json` 的 Electron packaging 也显式打包 `dist/**/*`。这在一般前端工程里是构建产物污染，但本仓库历史上 `dist/` 已作为发布/桌面打包输入存在，不能默认当垃圾删除。`vite.config.mjs` 是唯一有效 Vite 配置，npm scripts 使用 `.mjs --configLoader native`。
 
 ### AS3 Source of Truth
 
@@ -37,6 +37,13 @@ Guard needed. `dist/` 目前被 git 跟踪，约 1349 个文件；`package.json`
 - If `dist/` becomes ignored, update Electron packaging/release workflow so builds still produce the portable exe reliably.
 - Keep one authoritative Vite config or add a clear guard/documentation that `.mjs` is the only active config.
 
+### Repo Hygiene Decision
+
+- Tracked dist policy: `dist/` stays tracked as historical release input for this checkout and must not be deleted as incidental cleanup.
+- `pack:exe` must run `npm run build` before Electron packaging so tracked `dist/` is refreshed before producing the portable exe.
+- `vite.config.mjs is the only active Vite config`; `vite.config.ts` is removed so tools do not see two active-looking configs.
+- `release-win.yml` runs `assert:repo-hygiene` before packaging to keep this policy executable.
+
 ### Forbidden Behavior
 
 - Deleting tracked `dist/` as incidental cleanup during a parity fix.
@@ -54,7 +61,7 @@ Add or extend a hygiene guard so it fails while:
 
 ### Acceptance Tests
 
-- Needed: `npm run assert:repo-hygiene` or a focused equivalent.
+- Existing: `npm run assert:repo-hygiene`
 - Existing: `npm run assert:source-encoding`
 - Existing: `npm run assert:text-resources`
 - If packaging flow changes: `npm run build`
@@ -64,7 +71,7 @@ Add or extend a hygiene guard so it fails while:
 
 ### Current Status
 
-Guard needed. `dist/` is tracked and `package.json` packages `dist/**/*` for Electron. That is unusual for frontend repos, but in this checkout `dist/` has release history and should not be removed as incidental cleanup. There are also duplicate Vite configs, while scripts use `vite.config.mjs`.
+Guarded. `dist/` is tracked and `package.json` packages `dist/**/*` for Electron. That is unusual for frontend repos, but in this checkout `dist/` has release history and should not be removed as incidental cleanup. `vite.config.mjs` is the only active Vite config.
 
 ### Expected Behavior
 
@@ -72,9 +79,16 @@ Guard needed. `dist/` is tracked and `package.json` packages `dist/**/*` for Ele
 - Keep release packaging reliable under that policy.
 - Keep one authoritative Vite config, or guard/document that `.mjs` is active.
 
+### Repo Hygiene Decision
+
+- Tracked dist policy: `dist/` stays tracked as historical release input for this checkout and must not be deleted as incidental cleanup.
+- `pack:exe` must run `npm run build` before Electron packaging so tracked `dist/` is refreshed before producing the portable exe.
+- `vite.config.mjs is the only active Vite config`; `vite.config.ts` is removed so tools do not see two active-looking configs.
+- `release-win.yml` runs `assert:repo-hygiene` before packaging to keep this policy executable.
+
 ### Acceptance Tests
 
-- Needed: `npm run assert:repo-hygiene` or a focused equivalent.
+- Existing: `npm run assert:repo-hygiene`
 - Existing: `npm run assert:source-encoding`
 - Existing: `npm run assert:text-resources`
 - If packaging flow changes: `npm run build`

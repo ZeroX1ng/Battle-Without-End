@@ -15,7 +15,7 @@ import { Skill as SkillClass } from '../models/Skill';
 import { Pet as PetClass } from '../models/Pet';
 import { BasicStatus } from '../models/BasicStatus';
 import { list as RaceList, UNDEATH } from '../data/raceData';
-import { TitleList } from '../data/titleData';
+import { TitleList, createTitleListState, deserializeTitleState, serializeTitleState } from '../data/titleData';
 import { updateAllInfo } from '../models/Player';
 
 const SAVE_PREFIX = 'boe_save_';
@@ -67,10 +67,9 @@ export function serializeSave(
 
   // @TITLE
   _loc2_ += '@TITLE:';
-  const playerTitlesByName = new Map(player.titleList.map((title: any) => [title.name, title]));
-  for (const titleDef of TitleList) {
-    const title = playerTitlesByName.get(titleDef.name) ?? (player.title?.name === titleDef.name ? player.title : titleDef);
-    _loc2_ += title.save() + ',';
+  const playerTitleList = createTitleListState(player.titleList?.length ? player.titleList : (player.title ? [player.title] : []));
+  for (const title of playerTitleList) {
+    _loc2_ += serializeTitleState(title) + ',';
   }
 
   // @OTHER
@@ -350,10 +349,9 @@ export function deserializeSave(
   // 加载称号
   const titleList: any[] = [];
   for (let i = 0; i < TitleList.length; i++) {
-    const title = { ...TitleList[i] };
-    if (i < titleStrs.length && titleStrs[i] !== '') {
-      title.load(titleStrs[i]);
-    }
+    const title = i < titleStrs.length && titleStrs[i] !== ''
+      ? deserializeTitleState(TitleList[i], titleStrs[i])
+      : deserializeTitleState(TitleList[i], '');
     titleList.push(title);
   }
 

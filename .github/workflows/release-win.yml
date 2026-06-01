@@ -33,6 +33,7 @@ jobs:
         run: |
           npm run assert:battle-log-sticky-scroll
           npm run assert:visual-fps-cap
+          npm run assert:repo-hygiene
           npm run assert:source-encoding
           npm run assert:text-resources
           npx tsc -b

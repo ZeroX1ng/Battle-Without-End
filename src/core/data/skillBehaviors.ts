@@ -15,7 +15,6 @@ import {
   getMagicDamage, getMagicBalance, getHp,
 } from '../models/Player';
 import { statTranslate } from '../constants';
-import { updateTitleInfo } from './titleData';
 
 const CR = 50;
 const GREEN = '#4BB814';
@@ -24,6 +23,10 @@ const RED = '#ff4040';
 
 function noop(): BattleBehaviorResult {
   return { success: false, logs: [], playerHpDelta: 0, playerMpDelta: 0, monsterHpDelta: 0 };
+}
+
+function emitTitleEvent(battle: any, name: string, maxVal: number = 0, countVal: number = 0): void {
+  battle.addTitleEvent?.(name, maxVal, countVal);
 }
 
 // ═══ 辅助函数 ═══
@@ -71,8 +74,8 @@ export function behave_smash(skill: any, battle: any): BattleBehaviorResult {
   let damage = Math.floor((getAttack(battle.playerState) * critMul * params / 100 - battle.monster.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -89,8 +92,8 @@ export function behave_life_drain(skill: any, battle: any): BattleBehaviorResult
   let damage = Math.floor((getAttack(player) * critMul * (1 + params[1] * getStr(player)) - battle.monster.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   let heal = Math.floor(damage * params[2] / 100);
   const maxHeal = getHp(player) - battle.playerHp;
   if (heal > maxHeal) heal = maxHeal;
@@ -118,7 +121,7 @@ export function behave_defence(skill: any, battle: any): BattleBehaviorResult {
     (1 - calcProtection(getProtection(player) * params[2] + params[1])));
   if (damage < 1) damage = 1;
   battle.playerHp -= damage;
-  updateTitleInfo('endure', damage);
+  emitTitleEvent(battle, 'endure', damage);
   const monName = mon.getNameHtml(getCombatPower(player));
   const log = critMul > 1
     ? `你<font color='${RED}'>防御</font>成功, ${monName}对你造成<font color='${RED}' size='20'>${damage}!</font>伤害`
@@ -141,7 +144,7 @@ export function behave_mana_shield(skill: any, battle: any): BattleBehaviorResul
   let damage = rawDamage - absorbed;
   if (damage < 1) damage = 1;
   battle.playerHp -= damage;
-  updateTitleInfo('endure', rawDamage);
+  emitTitleEvent(battle, 'endure', rawDamage);
   let mpCost = Math.floor(absorbed / (params[2] + getIntelligence(player) * params[1]));
   battle.playerMp -= mpCost;
   const monName = mon.getNameHtml(getCombatPower(player));
@@ -162,7 +165,7 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
   let takenDamage = Math.floor((mon.attack * critMul - getDefence(player)) * (1 - calcProtection(getProtection(player))));
   if (takenDamage < 1) takenDamage = 1;
   battle.playerHp -= takenDamage;
-  updateTitleInfo('endure', takenDamage);
+  emitTitleEvent(battle, 'endure', takenDamage);
   const monName = mon.getNameHtml(getCombatPower(player));
   const logs: string[] = [];
   logs.push(critMul > 1
@@ -177,8 +180,8 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
     (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - params[2] * 3)));
   if (retDamage < 1) retDamage = 1;
   battle.monsterHp -= retDamage;
-  updateTitleInfo('damage', retDamage, retDamage);
-  updateTitleInfo('crit', 0, retCritMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', retDamage, retDamage);
+  emitTitleEvent(battle, 'crit', 0, retCritMul > 1 ? 1 : -1);
   logs.push(retCritMul > 1
     ? `你<font color='${RED}'>反击</font>成功,对${monName}造成<font color='${RED}' size='20'>${retDamage}!</font>伤害`
     : `你<font color='${RED}'>反击</font>成功,对${monName}造成<font color='${RED}'>${retDamage}</font>伤害`);
@@ -195,8 +198,8 @@ export function behave_bolt(skill: any, battle: any): BattleBehaviorResult {
   let damage = Math.floor(baseDmg * critMul * (100 + getMagicDamage(player)) / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -217,8 +220,8 @@ export function behave_thunder(skill: any, battle: any): BattleBehaviorResult {
     (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - extraIgnore)));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -237,8 +240,8 @@ export function behave_fireball(skill: any, battle: any): BattleBehaviorResult {
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   battle.monster.addBuff(new BuffBurn(Math.floor(params[3] * getIntelligence(player))));
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -259,8 +262,8 @@ export function behave_ice_spear(skill: any, battle: any): BattleBehaviorResult 
   if (Math.random() * 100 < params[3] + getIntelligence(player) * params[4]) {
     battle.monster.addBuff(new BuffFrozen(params[5]));
   }
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -280,8 +283,8 @@ export function behave_mirage_missle(skill: any, battle: any): BattleBehaviorRes
   const poisonVal = Math.floor(params[1] + params[3] * getWill(player));
   battle.monster.addBuff(new BuffPoison(poisonVal));
   battle.monster.addBuff(new BuffPoison(poisonVal));
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
@@ -299,8 +302,8 @@ export function behave_corrosive_shot(skill: any, battle: any): BattleBehaviorRe
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   battle.monster.addBuff(new BuffCorrosion(Math.floor(params[1] + getDex(player) * params[3])));
-  updateTitleInfo('damage', damage, damage);
-  updateTitleInfo('crit', 0, critMul > 1 ? 1 : -1);
+  emitTitleEvent(battle, 'damage', damage, damage);
+  emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
     logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],

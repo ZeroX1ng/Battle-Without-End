@@ -39,33 +39,10 @@ function makeTitle(
      * 更新称号进度 - 追踪 max 和 count，达标自动激活
      * AS3 原始: Title.updateInfo(param1:int=0, param2:int=0): void
      */
-    updateInfo(maxVal: number = 0, countVal: number = 0): void {
-      if (maxVal > this.max) {
-        this.max = maxVal;
-      }
-      if (countVal < 0) {
-        this.count = 0;
-      } else {
-        this.count += countVal;
-      }
-      if (this.isGot) return;
-      if (this.count >= this.countFix && this.max >= this.maxFix) {
-        this.setGot();
-      }
-    },
-
     /**
      * 激活称号 - 触发 behaveFunction 回调（技能解锁等）
      * AS3 原始: Title.setGot(): void
      */
-    setGot(): void {
-      if (this.isGot) return;
-      this.isGot = true;
-      if (this.behaveFunction) {
-        this.behaveFunction();
-      }
-    },
-
     load(data: string): void {
       if (data !== '') {
         const parts = data.split('#');
@@ -96,7 +73,7 @@ export const TITLE_SKILL_UNLOCKS: Record<string, string> = {
 // ═══ 称号列表 — 全部 45 个 ═══
 // AS3 原始: iData.iPlayer.TitleList (45个称号，含45个事件分发)
 
-export const TitleList: TitleData[] = [
+const TITLE_DEFINITIONS: TitleData[] = [
   // === 入门/剧情称号 ===
   makeTitle('the Beginner', '初心者', '欢迎来到战斗无止境的游戏世界', [sm(Stat.protection, 1, 1), sm(Stat.luck, 1, 5)]),
   makeTitle('the Reborn', '转生的', '在20岁后转生', [sm(Stat.str, 1, 6), sm(Stat.intelligence, 1, 6), sm(Stat.dex, 1, 6), sm(Stat.will, 1, 6), sm(Stat.luck, 1, 6)], 0, 1),
@@ -155,6 +132,251 @@ export const TitleList: TitleData[] = [
   makeTitle('the Mana Shield Master', '魔法盾大师', '魔法盾达到Rank 1', [sm(Stat.mp, 1.2, 50), sm(Stat.intelligence, 1, 25), sm(Stat.str, 0.9, -10)]),
 ];
 
+function freezeTitleDefinition(title: TitleData): TitleData {
+  return Object.freeze({
+    ...title,
+    statMulList: Object.freeze([...title.statMulList]) as StatMulData[],
+  });
+}
+
+export const TitleList: TitleData[] = Object.freeze(TITLE_DEFINITIONS.map(freezeTitleDefinition)) as TitleData[];
+
+export interface TitleEvent {
+  name: string;
+  maxVal?: number;
+  countVal?: number;
+}
+
+export interface TitleUpdateResult {
+  titleList: TitleData[];
+  unlockedSkills: string[];
+}
+
+export function serializeTitleState(title: TitleData): string {
+  return `${title.max}#${title.count}#${title.isGot ? '1' : '0'}`;
+}
+
+export function cloneTitleState(title: TitleData): TitleData {
+  return {
+    ...title,
+    statMulList: [...title.statMulList],
+  };
+}
+
+export function deserializeTitleState(titleDef: TitleData, data: string): TitleData {
+  const title = cloneTitleState(titleDef);
+  title.max = 0;
+  title.count = 0;
+  title.isGot = false;
+  title.load(data);
+  return title;
+}
+
+export function createTitleListState(existingTitles: TitleData[] = []): TitleData[] {
+  const existingByName = new Map(existingTitles.map(title => [title.name, title]));
+  return TitleList.map((titleDef) => {
+    const existing = existingByName.get(titleDef.name);
+    return existing ? cloneTitleState({ ...titleDef, ...existing }) : cloneTitleState(titleDef);
+  });
+}
+
+export function getTitleDefinition(name: string): TitleData | undefined {
+  return TitleList.find(title => title.name === name);
+}
+
+function updateTitleState(title: TitleData, maxVal: number = 0, countVal: number = 0): TitleData {
+  const max = maxVal > title.max ? maxVal : title.max;
+  const count = countVal < 0 ? 0 : title.count + countVal;
+  const isGot = title.isGot || (count >= title.countFix && max >= title.maxFix);
+  return { ...title, max, count, isGot };
+}
+
+function applyTitleNames(
+  titleList: TitleData[],
+  titleNames: string[],
+  maxVal: number,
+  countVal: number,
+): TitleUpdateResult {
+  if (!titleNames.length) {
+    return { titleList, unlockedSkills: [] };
+  }
+  const targetNames = new Set(titleNames);
+  const unlockedSkills: string[] = [];
+  const nextTitleList = titleList.map((title) => {
+    if (!targetNames.has(title.name)) return title;
+    const nextTitle = updateTitleState(title, maxVal, countVal);
+    if (!title.isGot && nextTitle.isGot) {
+      const unlockedSkill = TITLE_SKILL_UNLOCKS[nextTitle.name];
+      if (unlockedSkill) unlockedSkills.push(unlockedSkill);
+    }
+    return nextTitle;
+  });
+  return { titleList: nextTitleList, unlockedSkills };
+}
+
+function titlesForEvent(eventType: string): string[] {
+  switch (eventType) {
+    case 'BLACKSMITHING':
+      return ['the Master of Blacksmithing'];
+    case 'COMBAT_MASTERY':
+      return ['the Combat Master'];
+    case 'COUNTERATTACK':
+      return ['the Master of Counter'];
+    case 'CRITICAL_HIT':
+      return ['the Master of Critical Hit'];
+    case 'DEFENCE':
+      return ['the Master of Defence'];
+    case 'FIREBOLT':
+      return ['the Master of Firebolt', 'the Elemental Apprentice'];
+    case 'ICEBOLT':
+      return ['the Master of Icebolt', 'the Elemental Apprentice'];
+    case 'LIGHTNINGBOLT':
+      return ['the Master of Lightning Bolt', 'the Elemental Apprentice'];
+    case 'MAGIC_MASTERY':
+      return ['the Magic Master'];
+    case 'SMASH':
+      return ['the Master of Smash'];
+    case 'CORROSIVE_SHOT':
+      return ['the Master of Corrosion', 'the Sniper'];
+    case 'RANGE_MASTERY':
+      return ['the Master of Range', 'the Sniper'];
+    case 'MIRAGE_MISSILE':
+      return ['the Master of Mirage Missle', 'the Sniper'];
+    case 'ICE_SPEAR':
+      return ['the Master of Ice Spear', 'the Elemental Master'];
+    case 'FIREBALL':
+      return ['the Master of Fireball', 'the Elemental Master'];
+    case 'THUNDER':
+      return ['the Master of Thunder', 'the Elemental Master'];
+    case 'MANA_SHIELD':
+      return ['the Mana Shield Master'];
+    case 'LIFE_DRAIN':
+      return ['the Life Drain Master'];
+    case 'age':
+      return ['the Adult', 'the All-Knowing', 'the Old'];
+    case 'age10':
+      return ['who Reached Lv 50 at Age 10'];
+    case Stat.str:
+      return ['the Strong'];
+    case Stat.dex:
+      return ['the Skillful'];
+    case Stat.intelligence:
+      return ['the Wise'];
+    case Stat.will:
+      return ['the Tough'];
+    case Stat.luck:
+      return ['the Lucky'];
+    case 'begin':
+      return ['the Beginner'];
+    case 'reborn':
+      return ['the Reborn'];
+    case 'forge':
+      return ['the Beginner Forger', 'the Advanced Forger', 'the Expert Forger', 'the God blessed'];
+    case 'endure':
+      return ['who Experienced Death', 'who Transcended Death'];
+    case 'damage':
+      return ['the Breaker', 'the Terminator', 'the Killer', 'the Warlord'];
+    case 'kill':
+      return ['the Boss Slayer'];
+    case 'fail':
+      return ['the Butterfingers'];
+    case 'crit':
+      return ['the Weakness Discoverer'];
+    default:
+      return [];
+  }
+}
+
+function titleUpdatesForEvent(eventType: string, maxVal: number, countVal: number): TitleEvent[] {
+  switch (eventType) {
+    case 'FIREBOLT':
+      return [
+        { name: 'the Master of Firebolt' },
+        { name: 'the Elemental Apprentice', countVal: 1 },
+      ];
+    case 'ICEBOLT':
+      return [
+        { name: 'the Master of Icebolt' },
+        { name: 'the Elemental Apprentice', countVal: 1 },
+      ];
+    case 'LIGHTNINGBOLT':
+      return [
+        { name: 'the Master of Lightning Bolt' },
+        { name: 'the Elemental Apprentice', countVal: 1 },
+      ];
+    case 'CORROSIVE_SHOT':
+      return [
+        { name: 'the Master of Corrosion' },
+        { name: 'the Sniper', countVal: 1 },
+      ];
+    case 'RANGE_MASTERY':
+      return [
+        { name: 'the Master of Range' },
+        { name: 'the Sniper', countVal: 1 },
+      ];
+    case 'MIRAGE_MISSILE':
+      return [
+        { name: 'the Master of Mirage Missle' },
+        { name: 'the Sniper', countVal: 1 },
+      ];
+    case 'ICE_SPEAR':
+      return [
+        { name: 'the Master of Ice Spear' },
+        { name: 'the Elemental Master', countVal: 1 },
+      ];
+    case 'FIREBALL':
+      return [
+        { name: 'the Master of Fireball' },
+        { name: 'the Elemental Master', countVal: 1 },
+      ];
+    case 'THUNDER':
+      return [
+        { name: 'the Master of Thunder' },
+        { name: 'the Elemental Master', countVal: 1 },
+      ];
+    case 'damage':
+      return [
+        { name: 'the Breaker', maxVal },
+        { name: 'the Terminator', maxVal },
+        { name: 'the Killer', maxVal, countVal },
+        { name: 'the Warlord', maxVal, countVal },
+      ];
+    default:
+      return titlesForEvent(eventType).map(name => ({ name, maxVal, countVal }));
+  }
+}
+
+export function applyTitleEvent(
+  currentTitles: TitleData[] = [],
+  eventType: string,
+  maxVal: number = 0,
+  countVal: number = 0,
+): TitleUpdateResult {
+  let titleList = createTitleListState(currentTitles);
+  const unlockedSkills: string[] = [];
+  for (const update of titleUpdatesForEvent(eventType, maxVal, countVal)) {
+    const result = applyTitleNames(titleList, [update.name], update.maxVal ?? 0, update.countVal ?? 0);
+    titleList = result.titleList;
+    for (const skillName of result.unlockedSkills) {
+      if (!unlockedSkills.includes(skillName)) unlockedSkills.push(skillName);
+    }
+  }
+  return { titleList, unlockedSkills };
+}
+
+export function applyTitleEvents(currentTitles: TitleData[] = [], events: TitleEvent[] = []): TitleUpdateResult {
+  let titleList = createTitleListState(currentTitles);
+  const unlockedSkills: string[] = [];
+  for (const event of events) {
+    const result = applyTitleEvent(titleList, event.name, event.maxVal ?? 0, event.countVal ?? 0);
+    titleList = result.titleList;
+    for (const skillName of result.unlockedSkills) {
+      if (!unlockedSkills.includes(skillName)) unlockedSkills.push(skillName);
+    }
+  }
+  return { titleList, unlockedSkills };
+}
+
 // ═══ 称号事件分发系统 ═══
 // AS3 原始: TitleList.updateTitleInfo(param1:String, param2:int=0, param3:int=0): void
 //
@@ -163,11 +385,6 @@ export const TitleList: TitleData[] = [
 //
 // 事件类型映射表：每个事件触发时，找到对应称号并调用其 updateInfo()
 
-const TITLE_ALIAS: Record<string, TitleData> = {};
-for (const t of TitleList) {
-  TITLE_ALIAS[t.name] = t;
-}
-
 /**
  * 称号事件分发 — 根据事件类型批量更新相关称号
  *
@@ -175,140 +392,7 @@ for (const t of TitleList) {
  * @param maxVal - max 追踪值（如技能等级、年龄、属性值）
  * @param countVal - count 追踪值（累计计数增量）
  */
-export function updateTitleInfo(eventType: string, maxVal: number = 0, countVal: number = 0): void {
-  // 技能 Rank 达到 1 时触发大师称号
-  if (maxVal >= 15) {
-    const skillToTitle: Record<string, string> = {
-      BLACKSMITHING: 'the Master of Blacksmithing',
-      COMBAT_MASTERY: 'the Combat Master',
-      COUNTERATTACK: 'the Master of Counter',
-      CRITICAL_HIT: 'the Master of Critical Hit',
-      DEFENCE: 'the Master of Defence',
-      FIREBOLT: 'the Master of Firebolt',
-      ICEBOLT: 'the Master of Icebolt',
-      LIGHTNINGBOLT: 'the Master of Lightning Bolt',
-      MAGIC_MASTERY: 'the Magic Master',
-      SMASH: 'the Master of Smash',
-      RANGE_MASTERY: 'the Master of Range',
-      CORROSIVE_SHOT: 'the Master of Corrosion',
-      MIRAGE_MISSILE: 'the Master of Mirage Missle',
-      ICE_SPEAR: 'the Master of Ice Spear',
-      FIREBALL: 'the Master of Fireball',
-      THUNDER: 'the Master of Thunder',
-      MANA_SHIELD: 'the Mana Shield Master',
-      LIFE_DRAIN: 'the Life Drain Master',
-    };
-    const titleName = skillToTitle[eventType];
-    if (titleName && TITLE_ALIAS[titleName]) {
-      TITLE_ALIAS[titleName].updateInfo(maxVal);
-    }
-  }
 
-  // 基础元素技能 — 触发初级元素师追踪
-  if (['FIREBOLT', 'ICEBOLT', 'LIGHTNINGBOLT'].includes(eventType) && maxVal >= 15) {
-    TITLE_ALIAS['the Elemental Apprentice']?.updateInfo(0, 1);
-  }
-
-  // 进阶元素技能 — 触发大师元素师追踪
-  if (['ICE_SPEAR', 'FIREBALL', 'THUNDER'].includes(eventType) && maxVal >= 15) {
-    TITLE_ALIAS['the Elemental Master']?.updateInfo(0, 1);
-  }
-
-  // 远程技能 — 触发狙击者追踪
-  if (['RANGE_MASTERY', 'MIRAGE_MISSILE', 'CORROSIVE_SHOT'].includes(eventType) && maxVal >= 15) {
-    TITLE_ALIAS['the Sniper']?.updateInfo(0, 1);
-  }
-
-  switch (eventType) {
-    case 'age':
-      TITLE_ALIAS['the Adult']?.updateInfo(maxVal);
-      TITLE_ALIAS['the All-Knowing']?.updateInfo(maxVal);
-      TITLE_ALIAS['the Old']?.updateInfo(maxVal);
-      break;
-    case 'age10':
-      TITLE_ALIAS['who Reached Lv 50 at Age 10']?.updateInfo(maxVal);
-      break;
-    case Stat.str:
-      TITLE_ALIAS['the Strong']?.updateInfo(maxVal);
-      break;
-    case Stat.dex:
-      TITLE_ALIAS['the Skillful']?.updateInfo(maxVal);
-      break;
-    case Stat.intelligence:
-      TITLE_ALIAS['the Wise']?.updateInfo(maxVal);
-      break;
-    case Stat.will:
-      TITLE_ALIAS['the Tough']?.updateInfo(maxVal);
-      break;
-    case Stat.luck:
-      TITLE_ALIAS['the Lucky']?.updateInfo(maxVal);
-      break;
-    case 'begin':
-      TITLE_ALIAS['the Beginner']?.updateInfo();
-      break;
-    case 'reborn':
-      TITLE_ALIAS['the Reborn']?.updateInfo(0, 1);
-      break;
-    case 'forge':
-      TITLE_ALIAS['the Beginner Forger']?.updateInfo(maxVal, countVal);
-      TITLE_ALIAS['the Advanced Forger']?.updateInfo(maxVal, countVal);
-      TITLE_ALIAS['the Expert Forger']?.updateInfo(maxVal, countVal);
-      TITLE_ALIAS['the God blessed']?.updateInfo(maxVal, countVal);
-      break;
-    case 'endure':
-      TITLE_ALIAS['who Experienced Death']?.updateInfo(maxVal);
-      TITLE_ALIAS['who Transcended Death']?.updateInfo(maxVal);
-      break;
-    case 'damage':
-      TITLE_ALIAS['the Breaker']?.updateInfo(maxVal);
-      TITLE_ALIAS['the Terminator']?.updateInfo(maxVal);
-      TITLE_ALIAS['the Killer']?.updateInfo(maxVal, countVal);
-      TITLE_ALIAS['the Warlord']?.updateInfo(maxVal, countVal);
-      break;
-    case 'kill':
-      TITLE_ALIAS['the Boss Slayer']?.updateInfo(maxVal, countVal);
-      break;
-    case 'fail':
-      TITLE_ALIAS['the Butterfingers']?.updateInfo(maxVal, countVal);
-      break;
-    case 'crit':
-      TITLE_ALIAS['the Weakness Discoverer']?.updateInfo(maxVal, countVal);
-      break;
-  }
-}
-
-// ═══ 技能解锁回调注入 ═══
-// AS3 原始: TitleList.add_fireball/add_ice_spear 等静态方法
-//
-// 大师称号激活时自动学习对应高级技能。
-// 使用内部队列模式 — 称号达成时将技能名推入队列，
-// 由 GameReducer 在 BATTLE_TICK 中消费队列并 addSkill。
-
-let _pendingUnlocks: string[] = [];
-
-export function getPendingSkillUnlocks(): string[] {
-  const result = _pendingUnlocks;
-  _pendingUnlocks = [];
-  return result;
-}
-
-/**
- * 为所有有技能解锁需求的大师称号绑定 behaveFunction
- * 达成时自动将技能名推入待解锁队列
- */
-export function setupTitleBehaviors(): void {
-  for (const titleName of Object.keys(TITLE_SKILL_UNLOCKS)) {
-    const title = TITLE_ALIAS[titleName];
-    if (title) {
-      const skillName = TITLE_SKILL_UNLOCKS[titleName];
-      title.behaveFunction = () => {
-        _pendingUnlocks.push(skillName);
-      };
-    }
-  }
-}
-
-setupTitleBehaviors();
 
 // ═══ 职业称号详情 HTML（InfoWindow 用） ═══
 // AS3 原始: Title.getDescription(): String

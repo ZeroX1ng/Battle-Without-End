@@ -129,7 +129,7 @@ const loadGameCase = extractCase(gameContext, 'LOAD_GAME');
 const saveGameCase = extractCase(gameContext, 'SAVE_GAME');
 assertNotIncludes(battleTickCase, "'auto'", 'BATTLE_TICK must not auto-save to a hidden auto slot');
 assertIncludes(battleTickCase, 'const activeSaveSlot = newState.activeSaveSlot;', 'BATTLE_TICK must read the current active save slot');
-assertIncludes(battleTickCase, 'localSave(playerState.playerName, activeSaveSlot, saveStr);', 'BATTLE_TICK must auto-save back to the active slot');
+assertIncludes(battleTickCase, 'queueLocalSave(ctx, playerState.playerName, activeSaveSlot, saveStr);', 'BATTLE_TICK must auto-save back to the active slot');
 assertIncludes(loadGameCase, 'activeSaveSlot: action.slot', 'LOAD_GAME must remember the loaded slot as the active save slot');
 assertIncludes(saveGameCase, 'activeSaveSlot: action.slot', 'SAVE_GAME must update the active save slot when the player saves there');
 assertIncludes(gameContext, 'new Battle(player, new GameMap(mapData), config)', 'LOAD_GAME must rebuild Battle with restored player/map/config');

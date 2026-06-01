@@ -12,11 +12,12 @@ export function TitleWindow() {
   const { state, dispatch } = useGameContext();
   const player = state.player;
   const equipTitle = player.title as TitleData | null;
-  const gotTitles: string[] = player.titleList.map((t: TitleData) => t.name);
+  const playerTitlesByName = new Map(player.titleList.map((title: TitleData) => [title.name, title]));
+  const gotTitles: string[] = player.titleList.filter((t: TitleData) => t.isGot).map((t: TitleData) => t.name);
 
   const allTitles = TitleList.map((def) => {
-    const got = gotTitles.includes(def.name) || def.isGot;
-    return { ...def, isGot: got };
+    const playerTitle = playerTitlesByName.get(def.name);
+    return { ...def, ...playerTitle, isGot: playerTitle?.isGot ?? false };
   });
 
   const handleEquip = (title: TitleData) => {

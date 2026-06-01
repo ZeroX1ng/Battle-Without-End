@@ -337,9 +337,6 @@ export interface TitleData {
   max: number;
   count: number;
   isGot: boolean;
-  behaveFunction?: () => void;
-  updateInfo(maxVal?: number, countVal?: number): void;
-  setGot(): void;
   load(data: string): void;
   save(): string;
 }
