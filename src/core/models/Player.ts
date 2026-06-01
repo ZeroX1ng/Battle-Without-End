@@ -11,7 +11,8 @@ import { Race } from './Race';
 import { Equipment } from './Equipment';
 import { Weapon } from './Weapon';
 import { Skill } from './Skill';
-import type { TitleData } from '../types';
+import { Pet } from './Pet';
+import type { SkillData, StatData, TitleData } from '../types';
 import { as3Int, balanceRandom } from '../math/MyMath';
 import { EquipmentList } from '../data/equipmentData';
 import type { WeaponData } from '../types';
@@ -43,7 +44,7 @@ export function createInitialPlayerState(): PlayerState {
  * AS3 原始: Player.burn(param1:int, param2:Race): void
  */
 export function playerBurn(state: PlayerState, age: number, race: Race): PlayerState {
-  let s = { ...createInitialPlayerState(), playerName: state.playerName, age, race, lv: 1 };
+  let s: PlayerState = { ...createInitialPlayerState(), playerName: state.playerName, age, race, lv: 1 };
   s.basicStatus = caculateInitStat(s);
   s = equipItem(s, new Weapon(EquipmentList[1] as WeaponData, 1));
   // 初始化基础技能（原 AS3 Player.burn 中注册的 12 个技能）
@@ -126,7 +127,7 @@ export function formula_title_stat(state: PlayerState, value: number, name: stri
 /** 最小攻击力 = basic+skill+equip.attackMin + str/3 (+ dex/3 if ranged) */
 export function getAttMin(state: PlayerState): number {
   let _loc2_: string = WeaponCategory.MELEE;
-  if (state.leftHand) _loc2_ = state.leftHand.category;
+  if (state.leftHand) _loc2_ = state.leftHand.category ?? WeaponCategory.MELEE;
   let _loc1_: number = state.basicStatus.attack.min + state.skillStatus.attack.min + state.equipStatus.attack.min + getStr(state) / 3;
   if (_loc2_ === WeaponCategory.RANGED) _loc1_ += getDex(state) / 3;
   return formula_title_stat(state, _loc1_, Stat.ATTACK);
@@ -135,7 +136,7 @@ export function getAttMin(state: PlayerState): number {
 /** 最大攻击力 = basic+skill+equip.attackMax + str/2.5 (+ dex/2.5 if ranged) */
 export function getAttMax(state: PlayerState): number {
   let _loc2_: string = WeaponCategory.MELEE;
-  if (state.leftHand) _loc2_ = state.leftHand.category;
+  if (state.leftHand) _loc2_ = state.leftHand.category ?? WeaponCategory.MELEE;
   let _loc1_: number = state.basicStatus.attack.max + state.skillStatus.attack.max + state.equipStatus.attack.max + getStr(state) / 2.5;
   if (_loc2_ === WeaponCategory.RANGED) _loc1_ += getDex(state) / 2.5;
   return formula_title_stat(state, _loc1_, Stat.ATTACK);
@@ -445,7 +446,7 @@ export function unequipItem(state: PlayerState, slot: string): PlayerState {
 
 // ═══ 技能管理 ═══
 
-export function addSkill(state: PlayerState, skillData: any): PlayerState {
+export function addSkill(state: PlayerState, skillData: SkillData): PlayerState {
   if (state.skillList.find(s => s.skillData.name === skillData.name)) return state;
   return { ...state, skillList: [...state.skillList, new Skill(skillData)] };
 }
@@ -552,7 +553,7 @@ export function updateEquipInfo(state: PlayerState): PlayerState {
   return { ...state, equipStatus };
 }
 
-function addEquipStats(target: BasicStatus, stats: any[]): void {
+function addEquipStats(target: BasicStatus, stats: StatData[]): void {
   if (!stats) return;
   let _loc5_: number = 0;
   while (_loc5_ < stats.length) {
@@ -572,12 +573,12 @@ function addEquipStats(target: BasicStatus, stats: any[]): void {
 
 // ═══ 宠物管理 ═══
 
-export function addPet(state: PlayerState, pet: any): { state: PlayerState; added: boolean } {
+export function addPet(state: PlayerState, pet: Pet): { state: PlayerState; added: boolean } {
   if (state.petList.length >= state.PETMAX) return { state, added: false };
   return { state: { ...state, petList: [...state.petList, pet] }, added: true };
 }
 
-export function setPet(state: PlayerState, pet: any): PlayerState {
+export function setPet(state: PlayerState, pet: Pet): PlayerState {
   if (state.pet === pet) return { ...state, pet: null };
   const nextPetList = state.petList.filter(item => item !== pet);
   if (state.pet) {
@@ -586,7 +587,7 @@ export function setPet(state: PlayerState, pet: any): PlayerState {
   return { ...state, pet, petList: nextPetList };
 }
 
-export function removePet(state: PlayerState, pet: any): PlayerState {
+export function removePet(state: PlayerState, pet: Pet): PlayerState {
   if (state.pet === pet) return { ...state, pet: null };
   return { ...state, petList: state.petList.filter(item => item !== pet) };
 }

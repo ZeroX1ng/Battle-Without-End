@@ -3,11 +3,13 @@
 // React 组件通过 dispatch 与 core/ 纯逻辑层交互。
 
 import type { ShopState } from '../core/types';
+import type { TitleData } from '../core/types';
 import type { Race } from '../core/models/Race';
 import type { Equipment } from '../core/models/Equipment';
 import type { Skill } from '../core/models/Skill';
 import type { Map } from '../core/models/Map';
 import type { Battle } from '../core/models/Battle';
+import type { Pet } from '../core/models/Pet';
 
 export interface GameActionMeta {
   now?: number;
@@ -73,13 +75,13 @@ type GameActionCore =
   | { type: 'SHOP_BUY_GAMBLE'; index: number }
 
   // ── 宠物 ──
-  | { type: 'PET_ADD'; pet: any }
-  | { type: 'PET_SET'; pet: any }
-  | { type: 'PET_REMOVE'; pet: any }
+  | { type: 'PET_ADD'; pet: Pet }
+  | { type: 'PET_SET'; pet: Pet }
+  | { type: 'PET_REMOVE'; pet: Pet }
 
   // ── 称号 ──
-  | { type: 'TITLE_ADD'; title: any }
-  | { type: 'TITLE_SET'; title: any }
+  | { type: 'TITLE_ADD'; title: TitleData }
+  | { type: 'TITLE_SET'; title: TitleData }
   | { type: 'TITLE_UNLOCK_SKILLS'; skillNames: string[] }
 
   // ── 转生 ──

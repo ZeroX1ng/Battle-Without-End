@@ -81,7 +81,7 @@ for (const actionType of [
 const battleTick = getCase(gameContext, 'BATTLE_TICK');
 assertIncludes(
   battleTick,
-  'return withBattlePlayer(newState, playerState);',
+  'withBattlePlayer(newState, playerState)',
   'BATTLE_TICK must write post-run ageup/unlock changes back to the active Battle.playerState before the next tick'
 );
 if (/\bb(?:attle)?\.config\s*=/.test(battleTick)) {

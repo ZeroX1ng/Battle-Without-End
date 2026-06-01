@@ -48,6 +48,8 @@
     "assert:test-speed-control": "node scripts/assertTestSpeedControlParity.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:battle-player-state": "node scripts/assertBattlePlayerStateParity.mjs",
+    "assert:battle-state-immutability": "node scripts/assertBattleStateImmutabilityParity.mjs",
+    "assert:domain-type-boundaries": "node scripts/assertDomainTypeBoundaries.mjs",
     "assert:monster-data-immutable": "node scripts/assertMonsterDataImmutable.mjs",
     "assert:monster-data-integrity": "node scripts/assertMonsterDataIntegrityParity.mjs",
     "assert:monster-reward": "node scripts/assertMonsterRewardParity.mjs",

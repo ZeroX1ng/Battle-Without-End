@@ -14,8 +14,8 @@ Last updated: 2026-05-30
 | --- | --- | --- | --- | --- | --- |
 | 1 | A-R1 | P0 | `p0-architecture-reducer-purity-strictmode.md` | Guarded | `assert:reducer-purity-strictmode` 覆盖 reducer purity / effect layer 边界；后续仅在 guard 变红或手动 smoke 发现漂移时重开。 |
 | 2 | A-R2 | P0 | `p0-title-state-ownership.md` | Guarded | 称号进度和技能解锁队列现在由玩家状态持有，并由 focused guard 覆盖。 |
-| 3 | A-R3 | P1 | `p1-battle-state-immutability.md` | Guard needed | `Battle` 可变实例是 reducer purity 的最大运行时阻抗，需在 P0 边界清楚后再收敛。 |
-| 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guard needed | 类型护栏能降低后续状态所有权修复风险，但不应先于真实运行时 bug。 |
+| 3 | A-R3 | P1 | `p1-battle-state-immutability.md` | Guarded | `assert:battle-state-immutability` 已覆盖 fresh battle transition runtime，旧 `state.battle` / `PlayerState` 不再被同一 tick 改写。 |
+| 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guarded | `assert:domain-type-boundaries` 已覆盖核心领域类型边界；后续只按单一领域 cluster 继续收敛。 |
 | 5 | A-R5 | P2 | `p2-guard-gate-reproducibility.md` | Mostly guarded | 旧审阅误判已被 vendored AS3 和 gate 反证，只剩 `npm test`/文档入口可改善。 |
 | 6 | A-R6 | P2 | `p2-build-artifact-config-hygiene.md` | Guarded | `dist/` 和 Vite config 是 repo hygiene，不要和 P0 行为架构混修。 |
 | 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Queued | 等 P0/P1 guard 稳定后，再按一块一块的方式拆大文件。 |
@@ -65,8 +65,8 @@ This is an architecture parity queue distilled from the 2026-05-30 review. Pick 
 | --- | --- | --- | --- | --- | --- |
 | 1 | A-R1 | P0 | `p0-architecture-reducer-purity-strictmode.md` | Guarded | `assert:reducer-purity-strictmode` covers the reducer purity / effect-layer boundary; reopen only if the guard regresses or manual smoke finds drift. |
 | 2 | A-R2 | P0 | `p0-title-state-ownership.md` | Guarded | Title progress and skill unlock queues are now guarded as player-owned state. |
-| 3 | A-R3 | P1 | `p1-battle-state-immutability.md` | Guard needed | Mutable Battle instances are the largest runtime mismatch with pure reducer boundaries. |
-| 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guard needed | Type boundaries reduce future repair risk after runtime bugs are contained. |
+| 3 | A-R3 | P1 | `p1-battle-state-immutability.md` | Guarded | `assert:battle-state-immutability` now covers the fresh battle transition runtime, so the previous `state.battle` / `PlayerState` are not mutated by the same tick. |
+| 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guarded | `assert:domain-type-boundaries` now covers the core domain type boundary; continue future cleanup one domain cluster at a time. |
 | 5 | A-R5 | P2 | `p2-guard-gate-reproducibility.md` | Mostly guarded | Vendored AS3 and guard gate already refute the stale missing-source claim. |
 | 6 | A-R6 | P2 | `p2-build-artifact-config-hygiene.md` | Guarded | Repo hygiene should stay separate from P0 behavior architecture. |
 | 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Queued | Large file decomposition should wait until P0/P1 guards stabilize. |

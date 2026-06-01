@@ -75,24 +75,15 @@ function createInitialShopState(playerState: PlayerState) {
 }
 
 function getCurrentMapName(state: GameState): string {
-  return (state.battle as any)?.map?.mapData?.name ?? MapList[0].name;
+  return state.battle?.map?.mapData?.name ?? MapList[0].name;
 }
 
 function hasValidPlayerName(player: PlayerState): boolean {
   return player.playerName.trim().length > 0;
 }
 
-function switchBattleMap(state: GameState, map: GameMap): any {
-  const battle: any = state.battle
-    ? Object.create(
-        Object.getPrototypeOf(state.battle),
-        Object.getOwnPropertyDescriptors(state.battle)
-      )
-    : new Battle(state.player, map, state.config);
-  battle.playerState = state.player;
-  battle.config = state.config;
-  battle.map = map;
-  battle.boss = null;
+function switchBattleMap(state: GameState, map: GameMap): Battle {
+  const battle = new Battle(state.player, map, state.config);
   battle.init();
   return battle;
 }
@@ -469,11 +460,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           'item'
         );
       }
-      return withQueuedEffects(applyTitleEventsToPlayer(curState, curState.player, ctx), ctx);
+      const titledState = applyTitleEventsToPlayer(curState, curState.player, ctx);
+      return withQueuedEffects(withBattlePlayer(titledState, titledState.player), ctx);
     }
 
     case 'SKILL_LEARN': {
-      const newPlayer = addSkill(state.player, action.skill);
+      const newPlayer = addSkill(state.player, action.skill.skillData);
       return withBattlePlayer(state, newPlayer);
     }
     case 'SKILL_LEVELUP': {
@@ -519,11 +511,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BATTLE_TICK': {
       if (!state.battle) return state;
-      const battle = state.battle as Battle;
+      const battle = state.battle.cloneForTransition(state.player, state.config);
       const result = battle.run(state.config);
 
-      let playerState = battle.playerState as PlayerState;
-      let newState = { ...state, tick: state.tick + 1 };
+      let playerState = battle.playerState;
+      let newState: GameState = { ...state, battle, tick: state.tick + 1 };
       if (result.shouldRefreshShop) {
         newState = { ...newState, shop: action.meta?.shop ?? state.shop };
       }
@@ -749,7 +741,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'MANUAL_LOAD': {
       const { player, config, mapName, playerName } = deserializeSave(action.saveData.info, action.saveData.playerName);
       const mapData = getMapByName(mapName) ?? MapList[0];
-      const battle = new Battle(player, new GameMap(mapData), config) as any;
+      const battle = new Battle(player, new GameMap(mapData), config);
       battle.init();
       queueLocalSave(ctx, action.saveData.playerName, action.saveData.slot, action.saveData.info);
       return withQueuedEffects(addLog(
@@ -765,7 +757,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
       const { player, config, mapName, playerName } = deserializeSave(saveData.info, saveData.userName);
       const mapData = getMapByName(mapName) ?? MapList[0];
-      const battle = new Battle(player, new GameMap(mapData), config) as any;
+      const battle = new Battle(player, new GameMap(mapData), config);
       battle.init();
       return addLog(
         { ...state, player, config, activeSaveSlot: action.slot, scene: 'main', battle, loot: createInitialLoot(), shop: action.meta?.shop ?? state.shop, tick: 0 },
@@ -779,11 +771,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
 function withBattlePlayer(state: GameState, player: PlayerState): GameState {
   if (!state.battle) return { ...state, player };
-  const battle: any = Object.create(
-    Object.getPrototypeOf(state.battle),
-    Object.getOwnPropertyDescriptors(state.battle)
-  );
-  battle.playerState = player;
+  const battle = state.battle.withPlayerState(player);
   return { ...state, player, battle };
 }
 
@@ -852,7 +840,7 @@ function prepareActionForReducer(action: GameAction, state: GameState, effectBat
     case 'SHOP_GENERATE':
       return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(state.player) } };
     case 'BATTLE_TICK': {
-      const battlePlayer = (state.battle as any)?.playerState as PlayerState | undefined;
+      const battlePlayer = state.battle?.playerState;
       return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(battlePlayer ?? state.player) } };
     }
     case 'MANUAL_LOAD':

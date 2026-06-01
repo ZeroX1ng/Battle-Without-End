@@ -19,6 +19,8 @@ import {
   getAttackSkillList, getDefenceSkillList
 } from './Player';
 import { PetSkillDataMap } from '../data/petSkillData';
+import type { Pet } from './Pet';
+import type { Skill } from './Skill';
 
 /** 暴击上限常量 */
 const CR = 50;
@@ -39,6 +41,36 @@ export interface BattleTitleEvent {
   name: string;
   maxVal?: number;
   countVal?: number;
+}
+
+function cloneRuntimeValue<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  if (seen.has(value)) {
+    return seen.get(value) as T;
+  }
+  if (Array.isArray(value)) {
+    const clone: unknown[] = [];
+    seen.set(value, clone);
+    for (const item of value) {
+      clone.push(cloneRuntimeValue(item, seen));
+    }
+    return clone as T;
+  }
+
+  const clone = Object.create(Object.getPrototypeOf(value));
+  seen.set(value, clone);
+  for (const key of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) continue;
+    const nextDescriptor: PropertyDescriptor = { ...descriptor };
+    if ('value' in nextDescriptor) {
+      nextDescriptor.value = cloneRuntimeValue(nextDescriptor.value, seen);
+    }
+    Object.defineProperty(clone, key, nextDescriptor);
+  }
+  return clone;
 }
 
 /**
@@ -70,7 +102,7 @@ export class Battle {
   public monsterHp: number = 0;
   public petHp: number = 0;
   public petMp: number = 0;
-  public pet: any = null;
+  public pet: Pet | null = null;
   public boss: Boss | null = null;
   public playerState: PlayerState;
   public map: Map;
@@ -83,6 +115,19 @@ export class Battle {
     this.playerState = playerState;
     this.map = map;
     this.config = config ?? null;
+  }
+
+  cloneForTransition(playerState: PlayerState = this.playerState, config: GlobalConfig | null = this.config): Battle {
+    const battle = cloneRuntimeValue(this);
+    battle.playerState = cloneRuntimeValue(playerState);
+    battle.config = config ?? null;
+    return battle;
+  }
+
+  withPlayerState(playerState: PlayerState): Battle {
+    const battle = cloneRuntimeValue(this);
+    battle.playerState = playerState;
+    return battle;
   }
 
   /**
@@ -105,7 +150,7 @@ export class Battle {
     }
     this.playerHp = getHp(this.playerState);
     this.playerMp = getMp(this.playerState);
-    this.pet = (this.playerState as any).pet || null;
+    this.pet = this.playerState.pet || null;
     if (this.pet) {
       this.petHp = this.pet.hp;
       this.petMp = this.pet.mp;
@@ -604,11 +649,11 @@ export class Battle {
     }
   }
 
-  private getAttackSkills(): any[] {
+  private getAttackSkills(): Skill[] {
     return getAttackSkillList(this.playerState);
   }
 
-  private getDefenceSkills(): any[] {
+  private getDefenceSkills(): Skill[] {
     return getDefenceSkillList(this.playerState);
   }
 }

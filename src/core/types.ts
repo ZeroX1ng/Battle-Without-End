@@ -1,6 +1,13 @@
 // ═══ 范围数值基类 ═══
 // AS3 原始: iData.iNumber.RangeNumber
 
+import type { BasicStatus } from './models/BasicStatus';
+import type { Battle } from './models/Battle';
+import type { Equipment } from './models/Equipment';
+import type { Pet } from './models/Pet';
+import type { Race } from './models/Race';
+import type { Skill } from './models/Skill';
+
 export interface RangeNumber {
   min: number;
   max: number;
@@ -183,8 +190,8 @@ export interface SkillData {
   setList?: Array<number | number[]>;
   /** 主动技能 MP 消耗表 (按等级索引) */
   mpCostList?: number[];
-  desFunction?: (skill: any) => string;
-  behaveFunction?: (skill: any, battle: any, playerState: any) => BattleBehaviorResult;
+  desFunction?: (skill: Skill) => string;
+  behaveFunction?: (skill: Skill, battle: Battle, playerState?: PlayerState) => BattleBehaviorResult;
 }
 
 /** 技能行为函数返回值 */
@@ -273,7 +280,7 @@ export interface PetSkillData {
   realName: string;
   category: PetSkillCategory;
   setList: [number[], number[]];
-  behaveFunction?: (skill: PetSkillInstance, battle: any, pet: any, playerState: any) => BattleBehaviorResult;
+  behaveFunction?: (skill: PetSkillInstance, battle: Battle, pet: Pet, playerState?: PlayerState) => BattleBehaviorResult;
   desFunction?: (skill: PetSkillInstance) => string;
 }
 
@@ -440,7 +447,7 @@ export interface LootState {
 
 // Shop stock owned by game state, matching AS3 Global.shopPanel lifetime.
 export interface ShopStockItem {
-  equip: any;
+  equip: Equipment;
   price: number;
 }
 
@@ -462,7 +469,7 @@ export interface ConfirmState {
 export interface GameState {
   scene: string;
   player: PlayerState;
-  battle: BattleState | null;
+  battle: Battle | null;
   config: GlobalConfig;
   activeSaveSlot: string | null;
   ui: UIState;
@@ -482,33 +489,33 @@ export interface GameState {
 export interface PlayerState {
   lv: number;
   age: number;
-  race: any;
-  basicStatus: any;
+  race: Race | null;
+  basicStatus: BasicStatus;
   ap: number;
   gold: number;
   xp: number;
-  pet: any;
-  title: any;
+  pet: Pet | null;
+  title: TitleData | null;
   apCost: number;
   storeLv: number;
-  head: any;
-  feet: any;
-  body: any;
-  necklace: any;
-  ring: any;
-  leftHand: any;
-  rightHand: any;
+  head: Equipment | null;
+  feet: Equipment | null;
+  body: Equipment | null;
+  necklace: Equipment | null;
+  ring: Equipment | null;
+  leftHand: Equipment | null;
+  rightHand: Equipment | null;
   BAGMAX: number;
   PETMAX: number;
   caculate: number;
   playerName: string;
-  skillStatus: any;
-  equipStatus: any;
-  skillList: any[];
-  equipSkillList: any[];
-  itemList: any[];
-  titleList: any[];
-  petList: any[];
+  skillStatus: BasicStatus;
+  equipStatus: BasicStatus;
+  skillList: Skill[];
+  equipSkillList: Skill[];
+  itemList: Equipment[];
+  titleList: TitleData[];
+  petList: Pet[];
   _logs?: GameLog[];
 }
 

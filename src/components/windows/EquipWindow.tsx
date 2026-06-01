@@ -167,7 +167,7 @@ export function EquipWindow() {
               const equip = player[slot]
               const active = selectedSlot === slot
               const color = equip ? QualityColor[equip.quality] ?? 'var(--color-text-bright)' : 'var(--color-text-dim)'
-              const glow = equip?.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255, 64, 64, 0.7)` : 'none'
+              const glow = equip && equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255, 64, 64, 0.7)` : 'none'
               return (
                 <button
                   key={slot}
@@ -200,7 +200,7 @@ export function EquipWindow() {
                   <span style={{ fontSize: 10, color: equip ? color : 'var(--color-text-dim)', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {equip ? equip.type : '空'}
                   </span>
-                  {equip?.level > 0 && <span style={{ fontSize: 10, color: '#FFD700' }}>+{equip.level}</span>}
+                  {equip && equip.level > 0 && <span style={{ fontSize: 10, color: '#FFD700' }}>+{equip.level}</span>}
                 </button>
               )
             })}

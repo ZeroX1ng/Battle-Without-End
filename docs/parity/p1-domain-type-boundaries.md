@@ -1,12 +1,12 @@
 # P1 Domain Type Boundaries Parity
 
-Last updated: 2026-05-30
+Last updated: 2026-06-01
 
 ## 中文
 
 ### 当前状态
 
-Guard needed. `tsconfig.json` 开启了 `strict: true`，但核心领域类型仍大量使用 `any`。`PlayerState` 的 race、status、pet、title、装备槽、技能列表、物品列表、称号列表、宠物列表等字段几乎都绕过类型系统。审阅时 `src` 中约有 198 处 `as any` / `: any`，这让后续 parity 修复缺少编译器护栏。
+Guarded. `assert:domain-type-boundaries` 现在覆盖 `PlayerState` 高价值字段、`GameAction` 宠物/称号 payload、`GameState.battle` 和 battle/player ownership path 的宽泛 `any` 回归。后续仍应按一个领域 cluster 一次的方式继续收敛 UI 和动态 AS3 行为边界。
 
 ### AS3 Source of Truth
 
@@ -60,7 +60,7 @@ Add `assert:domain-type-boundaries` so it fails while:
 
 ### Acceptance Tests
 
-- Needed: `npm run assert:domain-type-boundaries`
+- Existing: `npm run assert:domain-type-boundaries`
 - Existing adjacent: `npm run assert:architecture`
 - Existing adjacent: `npm run assert:battle-player-state`
 - Existing adjacent: `npm run assert:equipment-ownership`
@@ -71,7 +71,7 @@ Add `assert:domain-type-boundaries` so it fails while:
 
 ### Current Status
 
-Guard needed. `strict: true` is enabled, but core domain state relies heavily on `any`. `PlayerState`, action payloads, battle helpers, and UI consumers can bypass the compiler on the highest-risk paths.
+Guarded. `assert:domain-type-boundaries` now covers high-value `PlayerState` fields, pet/title `GameAction` payloads, `GameState.battle`, and broad `any` regressions around battle/player ownership paths. Further cleanup should remain incremental by domain cluster.
 
 ### Expected Behavior
 
@@ -83,7 +83,7 @@ Guard needed. `strict: true` is enabled, but core domain state relies heavily on
 
 ### Acceptance Tests
 
-- Needed: `npm run assert:domain-type-boundaries`
+- Existing: `npm run assert:domain-type-boundaries`
 - Existing adjacent: `npm run assert:architecture`
 - Existing adjacent: `npm run assert:battle-player-state`
 - Existing adjacent: `npm run assert:equipment-ownership`
