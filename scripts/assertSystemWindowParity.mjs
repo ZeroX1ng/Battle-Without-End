@@ -21,6 +21,7 @@ function assertIncludes(source, needle, message) {
 const systemWindow = read('src/components/panels/SystemWindow.tsx');
 const systemConfig = read('src/core/systems/SystemConfig.ts');
 const gameContext = read('src/state/GameContext.tsx');
+const reducerEffects = read('src/state/reducerEffects.ts');
 const battle = read('src/core/models/Battle.ts');
 const monster = read('src/core/models/Monster.ts');
 const packageJson = JSON.parse(read('package.json'));
@@ -77,7 +78,7 @@ assertIncludes(systemConfig, 'handleDroppedItem', 'system config must provide AS
 
 assertIncludes(gameContext, "case 'CONFIG_TOGGLE'", 'reducer must handle CONFIG_TOGGLE');
 assertIncludes(gameContext, 'queueSoundToggle(ctx, newVal)', 'sound_toggle must queue a SoundSystem update');
-assertIncludes(gameContext, 'setSoundEnabled(effect.enabled)', 'queued sound_toggle effects must update SoundSystem after reducer commit');
+assertIncludes(reducerEffects, 'setSoundEnabled(effect.enabled)', 'queued sound_toggle effects must update SoundSystem after reducer commit');
 assertIncludes(gameContext, 'shouldDisplayLog(state.config, category)', 'UI logs must respect config toggles');
 assertIncludes(gameContext, 'battle.run(state.config)', 'battle ticks must receive the latest config');
 assertIncludes(battle, 'this.monster.dropItem(this.playerState, this.map.mapData.modifier, this.config)', 'battle must pass config into Monster/Boss dropItem');

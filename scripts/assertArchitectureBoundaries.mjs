@@ -26,6 +26,7 @@ function assertNotIncludes(source, needle, message) {
 
 const battleModel = read('src/core/models/Battle.ts');
 const gameContext = read('src/state/GameContext.tsx');
+const reducerEffects = read('src/state/reducerEffects.ts');
 const titleData = read('src/core/data/titleData.ts');
 const packageJson = JSON.parse(read('package.json'));
 
@@ -55,9 +56,14 @@ assertIncludes(
   'BATTLE_TICK must queue battle titleEvents as explicit reducer effects.'
 );
 assertIncludes(
-  gameContext,
-  'function processGameEffects',
+  reducerEffects,
+  'export function processGameEffects',
   'GameContext must process explicit side effects outside reducer evaluation.'
+);
+assertIncludes(
+  gameContext,
+  'processGameEffects(state.pendingEffects',
+  'GameProvider must call the explicit side-effect processor after commit.'
 );
 assertIncludes(
   gameContext,

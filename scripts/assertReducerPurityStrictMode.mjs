@@ -52,6 +52,7 @@ function caseBody(source, caseName) {
 }
 
 const gameContext = read('src/state/GameContext.tsx');
+const reducerEffects = read('src/state/reducerEffects.ts');
 const actions = read('src/state/actions.ts');
 const packageJson = JSON.parse(read('package.json'));
 
@@ -100,14 +101,19 @@ assertIncludes(
   'GameAction must carry precomputed StrictMode-safe metadata for random/time/load inputs.'
 );
 assertIncludes(
-  gameContext,
-  'type GameEffect',
-  'GameContext must describe reducer effects explicitly outside gameReducer.'
+  reducerEffects,
+  'export type GameEffect',
+  'reducerEffects must describe reducer effects explicitly outside gameReducer.'
+);
+assertIncludes(
+  reducerEffects,
+  'export function processGameEffects',
+  'reducerEffects must process explicit reducer effects after commit.'
 );
 assertIncludes(
   gameContext,
-  'function processGameEffects',
-  'GameProvider must process explicit reducer effects after commit.'
+  'processGameEffects(state.pendingEffects',
+  'GameProvider must call the post-commit reducer effect processor.'
 );
 assertIncludes(
   gameContext,

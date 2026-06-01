@@ -57,6 +57,7 @@ try {
   const as3RaceScene = readAs3('scripts/iPanel/iScene/RaceScene.as');
   const reactPlayer = read('src/core/models/Player.ts');
   const reactGameContext = read('src/state/GameContext.tsx');
+  const reactReducerEffects = read('src/state/reducerEffects.ts');
   const packageJson = JSON.parse(read('package.json'));
 
   const burnBody = extractBurnBody(as3Player);
@@ -95,8 +96,8 @@ try {
   assert(playerBurnCase.includes('serializeSave('), 'PLAYER_BURN must serialize the newly created state');
   assert(playerBurnCase.includes('queueLocalSave(ctx, player.playerName, activeSaveSlot, saveStr)'), 'PLAYER_BURN must queue persistence for the newly created state');
   assert(playerBurnCase.includes('state.activeSaveSlot'), 'PLAYER_BURN must save to the active slot');
-  assert(reactGameContext.includes("case 'localSave':"), 'GameProvider effects must execute queued local-save writes after reducer commit');
-  assert(reactGameContext.includes('localSave(effect.playerName, effect.slot, effect.saveString)'), 'Queued local-save effects must persist through SaveSystem.localSave');
+  assert(reactReducerEffects.includes("case 'localSave':"), 'GameProvider effects must execute queued local-save writes after reducer commit');
+  assert(reactReducerEffects.includes('localSave(effect.playerName, effect.slot, effect.saveString)'), 'Queued local-save effects must persist through SaveSystem.localSave');
 
   const playerOutRoot = join(outRoot, 'player');
   const raceOutRoot = join(outRoot, 'race');

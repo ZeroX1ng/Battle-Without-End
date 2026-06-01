@@ -1,6 +1,6 @@
 # Architecture Review Queue 2026-05-30
 
-Last updated: 2026-05-30
+Last updated: 2026-06-01
 
 ## 中文
 
@@ -18,7 +18,7 @@ Last updated: 2026-05-30
 | 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guarded | `assert:domain-type-boundaries` 已覆盖核心领域类型边界；后续只按单一领域 cluster 继续收敛。 |
 | 5 | A-R5 | P2 | `p2-guard-gate-reproducibility.md` | Guarded | 旧审阅误判已被 vendored AS3 和 gate 反证，`npm test` 现已作为常规本地 changed gate 入口。 |
 | 6 | A-R6 | P2 | `p2-build-artifact-config-hygiene.md` | Guarded | `dist/` 和 Vite config 是 repo hygiene，不要和 P0 行为架构混修。 |
-| 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Queued | 等 P0/P1 guard 稳定后，再按一块一块的方式拆大文件。 |
+| 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Guarded | 已拆出 reducer effect boundary，并由 `assert:module-boundary-decomposition`、`assert:reducer-purity-strictmode` 和 `assert:architecture` 覆盖；后续大文件只按新的单一 branch family 继续。 |
 
 ### 后续修复提示词
 
@@ -69,4 +69,4 @@ This is an architecture parity queue distilled from the 2026-05-30 review. Pick 
 | 4 | A-R4 | P1 | `p1-domain-type-boundaries.md` | Guarded | `assert:domain-type-boundaries` now covers the core domain type boundary; continue future cleanup one domain cluster at a time. |
 | 5 | A-R5 | P2 | `p2-guard-gate-reproducibility.md` | Guarded | Vendored AS3 and guard gate refute the stale missing-source claim, and `npm test` now runs the local changed gate. |
 | 6 | A-R6 | P2 | `p2-build-artifact-config-hygiene.md` | Guarded | Repo hygiene should stay separate from P0 behavior architecture. |
-| 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Queued | Large file decomposition should wait until P0/P1 guards stabilize. |
+| 7 | A-R7 | P2 | `p2-module-boundary-decomposition.md` | Guarded | The reducer effect boundary is extracted and covered by `assert:module-boundary-decomposition`, `assert:reducer-purity-strictmode`, and `assert:architecture`; future large-file work should continue one branch family at a time. |

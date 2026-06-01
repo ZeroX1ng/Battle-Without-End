@@ -67,6 +67,7 @@
     "assert:forge-logic": "node scripts/assertForgeLogicParity.mjs",
     "assert:forge-ui-placement": "node scripts/assertForgeUiPlacementParity.mjs",
     "assert:architecture": "node scripts/assertArchitectureBoundaries.mjs",
+    "assert:module-boundary-decomposition": "node scripts/assertModuleBoundaryDecomposition.mjs",
     "assert:reducer-purity-strictmode": "node scripts/assertReducerPurityStrictMode.mjs",
     "assert:game-loop": "node scripts/assertGameLoopHeartbeatParity.mjs",
     "assert:visual-fps-cap": "node scripts/assertVisualFpsCapParity.mjs",

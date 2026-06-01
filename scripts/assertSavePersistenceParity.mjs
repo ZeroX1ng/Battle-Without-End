@@ -52,6 +52,7 @@ const as3SaveScene = readAs3('scripts/iPanel/iScene/SaveScene.as');
 const packageJson = JSON.parse(read('package.json'));
 const saveSystem = read('src/core/systems/SaveSystem.ts');
 const gameContext = read('src/state/GameContext.tsx');
+const reducerEffects = read('src/state/reducerEffects.ts');
 const actions = read('src/state/actions.ts');
 const saveScene = read('src/components/scenes/SaveScene.tsx');
 
@@ -98,10 +99,10 @@ assertIncludes(saveGameCase, 'hasValidPlayerName(', 'SAVE_GAME must reject empty
 assertIncludes(saveGameCase, 'queueLocalSave(ctx, state.player.playerName, action.slot, saveStr);', 'SAVE_GAME must queue persistence through SaveSystem.localSave');
 assertIncludes(manualSaveCase, 'hasValidPlayerName(', 'MANUAL_SAVE must reject empty player.playerName before exporting');
 assertIncludes(manualSaveCase, 'queueManualSave(ctx, state.player, state.config, mapName, action.slot);', 'MANUAL_SAVE must keep using SaveSystem.manuallySave through the effect layer');
-assertIncludes(gameContext, "case 'localSave':", 'Game effects must execute queued local save writes');
-assertIncludes(gameContext, 'localSave(effect.playerName, effect.slot, effect.saveString);', 'Queued local-save effects must call SaveSystem.localSave');
-assertIncludes(gameContext, "case 'manualSave':", 'Game effects must execute queued manual save exports');
-assertIncludes(gameContext, 'manuallySave(effect.player, effect.config, effect.mapName, effect.slot);', 'Queued manual-save effects must call SaveSystem.manuallySave');
+assertIncludes(reducerEffects, "case 'localSave':", 'Game effects must execute queued local save writes');
+assertIncludes(reducerEffects, 'localSave(effect.playerName, effect.slot, effect.saveString);', 'Queued local-save effects must call SaveSystem.localSave');
+assertIncludes(reducerEffects, "case 'manualSave':", 'Game effects must execute queued manual save exports');
+assertIncludes(reducerEffects, 'manuallySave(effect.player, effect.config, effect.mapName, effect.slot);', 'Queued manual-save effects must call SaveSystem.manuallySave');
 
 assertIncludes(manualLoadCase, 'deserializeSave(action.saveData.info, action.saveData.playerName)', 'MANUAL_LOAD must deserialize the imported .boe payload');
 assertIncludes(manualLoadCase, 'activeSaveSlot: action.saveData.slot', 'MANUAL_LOAD must restore the imported SaveScene.slot equivalent');

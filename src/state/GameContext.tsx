@@ -6,6 +6,7 @@
 import React, { createContext, useCallback, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
 import type { GameState, PlayerState, GlobalConfig, LootState, WeaponData, TitleData } from '../core/types';
 import type { GameAction, GameActionMeta } from './actions';
+import type { GameEffect, ReducerContext } from './reducerEffects';
 import { createInitialPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
 import { applyTitleEvents, getTitleDefinition } from '../core/data/titleData';
 import { Battle } from '../core/models/Battle';
@@ -14,12 +15,25 @@ import { MapList, getMapByName } from '../core/data/mapData';
 import { Equipment } from '../core/models/Equipment';
 import { Weapon } from '../core/models/Weapon';
 import { EquipmentList } from '../core/data/equipmentData';
-import { serializeSave, localSave, manuallySave, localLoad, deserializeSave } from '../core/systems/SaveSystem';
-import { playForgeSound, setSoundEnabled, type ForgeSoundType } from '../core/systems/SoundSystem';
+import { serializeSave, localLoad, deserializeSave } from '../core/systems/SaveSystem';
 import { shouldDisplayLog } from '../core/systems/SystemConfig';
 import { getAutoForgeTarget, getForgeCost, getForgeSuccessRate, resolveForgeFailure } from '../core/systems/ForgeSystem';
 import { Stat } from '../core/constants';
 import { SkillDataList } from '../core/data/skillData';
+import {
+  clearPendingEffects,
+  createRandomPercents,
+  createReducerContext,
+  nextRandomPercent,
+  processGameEffects,
+  queueForgeSound,
+  queueLocalSave,
+  queueManualSave,
+  queueSoundToggle,
+  queueTitleEvent,
+  queueTitleEvents,
+  withQueuedEffects,
+} from './reducerEffects';
 
 // ═══ 初始状态 ═══
 
@@ -107,84 +121,11 @@ function createInitialState(): GameState {
 
 // ═══ Reducer ═══
 
-type TitleEffectEvent = { name: string; maxVal?: number; countVal?: number };
-
-type GameEffectPayload =
-  | { type: 'localSave'; playerName: string; slot: string; saveString: string }
-  | { type: 'manualSave'; player: PlayerState; config: GlobalConfig; mapName: string; slot: string }
-  | { type: 'forgeSound'; sound: ForgeSoundType }
-  | { type: 'setSoundEnabled'; enabled: boolean };
-
-type GameEffect = GameEffectPayload & { id: string };
-
-interface ReducerContext {
-  action: GameAction;
-  effects: GameEffect[];
-  titleEvents: TitleEffectEvent[];
-  randomIndex: number;
-}
-
-function createReducerContext(action: GameAction): ReducerContext {
-  return { action, effects: [], titleEvents: [], randomIndex: 0 };
-}
-
-function nextEffectId(ctx: ReducerContext): string {
-  return `${ctx.action.meta?.effectBatchId ?? 0}:${ctx.effects.length}`;
-}
-
-function queueEffect(ctx: ReducerContext, effect: GameEffectPayload): void {
-  ctx.effects.push({ ...effect, id: nextEffectId(ctx) } as GameEffect);
-}
-
-function queueLocalSave(ctx: ReducerContext, playerName: string, slot: string, saveString: string): void {
-  queueEffect(ctx, { type: 'localSave', playerName, slot, saveString });
-}
-
-function queueManualSave(ctx: ReducerContext, player: PlayerState, config: GlobalConfig, mapName: string, slot: string): void {
-  queueEffect(ctx, { type: 'manualSave', player, config, mapName, slot });
-}
-
-function queueForgeSound(ctx: ReducerContext, sound: ForgeSoundType): void {
-  queueEffect(ctx, { type: 'forgeSound', sound });
-}
-
-function queueTitleEvent(ctx: ReducerContext, name: string, maxVal: number = 0, countVal: number = 0): void {
-  ctx.titleEvents.push({ name, maxVal, countVal });
-}
-
-function queueTitleEvents(ctx: ReducerContext, events?: TitleEffectEvent[]): void {
-  if (!events?.length) return;
-  for (const event of events) {
-    queueTitleEvent(ctx, event.name, event.maxVal ?? 0, event.countVal ?? 0);
-  }
-}
-
-function queueSoundToggle(ctx: ReducerContext, enabled: boolean): void {
-  queueEffect(ctx, { type: 'setSoundEnabled', enabled });
-}
-
-function nextRandomPercent(ctx: ReducerContext): number {
-  const value = ctx.action.meta?.randomPercents?.[ctx.randomIndex];
-  ctx.randomIndex += 1;
-  return typeof value === 'number' ? value : 0;
-}
-
 function cloneEquipmentInstance<T extends object>(equip: T): T {
   return Object.create(
     Object.getPrototypeOf(equip),
     Object.getOwnPropertyDescriptors(equip)
   );
-}
-
-function clearPendingEffects(state: GameState): GameState {
-  if (!state.pendingEffects?.length) return state;
-  const { pendingEffects: _pendingEffects, ...rest } = state;
-  return rest as GameState;
-}
-
-function withQueuedEffects(state: GameState, ctx: ReducerContext): GameState {
-  if (!ctx.effects.length) return state;
-  return { ...state, pendingEffects: ctx.effects };
 }
 
 function applyTitleEventsToPlayer(state: GameState, playerState: PlayerState, ctx: ReducerContext): GameState {
@@ -780,35 +721,6 @@ function addLog(state: GameState, text: string, category?: string, timestamp: nu
   const previous = state.ui.infoMessages[state.ui.infoMessages.length - 1];
   const msg = { id: (previous?.id ?? 0) + 1, text, category, timestamp };
   return { ...state, ui: { ...state.ui, infoMessages: [...state.ui.infoMessages.slice(-199), msg] } };
-}
-
-function processGameEffects(
-  effects: readonly GameEffect[] | undefined,
-  processedEffectIds: Set<string>
-): void {
-  if (!effects?.length) return;
-  for (const effect of effects) {
-    if (processedEffectIds.has(effect.id)) continue;
-    processedEffectIds.add(effect.id);
-    switch (effect.type) {
-      case 'localSave':
-        localSave(effect.playerName, effect.slot, effect.saveString);
-        break;
-      case 'manualSave':
-        manuallySave(effect.player, effect.config, effect.mapName, effect.slot);
-        break;
-      case 'forgeSound':
-        playForgeSound(effect.sound);
-        break;
-      case 'setSoundEnabled':
-        setSoundEnabled(effect.enabled);
-        break;
-    }
-  }
-}
-
-function createRandomPercents(count: number): number[] {
-  return Array.from({ length: count }, () => Math.random() * 100);
 }
 
 function createActionMeta(action: GameAction, effectBatchId: number): GameActionMeta {

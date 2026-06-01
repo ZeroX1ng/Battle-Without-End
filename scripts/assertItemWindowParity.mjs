@@ -21,6 +21,7 @@ function assertIncludes(source, needle, message) {
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
 const actions = read('src/state/actions.ts');
 const gameContext = read('src/state/GameContext.tsx');
+const reducerEffects = read('src/state/reducerEffects.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 assertIncludes(itemWindow, "useInfoWindow", 'ItemWindow must use StringInfoButton/ItemInfoWindow style hover tips');
@@ -39,7 +40,7 @@ assertIncludes(gameContext, "getMoney() < b.getMoney()", 'value sort must match 
 assertIncludes(gameContext, "sortWeight", 'type sort must match AS3 sortWeight ordering');
 assertIncludes(gameContext, "queueForgeSound(ctx, 'success')", 'forge success must queue immediate feedback');
 assertIncludes(gameContext, "queueForgeSound(ctx, 'destroy')", 'destroyed forge failure must queue immediate feedback');
-assertIncludes(gameContext, "playForgeSound(effect.sound)", 'queued forge sound effects must be played after reducer commit');
+assertIncludes(reducerEffects, "playForgeSound(effect.sound)", 'queued forge sound effects must be played after reducer commit');
 
 if (packageJson.scripts?.['assert:item-window'] !== 'node scripts/assertItemWindowParity.mjs') {
   throw new Error('package.json must expose assert:item-window');
