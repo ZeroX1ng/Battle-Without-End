@@ -597,7 +597,10 @@ export function addPet(state: PlayerState, pet: Pet): { state: PlayerState; adde
 }
 
 export function setPet(state: PlayerState, pet: Pet): PlayerState {
-  if (state.pet === pet) return { ...state, pet: null };
+  if (state.pet === pet) {
+    const petList = state.petList.includes(pet) ? state.petList : [...state.petList, pet];
+    return { ...state, pet: null, petList };
+  }
   const nextPetList = state.petList.filter(item => item !== pet);
   if (state.pet) {
     nextPetList.push(state.pet);

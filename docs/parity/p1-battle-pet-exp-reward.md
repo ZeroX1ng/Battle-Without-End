@@ -1,12 +1,12 @@
 # P1 Battle Pet Exp Reward Recalculation Parity
 
-Last updated: 2026-05-23
+Last updated: 2026-06-02
 
 ## 中文
 
 ### 当前状态
 
-2026-05-23 复核：本卡已由 `npm run assert:battle-pet-exp-reward` 守住。下面的 Original Symptom 保留为回归说明；后续不应按原始症状重复修生产代码，除非 AS3 复核或 guard 重新变红。
+2026-06-02 试玩回归复核：本卡继续由 `npm run assert:battle-pet-exp-reward` 守住，并扩展覆盖 transition cloning 后的当前宠物所有权。奖励结算必须给 `playerState.pet` 中的当前宠物，而不是旧 `battle.pet` 克隆；但若战斗内宠物已经死亡并让 `battle.pet` 变为 `null`，奖励分支仍必须按 AS3 跳过，不得从 `playerState.pet` 复活发奖。`npm run assert:pet-window` 另行覆盖主动宠物取消出战时回到可用列表。
 
 ### AS3 Source of Truth
 
@@ -22,6 +22,7 @@ Last updated: 2026-05-23
 - `src/core/models/Player.ts`
 - `src/core/models/Pet.ts`
 - `scripts/assertMonsterRewardParity.mjs`
+- `scripts/assertPetWindowParity.mjs`
 
 ### Original Symptom
 
@@ -34,6 +35,8 @@ Last updated: 2026-05-23
 - AS3 `Pet.as` `addExp()` 使用传入经验值，并根据 `this.level - Player.lv > 5` 限制升级。
 - 修复前 React `Battle.ts` 在 `giveTrophy()` 中先 `const expGain = this.monster.getExp(...)`，玩家加经验后仍用 `this.pet.addExp(expGain, this.playerState.lv)`。
 - 现有 `assert:monster-reward` 只确认宠物收到 defeated-monster exp，不区分 AS3 的“第二次读取 monster.exp”语义。
+- AS3 `Battle.as` 初始化时从 `Player.pet` 读取 `this.pet`，`checkDead()` 在宠物 HP 归零后设置 `this.pet = null`，`giveTrophy()` 只在 `if(this.pet)` 内给宠物经验。
+- React 的 battle transition cloning 会让 `battle.pet` 旧克隆和 `battle.playerState.pet` 当前宠物实例分离，因此奖励目标需要在仍有战斗宠物时重新绑定到当前玩家宠物。
 
 ### Expected Behavior
 
@@ -41,12 +44,18 @@ Last updated: 2026-05-23
 - 玩家经验结算完成后，宠物经验应按 AS3 顺序再次读取/计算 `monster.exp`。
 - 若玩家升级改变 `combatPower` 或等级门槛，宠物经验和升级限制应使用更新后的玩家状态。
 - 日志和 loot 汇总需要明确玩家经验和宠物经验可能不是同一个数值。
+- battle transition cloning 后，仍在战斗中的当前宠物获得经验，旧 `battle.pet` 克隆不获得经验。
+- 宠物已在战斗中倒下时，`battle.pet = null` 必须继续阻止宠物奖励。
+- 主动宠物取消出战后仍应保留在 `petList`，玩家可以再次选择。
 
 ### Forbidden Behavior
 
 - 把玩家经验缓存值无条件复用给宠物。
 - 在玩家升级后仍用升级前 `combatPower` 计算宠物经验。
 - 只用不会升级的夹具验证奖励流。
+- 把经验发给 transition 前的旧宠物克隆。
+- 从 `playerState.pet` 复活已经在战斗中倒下的宠物并补发奖励。
+- 取消出战时清空主动宠物但不把它放回可用列表。
 
 ### State Ownership
 
@@ -57,6 +66,7 @@ Last updated: 2026-05-23
 ### Acceptance Tests
 
 - Needed: `npm run assert:battle-pet-exp-reward`
+- Needed: `npm run assert:pet-window`
 - Existing adjacent: `npm run assert:monster-reward`
 - Existing adjacent: `npm run assert:battle-damage-log-death`
 - Always run: `npx tsc -b`
@@ -68,18 +78,22 @@ Last updated: 2026-05-23
 - 玩家经验使用第一次 `monster.getExp()`。
 - 宠物经验使用玩家升级后的第二次 `monster.getExp()`。
 - 宠物等级门槛使用更新后的玩家等级。
+- transition cloning 后旧 `battle.pet` 克隆不获得奖励，当前 `playerState.pet` 获得奖励。
+- `battle.pet = null` 时不会从 `playerState.pet` 复活宠物奖励分支。
+- 主动宠物取消出战会清空 active slot，并把宠物保留在 `petList`。
 
 ### Manual Smoke Scenario
 
 1. 让玩家接近升级阈值并携带宠物。
 2. 击杀一个会触发玩家升级的怪物。
 3. 对照 AS3 计算玩家经验、宠物经验和宠物是否升级。
+4. 打开宠物页取消当前出战宠物，确认宠物回到列表且可以再次出战。
 
 ## English
 
 ### Current Status
 
-2026-05-23 review: this card is guarded by `npm run assert:battle-pet-exp-reward`. The Original Symptom below remains as regression context; do not repair production code from the old symptom unless AS3 review or the guard turns red again.
+2026-06-02 playtest regression review: this card remains guarded by `npm run assert:battle-pet-exp-reward`, now extended for current-pet ownership after transition cloning. Reward settlement must target the current pet in `playerState.pet`, not the old `battle.pet` clone; however, if the battle pet has already died and `battle.pet` is `null`, the reward branch must still be skipped in AS3 order. `npm run assert:pet-window` separately guards that canceling the active pet returns it to the available list.
 
 ### AS3 Source of Truth
 
@@ -95,6 +109,7 @@ Last updated: 2026-05-23
 - `src/core/models/Player.ts`
 - `src/core/models/Pet.ts`
 - `scripts/assertMonsterRewardParity.mjs`
+- `scripts/assertPetWindowParity.mjs`
 
 ### Original Symptom
 
@@ -107,6 +122,8 @@ Before the repair, React had this issue: AS3 `Battle.giveTrophy()` calls `Player
 - AS3 `Pet.as` `addExp()` consumes the provided exp and gates leveling by `this.level - Player.lv > 5`.
 - React `Battle.ts` stores `const expGain = this.monster.getExp(...)`, then later calls `this.pet.addExp(expGain, this.playerState.lv)`.
 - Existing `assert:monster-reward` confirms pet exp forwarding but not the second-read AS3 reward order.
+- AS3 `Battle.as` initializes `this.pet` from `Player.pet`, sets `this.pet = null` when the pet HP reaches zero, and awards pet exp only inside `if(this.pet)`.
+- React battle transition cloning can split the old `battle.pet` clone from the current pet on `battle.playerState.pet`, so the reward target must be rebound only while a battle pet is still alive.
 
 ### Expected Behavior
 
@@ -114,12 +131,18 @@ Before the repair, React had this issue: AS3 `Battle.giveTrophy()` calls `Player
 - After player exp settlement, pet reward reads or computes monster exp again in AS3 order.
 - If player level-up changes `combatPower` or level gating, pet exp and pet leveling use the updated player state.
 - Logs and loot accounting distinguish player exp from pet exp when the values differ.
+- After battle transition cloning, the current active pet receives the reward and the stale `battle.pet` clone does not.
+- If the pet has fallen in battle, `battle.pet = null` continues to block the pet reward branch.
+- Canceling the active pet keeps it in `petList` so the player can equip it again.
 
 ### Forbidden Behavior
 
 - Reusing the cached player exp value for the pet unconditionally.
 - Computing pet exp from pre-level-up `combatPower` after the player has leveled.
 - Testing only non-level-up reward fixtures.
+- Awarding exp to the stale pre-transition pet clone.
+- Reviving a defeated battle pet from `playerState.pet` during reward settlement.
+- Clearing the active pet on cancel without returning it to the available list.
 
 ### State Ownership
 
@@ -130,6 +153,7 @@ Before the repair, React had this issue: AS3 `Battle.giveTrophy()` calls `Player
 ### Acceptance Tests
 
 - Needed: `npm run assert:battle-pet-exp-reward`
+- Needed: `npm run assert:pet-window`
 - Existing adjacent: `npm run assert:monster-reward`
 - Existing adjacent: `npm run assert:battle-damage-log-death`
 - Always run: `npx tsc -b`
@@ -141,9 +165,13 @@ Before the repair, React had this issue: AS3 `Battle.giveTrophy()` calls `Player
 - Player exp uses the first `monster.getExp()` value.
 - Pet exp uses the second `monster.getExp()` value after the player state changes.
 - Pet level gating uses the updated player level.
+- The stale `battle.pet` clone does not receive reward after transition cloning; the current `playerState.pet` does.
+- `battle.pet = null` does not revive a pet reward from `playerState.pet`.
+- Canceling the active pet clears the active slot and keeps the pet in `petList`.
 
 ### Manual Smoke Scenario
 
 1. Put the player close to the next level and equip an active pet.
 2. Kill a monster that triggers player level-up.
 3. Compare player exp, pet exp, and pet leveling against AS3.
+4. Open the pet window, cancel the active pet, and confirm the pet returns to the list and can be equipped again.

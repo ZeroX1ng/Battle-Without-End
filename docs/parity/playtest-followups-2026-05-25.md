@@ -1,6 +1,6 @@
 # BWE Playtest Follow-up Parity Queue - 2026-05-25
 
-Last updated: 2026-05-27
+Last updated: 2026-06-02
 
 ## 中文
 
@@ -23,9 +23,9 @@ Last updated: 2026-05-27
 | `P0-OTHER-STAGE-OVERLAY` | P0 | AS3 parity | 9 | Needs repair card | `assert:other-window-overlay` |
 | `P0-DROP-FILTER-SELL` | P0 | AS3 parity | 10 | Guard needed | `assert:drop-filter-auto-sell` |
 | `P1-AGE-GROWTH-VISIBLE` | P1 | AS3 parity | 1 | Needs repair card | `assert:age-growth-visible` |
-| `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Needs repair card | `assert:battle-log-sticky-scroll` |
+| `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Verified | `assert:battle-log-sticky-scroll` |
 | `P1-EQUIP-WINDOW-BOUNDS` | P1 | UI repair | 3 | Needs repair card | `assert:equip-window-bounds` |
-| `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Needs repair card | `assert:forge-ui-placement` |
+| `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Verified | `assert:forge-ui-placement` |
 | `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` |
@@ -139,6 +139,8 @@ Last updated: 2026-05-27
 
 **React Targets:** `AllInfoPanel.tsx`, `ScrollPanel.tsx` if shared behavior is reused, `GameContext.tsx`, existing `assert:text-resources`, existing `assert:battle-damage-log-death`.
 
+**Current Status:** Verified on 2026-06-02. `AllInfoPanel` owns the bottom-lock state, scrolls to the newest message synchronously only while that lock is active, pauses while the player reads history, and resumes after the player returns to the bottom. The dedicated guard and browser smoke cover the default-follow, manual-history, and relock flow.
+
 **Current Symptom:** 新日志出现时总是强制滚到底部，玩家查看历史日志会被打断；或者无法在回到底部后重新锁定最新日志。
 
 **Red Guard Contract:** 新增 `assert:battle-log-sticky-scroll`，用组件级或 DOM-level guard 覆盖三段行为：初始在底部时新日志自动滚动；用户向上查看历史时新日志不抢滚动；用户滚回底部后恢复自动跟随。
@@ -178,6 +180,8 @@ Last updated: 2026-05-27
 **AS3 Source of Truth:** `ItemWindow.as`, `ForgeButton.as`, `BasicCell.as`, forge cost/success text and sound toggles.
 
 **React Targets:** `ItemWindow.tsx`, forge action/state files, possibly shared checkbox/button controls, existing `assert:equip-window`, existing `assert:equipment-ownership`.
+
+**Current Status:** Verified on 2026-06-02. `ItemWindow` keeps the AS3-style lower forge panel and tracks the selected equipment by list index, so battle transition cloning no longer clears the selected equipment and leaves only the placeholder window visible.
 
 **Current Symptom:** 锻造信息和按钮被放在详情布局里，容易和物品详情互相挤压，不符合 AS3 `setForge()` 的固定下方区域。
 
@@ -296,9 +300,9 @@ This document turns the 2026-05-25 playtest findings into executable follow-up c
 | `P0-OTHER-STAGE-OVERLAY` | P0 | AS3 parity | 9 | Needs repair card | `assert:other-window-overlay` | Map, shop, help, and special shop render as main-scene overlays, not nested right-tab content. |
 | `P0-DROP-FILTER-SELL` | P0 | AS3 parity | 10 | Guard needed | `assert:drop-filter-auto-sell` | Filtered equipment drops do not enter the bag and are converted to player gold. |
 | `P1-AGE-GROWTH-VISIBLE` | P1 | AS3 parity | 1 | Needs repair card | `assert:age-growth-visible` | Age hover explains next growth stats, AP gain, remaining time, and 2400-tick growth. |
-| `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Needs repair card | `assert:battle-log-sticky-scroll` | Logs follow the bottom only while the user is already at the bottom. |
+| `P1-BATTLE-LOG-STICKY` | P1 | UI parity | 7 | Verified | `assert:battle-log-sticky-scroll` | Logs follow the bottom only while the user is already at the bottom. |
 | `P1-EQUIP-WINDOW-BOUNDS` | P1 | UI repair | 3 | Needs repair card | `assert:equip-window-bounds` | Equipment stats and actions remain visible through a bounded scroll area. |
-| `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Needs repair card | `assert:forge-ui-placement` | Forge controls live in the fixed lower inventory area like AS3 `ItemWindow.setForge()`. |
+| `P1-FORGE-UI-PLACEMENT` | P1 | AS3 parity | 8 | Verified | `assert:forge-ui-placement` | Forge controls live in the fixed lower inventory area like AS3 `ItemWindow.setForge()`. |
 | `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` | Monster title hover uses the global HTML info window and displays AS3 `MonsterTitle.description` stat modifiers. |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` | A visible `自动保存` slot receives auto-saves without overwriting manual slots. |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` | Visual RAF loops are capped by a shared helper, while 500ms logic ticks remain unchanged. |
@@ -309,4 +313,6 @@ This document turns the 2026-05-25 playtest findings into executable follow-up c
 - `P1-VISIBLE-AUTOSAVE-SLOT`, `P2-VISUAL-FPS-CAP`, and `P2-TEST-SPEED-CONTROL` are intentional non-AS3 product/testing decisions and must be labeled as such in implementation reports.
 - `P0-TITLE-SAVE-DATA` must first prove whether the reported title gap is static-data loss or save/load/display loss.
 - `P0-DROP-FILTER-SELL` should reuse or register the existing system-config consumption coverage before adding new implementation code.
+- `P1-BATTLE-LOG-STICKY` is verified as of 2026-06-02: the battle log follows new messages only while bottom-locked, preserves manual history scrolling, and relocks after the player returns to the bottom.
+- `P1-FORGE-UI-PLACEMENT` is verified as of 2026-06-02: the lower forge panel persists after equipment selection even when battle ticks clone the inventory list.
 - Browser smoke is required for tooltip, overlay, scrolling, bounds, forge placement, visible autosave, FPS, and speed-control cards.

@@ -225,6 +225,11 @@ export class Battle {
       this.addTitleEvent('kill', 0, 1);
     }
     if (this.pet) {
+      // Rebind the live battle pet to playerState.pet after transition cloning,
+      // but keep AS3's `if(this.pet)` gate so a defeated pet is not revived.
+      this.pet = this.playerState.pet || null;
+    }
+    if (this.pet) {
       const petExpGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);
       this.pet.addExp(petExpGain, this.playerState.lv);
     }

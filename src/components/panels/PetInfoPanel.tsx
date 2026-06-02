@@ -10,8 +10,10 @@ export function PetInfoPanel() {
   const battle = state.battle as any;
   const pet = state.player.pet;
   const p = battle?.pet || pet;
-  const hp = battle?.petHp ?? (p ? p.hp : 0);
-  const mp = battle?.petMp ?? (p ? p.mp : 0);
+  // Treat battle.pet as the active-combat gate; petHp can be zero for a defeated pet.
+  const inBattle = (battle?.pet) != null;
+  const hp = inBattle ? battle.petHp : (p ? p.hp : 0);
+  const mp = inBattle ? battle.petMp : (p ? p.mp : 0);
 
   return (
     <div style={{

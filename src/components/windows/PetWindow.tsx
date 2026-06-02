@@ -1,4 +1,4 @@
-﻿// Pet management window.
+// Pet management window.
 // AS3 original: PetWindow / iPet.PetCell / PetInfoWindow / PetSkillCell.
 
 import { useMemo, useState } from 'react'
@@ -124,6 +124,7 @@ export function PetWindow() {
           equipped={state.player.pet === visibleSelectedPet}
           onSkillHover={handlePetSkillHover}
           onLeave={hideItemInfo}
+          onSetPet={handleSetPet}
         />
       </div>
     </div>
@@ -213,9 +214,10 @@ interface PetDetailPanelProps {
   equipped: boolean
   onSkillHover: (skill: any, event: ReactMouseEvent) => void
   onLeave: () => void
+  onSetPet: (pet: any, event: ReactMouseEvent) => void
 }
 
-function PetDetailPanel({ pet, equipped, onSkillHover, onLeave }: PetDetailPanelProps) {
+function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetDetailPanelProps) {
   if (!pet) {
     return (
       <section style={detailPanelStyle}>
@@ -233,7 +235,23 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave }: PetDetailPanel
           </div>
           <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>{pet.getTypeLabel ? pet.getTypeLabel() : pet.type}</div>
         </div>
-        {equipped && <span style={{ color: 'var(--color-green)', fontSize: 11, fontWeight: 800 }}>出战中</span>}
+        {equipped && (
+          <button
+            onClick={(event) => onSetPet(pet, event)}
+            style={{
+              border: '1px solid var(--color-red)',
+              borderRadius: 4,
+              background: 'rgba(255,64,64,0.12)',
+              color: 'var(--color-red)',
+              cursor: 'pointer',
+              fontSize: 11,
+              fontWeight: 700,
+              padding: '3px 6px',
+            }}
+          >
+            取消出战
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '5px 10px', fontSize: 11 }}>

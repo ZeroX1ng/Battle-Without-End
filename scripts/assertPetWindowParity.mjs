@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cleanupTranspileOutput, importTsModule } from './lib/transpileTsModule.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+const outRoot = join(root, '.tmp-pet-window-test');
 
 function read(relativePath) {
   const filePath = join(root, relativePath);
@@ -20,6 +22,12 @@ function assertIncludes(source, needle, message) {
 
 function assertNotIncludes(source, needle, message) {
   if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
+function assert(condition, message) {
+  if (!condition) {
     throw new Error(message);
   }
 }
@@ -48,9 +56,28 @@ assertIncludes(petSkillModel, 'getDescription()', 'PetSkill model must expose th
 
 assertIncludes(player, 'export function removePet', 'Player model must expose removePet for PetCell delete behavior');
 assertIncludes(player, 'petList: state.petList.filter', 'removePet must remove the target pet from the pet list');
+assertIncludes(player, 'state.petList.includes(pet) ? state.petList : [...state.petList, pet]', 'Cancelling the active pet must return it to the pet list instead of losing it');
 assertIncludes(gameContext, "case 'PET_REMOVE'", 'GameContext must handle PET_REMOVE');
 assertIncludes(gameContext, 'removePet(state.player, action.pet)', 'PET_REMOVE must update player state through removePet');
 assertIncludes(gameContext, 'withBattlePlayer(state, setPet', 'PET_SET must keep active Battle playerState in sync');
 assertIncludes(gameContext, 'withBattlePlayer(state, removePet', 'PET_REMOVE must keep active Battle playerState in sync');
+
+const playerModule = await importTsModule({
+  entry: join(root, 'src/core/models/Player.ts'),
+  root,
+  outRoot,
+});
+const { setPet } = playerModule;
+const activePet = { name: 'active-pet' };
+const nextPet = { name: 'next-pet' };
+const cancelled = setPet({ pet: activePet, petList: [] }, activePet);
+assert(cancelled.pet === null, 'PET_SET on the active pet must clear the active slot');
+assert(cancelled.petList.includes(activePet), 'PET_SET on the active pet must keep the pet available after cancellation');
+const switched = setPet({ pet: activePet, petList: [nextPet] }, nextPet);
+assert(switched.pet === nextPet, 'PET_SET on another pet must switch the active slot');
+assert(switched.petList.includes(activePet), 'Switching active pets must return the previous active pet to the list');
+assert(!switched.petList.includes(nextPet), 'Switching active pets must remove the new active pet from the list');
+
+await cleanupTranspileOutput(outRoot);
 
 console.log('PetWindow parity checks passed.');

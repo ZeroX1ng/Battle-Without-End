@@ -36,6 +36,9 @@ assertIncludes(itemWindow, "showStringInfo(autoForgeLabel)", 'Auto forge toggle 
 assertIncludes(itemWindow, "dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })", 'Sound toggle must stay wired to the AS3 sound setting');
 assertIncludes(itemWindow, 'onClick={handleForge}', 'Forge panel must own the forge button action');
 assertIncludes(itemWindow, 'selectedItem ? (', 'Forge panel must render selected-equipment and empty states from the same selected item source');
+assertIncludes(itemWindow, 'const [selectedIndex, setSelectedIndex] = useState<number | null>(null)', 'ItemWindow must track the selected equipment by list index so battle transition cloning does not clear forge selection');
+assertIncludes(itemWindow, 'const selectedItem = selectedIndex === null ? null : items[selectedIndex] ?? null', 'ItemWindow selected equipment must be derived from the current item list');
+assertNotIncludes(itemWindow, 'const [selectedItem, setSelectedItem] = useState<any | null>(null)', 'ItemWindow must not store selected equipment by object reference because Battle ticks clone itemList entries');
 
 const detailPanelStart = itemWindow.indexOf('const detailPanelStyle');
 const forgePanelStart = itemWindow.indexOf('const forgePanelStyle');

@@ -152,6 +152,16 @@ const { BasicStatus } = basicStatusModule;
 const player = createPlayerState(BasicStatus);
 const battle = new Battle(player, createMap(), {});
 const expReads = [];
+const staleBattlePet = {
+  level: 7,
+  exp: 0,
+  playerLevelReceived: null,
+  addExp(exp, playerLevel) {
+    this.playerLevelReceived = playerLevel;
+    if (this.level - playerLevel > 5) return;
+    this.exp += exp;
+  },
+};
 const pet = {
   level: 7,
   exp: 0,
@@ -186,7 +196,8 @@ battle.monster = {
     return null;
   },
 };
-battle.pet = pet;
+battle.pet = staleBattlePet;
+battle.playerState.pet = pet;
 battle.giveTrophy();
 
 assertEqual(battle.playerState.lv, 2, 'Fixture must level the player during Player.addExp');
@@ -194,8 +205,40 @@ assert(expReads.length >= 2, 'Battle.giveTrophy must read monster exp again afte
 assertEqual(expReads[0].lv, 1, 'Player reward should use the pre-level-up monster exp read');
 assertEqual(expReads[1].lv, 2, 'Pet reward should use the post-level-up monster exp read');
 assert(expReads[0].combatPower !== expReads[1].combatPower, 'Player combatPower must differ before and after the level-up fixture');
+assertEqual(staleBattlePet.exp, 0, 'Stale cloned battle.pet must not receive the active pet reward');
 assertEqual(pet.exp, 7, 'Pet exp must use the second monster.getExp value after player state changes');
 assertEqual(pet.playerLevelReceived, 2, 'Pet exp gate must receive the updated player level');
+
+const deadBattle = new Battle(createPlayerState(BasicStatus), createMap(), {});
+const deadPet = {
+  level: 1,
+  exp: 0,
+  addExp(exp) {
+    this.exp += exp;
+  },
+};
+deadBattle.monster = {
+  CP: 1,
+  data: { realName: 'Dead Pet Reward Monster' },
+  title: null,
+  getNameHtml: () => 'Dead Pet Reward Monster',
+  getExp() {
+    return 3;
+  },
+  getMoney() {
+    return 0;
+  },
+  dropItem(playerState) {
+    return { playerState, dropped: false, added: false, convertedToGold: 0 };
+  },
+  dropPet() {
+    return null;
+  },
+};
+deadBattle.pet = null;
+deadBattle.playerState.pet = deadPet;
+deadBattle.giveTrophy();
+assertEqual(deadPet.exp, 0, 'Battle.giveTrophy must not revive a defeated battle pet from playerState.pet');
 
 await cleanupTranspileOutput(outRoot);
 

@@ -33,17 +33,18 @@ export function ItemWindow() {
   const { state, dispatch } = useGameContext()
   const { showStringInfo, hideStringInfo, showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const items = state.player.itemList
-  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [autoEnhance, setAutoEnhance] = useState(false)
 
-  const selectedIdx = selectedItem ? items.indexOf(selectedItem) : -1
+  const selectedItem = selectedIndex === null ? null : items[selectedIndex] ?? null
+  const selectedIdx = selectedItem ? selectedIndex ?? -1 : -1
 
   useEffect(() => {
-    if (selectedItem && selectedIdx < 0) {
-      setSelectedItem(null)
+    if (selectedIndex !== null && selectedIndex >= items.length) {
+      setSelectedIndex(null)
       hideItemInfo()
     }
-  }, [hideItemInfo, selectedIdx, selectedItem])
+  }, [hideItemInfo, items.length, selectedIndex])
 
   const blacksmithLevel = useMemo(() => {
     const bs = state.player.skillList.find((s: any) => s.skillData.name === 'BLACKSMITHING')
@@ -96,7 +97,7 @@ export function ItemWindow() {
     hideStringInfo()
     hideItemInfo()
     dispatch({ type: 'UI_CLOSE_WINDOW' })
-    setSelectedItem(null)
+    setSelectedIndex(null)
   }
 
   return (
@@ -104,7 +105,7 @@ export function ItemWindow() {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, alignItems: 'center' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr 48px', alignItems: 'center', flex: 1 }}>
           <button
-            onClick={() => dispatch({ type: 'ITEM_SORT', mode: 'value' })}
+            onClick={() => { setSelectedIndex(null); dispatch({ type: 'ITEM_SORT', mode: 'value' }) }}
             onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
             onMouseEnter={(event) => {
               updateMouse(event.clientX, event.clientY)
@@ -117,7 +118,7 @@ export function ItemWindow() {
           </button>
           <b style={{ color: 'var(--color-text)', textAlign: 'center' }}>背包 ({items.length}/{state.player.BAGMAX})</b>
           <button
-            onClick={() => dispatch({ type: 'ITEM_SORT', mode: 'type' })}
+            onClick={() => { setSelectedIndex(null); dispatch({ type: 'ITEM_SORT', mode: 'type' }) }}
             onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
             onMouseEnter={(event) => {
               updateMouse(event.clientX, event.clientY)
@@ -146,16 +147,16 @@ export function ItemWindow() {
                   key={`${item.name ?? item.realName}-${i}`}
                   equip={item}
                   currentEquip={getEquipmentComparisonSlot(item, state.player)}
-                  selected={item === selectedItem}
-                  onSelect={() => setSelectedItem(item === selectedItem ? null : item)}
+                  selected={i === selectedIndex}
+                  onSelect={() => setSelectedIndex(i === selectedIndex ? null : i)}
                   onEquip={() => {
                     dispatch({ type: 'EQUIP_ITEM', item })
-                    setSelectedItem(null)
+                    setSelectedIndex(null)
                     hideItemInfo()
                   }}
                   onSell={() => {
                     dispatch({ type: 'ITEM_SELL', item })
-                    if (item === selectedItem) setSelectedItem(null)
+                    if (i === selectedIndex) setSelectedIndex(null)
                     hideItemInfo()
                   }}
                   style={{
@@ -183,7 +184,7 @@ export function ItemWindow() {
             </div>
 
             <button
-              onClick={() => { dispatch({ type: 'EQUIP_ITEM', item: selectedItem }); setSelectedItem(null); hideItemInfo() }}
+              onClick={() => { dispatch({ type: 'EQUIP_ITEM', item: selectedItem }); setSelectedIndex(null); hideItemInfo() }}
               style={btnStyle('var(--color-blue)')}
             >
               穿戴

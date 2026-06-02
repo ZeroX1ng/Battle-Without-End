@@ -32,7 +32,9 @@ assertIncludes(itemWindow, "dispatch({ type: 'ITEM_SORT', mode: 'type' })", 'typ
 assertIncludes(itemWindow, "showItemInfo(getItemDescription(item))", 'bag item cells must expose item descriptions on hover');
 assertIncludes(itemWindow, "showStringInfo(autoForgeLabel)", 'auto forge toggle must expose its original hover feedback');
 assertIncludes(itemWindow, "dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })", 'ItemWindow sound toggle must share the AS3 sound setting');
-assertIncludes(itemWindow, "setSelectedItem(null)", 'destroy/equip paths must clear missing selected item');
+assertIncludes(itemWindow, "const [selectedIndex, setSelectedIndex] = useState<number | null>(null)", 'ItemWindow must track selected items by list index');
+assertIncludes(itemWindow, "if (selectedIndex !== null && selectedIndex >= items.length)", 'ItemWindow must clear selection when the selected index leaves the current bag');
+assertIncludes(itemWindow, "setSelectedIndex(null)", 'destroy/equip/sort paths must clear the selected index');
 
 assertIncludes(actions, "{ type: 'ITEM_SORT'; mode: 'value' | 'type' }", 'GameAction must include ITEM_SORT');
 assertIncludes(gameContext, "case 'ITEM_SORT'", 'reducer must sort the player bag');

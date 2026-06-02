@@ -44,6 +44,16 @@ assertIncludes(
   'shouldStickToBottomRef.current)',
   'AllInfoPanel must only auto-scroll when the bottom lock is active',
 );
+assertIncludes(
+  allInfoPanel,
+  'element.scrollTop = element.scrollHeight;',
+  'AllInfoPanel must scroll to the newest log synchronously while the bottom lock is active',
+);
+assertNotIncludes(
+  allInfoPanel,
+  'requestAnimationFrame(',
+  'AllInfoPanel must not defer sticky scrolling because content-growth scroll events can clear the bottom lock first',
+);
 assertNotIncludes(
   allInfoPanel,
   'useEffect(() => {\n    if (scrollRef.current) {\n      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;',

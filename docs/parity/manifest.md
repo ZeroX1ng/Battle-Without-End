@@ -40,7 +40,7 @@ Last updated: 2026-06-02
 | --- | --- | --- | --- | --- |
 | `p0-battle-numeric-coercion.md` | P0 | AS3 `int` 截断边界与 React 浮点数漂移 | Guarded | Existing: `assert:battle-numeric-coercion`; Adjacent: `assert:growth-skill-protection`, `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
 | `p1-battle-active-skill-single-roll.md` | P1 | 玩家攻击技能每回合只随机尝试一个 | Guarded | Existing: `assert:battle-active-skill-single-roll`; Adjacent: `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
-| `p1-battle-pet-exp-reward.md` | P1 | 玩家升级后宠物经验应按 AS3 再次读取怪物经验 | Guarded | Existing: `assert:battle-pet-exp-reward`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-exp-reward.md` | P1 | 玩家升级后宠物经验应按 AS3 再次读取怪物经验，并守住 transition cloning 后的当前宠物所有权 | Guarded | Existing: `assert:battle-pet-exp-reward`, `assert:pet-window`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
 | `p1-battle-pet-flow-logs.md` | P1 | 宠物战斗日志、插值和随机消耗顺序 | Guarded | Existing: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources` |
 
 ### 状态含义
@@ -124,7 +124,7 @@ The 2026-05-30 architecture queue is routed through `architecture-review-queue-2
 | --- | --- | --- | --- | --- |
 | `p0-battle-numeric-coercion.md` | P0 | AS3 `int` coercion boundaries versus React floating-point drift | Guarded | Existing: `assert:battle-numeric-coercion`; Adjacent: `assert:growth-skill-protection`, `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
 | `p1-battle-active-skill-single-roll.md` | P1 | Player attack skills should try only one random skill per turn | Guarded | Existing: `assert:battle-active-skill-single-roll`; Adjacent: `assert:skill-eligibility-effects`, `assert:battle-damage-log-death` |
-| `p1-battle-pet-exp-reward.md` | P1 | Pet exp should re-read monster exp after player reward settlement | Guarded | Existing: `assert:battle-pet-exp-reward`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
+| `p1-battle-pet-exp-reward.md` | P1 | Pet exp should re-read monster exp after player reward settlement and preserve current-pet ownership after transition cloning | Guarded | Existing: `assert:battle-pet-exp-reward`, `assert:pet-window`; Adjacent: `assert:monster-reward`, `assert:battle-damage-log-death` |
 | `p1-battle-pet-flow-logs.md` | P1 | Pet combat logs, interpolation, and random-consumption order | Guarded | Existing: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources` |
 
 ### Status Meaning

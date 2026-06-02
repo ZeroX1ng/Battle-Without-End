@@ -222,6 +222,8 @@ await withRandom(0, async () => {
     },
   };
   battle.pet = pet;
+  // Battle.giveTrophy rebinds through playerState.pet after transition cloning.
+  battle.playerState.pet = pet;
   battle.giveTrophy();
 
   assertEqual(pet.expReceived, expGain, 'Battle.giveTrophy must award defeated-monster exp to the active pet');
