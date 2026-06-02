@@ -44,9 +44,23 @@ export function createInitialPlayerState(): PlayerState {
  * AS3 原始: Player.burn(param1:int, param2:Race): void
  */
 export function playerBurn(state: PlayerState, age: number, race: Race): PlayerState {
-  let s: PlayerState = { ...createInitialPlayerState(), playerName: state.playerName, age, race, lv: 1 };
+  const titleList = createTitleListState(state.titleList);
+  const currentTitle = state.title ? titleList.find(title => title.name === state.title?.name) ?? null : null;
+  let s: PlayerState = {
+    ...state,
+    titleList,
+    title: currentTitle?.isGot ? currentTitle : null,
+    age,
+    race,
+    lv: 1,
+    caculate: 0,
+    skillStatus: new BasicStatus(0,0,0,0,0,0,0),
+    equipStatus: new BasicStatus(0,0,0,0,0,0,0),
+  };
   s.basicStatus = caculateInitStat(s);
-  s = equipItem(s, new Weapon(EquipmentList[1] as WeaponData, 1));
+  if (!s.leftHand) {
+    s = equipItem(s, new Weapon(EquipmentList[1] as WeaponData, 1));
+  }
   // 初始化基础技能（原 AS3 Player.burn 中注册的 12 个技能）
   const initSkills = [
     'COMBAT_MASTERY', 'SMASH', 'CRITICAL_HIT', 'COUNTERATTACK',
@@ -62,6 +76,10 @@ export function playerBurn(state: PlayerState, age: number, race: Race): PlayerS
 }
 
 /** AS3 原始: caculateInitStat */
+export function createNewPlayerState(age: number, race: Race, playerName: string = 'Jason'): PlayerState {
+  return playerBurn({ ...createInitialPlayerState(), playerName }, age, race);
+}
+
 function caculateInitStat(state: PlayerState): BasicStatus {
   if (!state.race) return new BasicStatus(0,0,0,0,0,0,0);
   return state.race.caculateStat(state.age);

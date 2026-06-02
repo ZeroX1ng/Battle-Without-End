@@ -114,23 +114,17 @@ try {
   const equipmentDataModule = await import(pathToFileURL(join(playerOutRoot, 'core/data/equipmentData.js')));
   const weaponModule = await import(pathToFileURL(join(playerOutRoot, 'core/models/Weapon.js')));
 
-  const { createInitialPlayerState, playerBurn } = playerModule;
+  const { createInitialPlayerState, createNewPlayerState, playerBurn } = playerModule;
   const { list: RaceList } = raceModule;
   const { EquipmentList } = equipmentDataModule;
   const { Weapon } = weaponModule;
 
-  const staleOffhand = new Weapon(EquipmentList.find(item => item.position === Weapon.OFFHAND), 1);
-  const rebirthFixture = {
-    ...createInitialPlayerState(),
-    leftHand: new Weapon(EquipmentList[2], 1),
-    rightHand: staleOffhand,
-  };
-  const player = playerBurn(rebirthFixture, 10, RaceList[0]);
+  const player = createNewPlayerState(10, RaceList[0], createInitialPlayerState().playerName);
   const starterWeapon = EquipmentList[1];
 
   assert(player.leftHand, 'playerBurn must equip the AS3 starter weapon');
   assertEqual(player.leftHand.name, starterWeapon.name, 'playerBurn starter weapon must be EquipmentList[1]');
-  assertEqual(player.rightHand, null, 'playerBurn must clear stale rightHand equipment during rebirth');
+  assertEqual(player.rightHand, null, 'new-character playerBurn must start without rightHand equipment');
   assertEqual(player.skillList.length, 12, 'playerBurn must create the 12 AS3 starter skills');
   assertEqual(
     player.skillList.map(skill => skill.skillData.name).join(','),

@@ -35,6 +35,17 @@ function assertNotIncludes(source, needle, message) {
   assert(!source.includes(needle), message);
 }
 
+function extractCase(source, label) {
+  const marker = `case '${label}':`;
+  const start = source.indexOf(marker);
+  assert(start >= 0, `Missing reducer case ${label}`);
+  const nextCase = source.indexOf("\n    case '", start + marker.length);
+  const nextDefault = source.indexOf('\n    default:', start + marker.length);
+  const candidates = [nextCase, nextDefault].filter(index => index >= 0);
+  const end = candidates.length ? Math.min(...candidates) : source.length;
+  return source.slice(start, end);
+}
+
 function createConfig() {
   return {
     battle_toggle: true, battleIntro_toggle: true,
@@ -70,6 +81,8 @@ function titleAt(titleList, titleName) {
 const as3Title = readAs3('scripts/iData/iPlayer/Title.as');
 const as3TitleList = readAs3('scripts/iData/iPlayer/TitleList.as');
 const as3Player = readAs3('scripts/iGlobal/Player.as');
+const as3OtherWindow = readAs3('scripts/iPanel/iScene/iPanel/iWindow/OtherWindow.as');
+const as3RaceScene = readAs3('scripts/iPanel/iScene/RaceScene.as');
 const titleDataSource = read('src/core/data/titleData.ts');
 const playerSource = read('src/core/models/Player.ts');
 const saveSystemSource = read('src/core/systems/SaveSystem.ts');
@@ -77,9 +90,14 @@ const gameContextSource = read('src/state/GameContext.tsx');
 const skillBehaviorsSource = read('src/core/data/skillBehaviors.ts');
 const titleWindowSource = read('src/components/panels/TitleWindow.tsx');
 const packageJson = JSON.parse(read('package.json'));
+const doRebirthCase = extractCase(gameContextSource, 'DO_REBIRTH');
 
 assertIncludes(as3Title, 'this.max + "#" + this.count + "#"', 'AS3 Title.save must persist max/count/isGot.');
 assertIncludes(as3TitleList, 'public static function updateTitleInfo', 'AS3 TitleList.updateTitleInfo must remain the source event map.');
+assertIncludes(as3OtherWindow, 'TitleList.updateTitleInfo("reborn");', 'AS3 rebirth button must grant the reborn title before Player.burn.');
+assertIncludes(as3TitleList, 'reborn.updateInfo(0,1);', 'AS3 reborn event must increment the Reborn count by 1.');
+assertIncludes(as3Player, 'TitleList.updateTitleInfo("begin");', 'AS3 Player.burn must also apply the begin title event.');
+assertIncludes(as3RaceScene, 'Player.burn(chosenAge,chosenRace);', 'AS3 RaceScene must call Player.burn after race/age confirmation.');
 assertIncludes(as3Player, 'TitleList.list[_loc6_].save()', 'AS3 Player.save writes title state in TitleList order.');
 assertEqual(packageJson.scripts?.['assert:title-state-ownership'], 'node scripts/assertTitleStateOwnershipParity.mjs', 'package.json must expose assert:title-state-ownership');
 
@@ -132,8 +150,8 @@ try {
     outRoot: join(outRoot, 'base64'),
   });
 
-  const { TitleList, createTitleListState, applyTitleEvent } = titleModule;
-  const { createInitialPlayerState } = playerModule;
+  const { TitleList, createTitleListState, applyTitleEvent, applyTitleEvents } = titleModule;
+  const { createInitialPlayerState, playerBurn } = playerModule;
   const { serializeSave } = saveModule;
   const { MapList } = mapDataModule;
   const { list: RaceList } = raceModule;
@@ -159,6 +177,67 @@ try {
   const masterResult = applyTitleEvent(playerA.titleList, 'COMBAT_MASTERY');
   assertEqual(titleAt(masterResult.titleList, 'the Combat Master').isGot, true, 'rank-1 skill event must unlock its AS3 master title.');
   assert(masterResult.unlockedSkills.includes('LIFE_DRAIN'), 'master title unlock must return the AS3 skill unlock event.');
+
+  const rebirthFailures = [];
+  function recordRebirthCheck(condition, message) {
+    if (!condition) rebirthFailures.push(message);
+  }
+
+  const beforeRebirthTitle = playerABreaker;
+  const beforeRebirthPlayer = {
+    ...playerA,
+    race: RaceList[0],
+    titleList: playerAAfterDamage.titleList,
+    title: beforeRebirthTitle,
+  };
+  const burnedRebirthPlayer = playerBurn(beforeRebirthPlayer, 10, RaceList[0]);
+  const burnedBreaker = titleAt(burnedRebirthPlayer.titleList, 'the Breaker');
+  recordRebirthCheck(
+    burnedBreaker.isGot === true,
+    'playerBurn must preserve pre-rebirth player-owned normal titles instead of resetting titleList.',
+  );
+  recordRebirthCheck(
+    burnedRebirthPlayer.title?.name === 'the Breaker' && burnedRebirthPlayer.title === burnedBreaker,
+    'playerBurn must preserve the current title as the matching object from player.titleList.',
+  );
+
+  const rebirthEventResult = applyTitleEvents(burnedRebirthPlayer.titleList, [
+    { name: 'reborn', maxVal: 0, countVal: 1 },
+    { name: 'begin' },
+  ]);
+  const rebornAfterEvents = titleAt(rebirthEventResult.titleList, 'the Reborn');
+  recordRebirthCheck(
+    doRebirthCase.includes("queueTitleEvent(ctx, 'reborn', 0, 1)"),
+    'DO_REBIRTH must queue reborn with countVal=1 to match AS3 reborn.updateInfo(0,1).',
+  );
+  recordRebirthCheck(
+    doRebirthCase.includes("queueTitleEvent(ctx, 'begin')"),
+    'DO_REBIRTH must apply the begin title event after Player.burn, matching AS3 Player.burn.',
+  );
+  recordRebirthCheck(
+    rebornAfterEvents.count === 1 && rebornAfterEvents.isGot === true,
+    'reborn plus begin title events must leave the Reborn count=1 and isGot=true.',
+  );
+  recordRebirthCheck(
+    gameContextSource.includes('const currentTitleName = playerState.title?.name'),
+    'applyTitleEventsToPlayer must remember the selected title name before replacing player.titleList.',
+  );
+  recordRebirthCheck(
+    gameContextSource.includes('title: currentTitleName ? result.titleList.find'),
+    'applyTitleEventsToPlayer must repoint the current title to the matching object from player.titleList.',
+  );
+  recordRebirthCheck(
+    !doRebirthCase.includes('setTitle(newPlayer2, rebornTitle)'),
+    'DO_REBIRTH must not auto-equip Reborn through setTitle(), because setTitle toggles off an already selected title.',
+  );
+  recordRebirthCheck(
+    !doRebirthCase.includes('title: rebornTitle'),
+    'DO_REBIRTH must preserve the selected title; AS3 grants Reborn progress but does not assign Player.title.',
+  );
+
+  if (rebirthFailures.length) {
+    throw new Error(`Rebirth title parity checks failed:\n- ${rebirthFailures.join('\n- ')}`);
+  }
 
   const player1 = {
     ...playerA,

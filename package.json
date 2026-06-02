@@ -1,7 +1,7 @@
 {
   "name": "boe-refactor",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "BWE desktop playtest build",
   "type": "module",
   "main": "electron/main.cjs",
@@ -33,6 +33,7 @@
     "assert:skill-window": "node scripts/assertSkillWindowParity.mjs",
     "assert:start-character-age": "node scripts/assertStartCharacterAgeParity.mjs",
     "assert:start-burn-save": "node scripts/assertStartBurnSaveParity.mjs",
+    "assert:rebirth-soft-reset-player-state": "node scripts/assertRebirthSoftResetPlayerStateParity.mjs",
     "assert:skill-eligibility-effects": "node scripts/assertSkillEligibilityEffectsParity.mjs",
     "assert:skill-data-values": "node scripts/assertSkillDataValuesParity.mjs",
     "assert:map-selection": "node scripts/assertMapSelectionParity.mjs",

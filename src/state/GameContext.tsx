@@ -7,8 +7,8 @@ import React, { createContext, useCallback, useContext, useReducer, useEffect, u
 import type { GameState, PlayerState, GlobalConfig, LootState, WeaponData, TitleData } from '../core/types';
 import type { GameAction, GameActionMeta } from './actions';
 import type { GameEffect, ReducerContext } from './reducerEffects';
-import { createInitialPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
-import { applyTitleEvents, getTitleDefinition } from '../core/data/titleData';
+import { createInitialPlayerState, createNewPlayerState, playerBurn, ageup, addExp, addGold, loseGold, addItem, removeItem, equipItem, unequipItem, addSkill, equipSkill, unequipSkill, addPet, setPet, removePet, addTitle, setTitle, getLuck, getCombatPower, getStr, getDex, getIntelligence, getWill, updateEquipInfo, updateSkillInfo, updateAllInfo, loseExp } from '../core/models/Player';
+import { applyTitleEvents } from '../core/data/titleData';
 import { Battle } from '../core/models/Battle';
 import { Map as GameMap } from '../core/models/Map';
 import { MapList, getMapByName } from '../core/data/mapData';
@@ -133,7 +133,12 @@ function applyTitleEventsToPlayer(state: GameState, playerState: PlayerState, ct
     return withBattlePlayer(state, playerState);
   }
   const result = applyTitleEvents(playerState.titleList as TitleData[], ctx.titleEvents);
-  let nextPlayer = { ...playerState, titleList: result.titleList };
+  const currentTitleName = playerState.title?.name;
+  let nextPlayer = {
+    ...playerState,
+    titleList: result.titleList,
+    title: currentTitleName ? result.titleList.find(title => title.name === currentTitleName) ?? null : null,
+  };
   let nextState = { ...state, player: nextPlayer };
   for (const skillName of result.unlockedSkills) {
     const sd = SkillDataList.find(d => d.name === skillName);
@@ -166,7 +171,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'PLAYER_BURN':
       queueTitleEvent(ctx, 'begin');
       {
-        let player = playerBurn(state.player, action.age, action.race);
+        let player = createNewPlayerState(action.age, action.race, state.player.playerName);
         const activeSaveSlot = state.activeSaveSlot ?? 'slot1';
         let nextState: GameState = {
           ...state,
@@ -597,20 +602,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'DO_REBIRTH': {
-      queueTitleEvent(ctx, 'reborn');
+      queueTitleEvent(ctx, 'reborn', 0, 1);
+      queueTitleEvent(ctx, 'begin');
       let newPlayer2 = playerBurn(state.player, action.age, action.race);
       newPlayer2 = { ...newPlayer2, caculate: 0 };
+      const activeSaveSlot = state.activeSaveSlot ?? 'slot1';
       let newState = addLog(
-        { ...state, player: newPlayer2, shop: action.meta?.shop ?? state.shop, scene: 'main', isRebirth: false },
+        { ...state, activeSaveSlot, player: newPlayer2, shop: action.meta?.shop ?? state.shop, scene: 'main', isRebirth: false },
         `<font color='#ff4040'>你在转生中获得了新的生命! 你现在是${action.race.name}族，${action.age}岁!</font>`
       );
       newState = applyTitleEventsToPlayer(newState, newPlayer2, ctx);
       newPlayer2 = newState.player;
-      const rebornTitle = newPlayer2.titleList.find((t: any) => t.name === 'the Reborn') ?? getTitleDefinition('the Reborn');
-      if (rebornTitle?.isGot) {
-        newPlayer2 = setTitle(newPlayer2, rebornTitle);
-        newState = withBattlePlayer(newState, newPlayer2);
-      }
+      const mapName = getCurrentMapName(newState);
+      const saveStr = serializeSave(newPlayer2, newState.config, mapName, activeSaveSlot);
+      queueLocalSave(ctx, newPlayer2.playerName, activeSaveSlot, saveStr);
       return withQueuedEffects(newState, ctx);
     }
 
@@ -742,7 +747,7 @@ function prepareActionForReducer(action: GameAction, state: GameState, effectBat
   const meta = createActionMeta(action, effectBatchId);
   switch (action.type) {
     case 'PLAYER_BURN': {
-      const player = playerBurn(state.player, action.age, action.race);
+      const player = createNewPlayerState(action.age, action.race, state.player.playerName);
       return { ...action, meta: { ...meta, shop: meta.shop ?? generateShopState(player) } };
     }
     case 'DO_REBIRTH': {

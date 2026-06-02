@@ -1,0 +1,7 @@
+# 更新日志
+
+## 0.1.1 - 2026-06-02
+
+- 🐞 修复 `DO_REBIRTH` 转生后装备、背包、金币、AP、宠物、技能、已装备技能和称号进度丢失的问题。转生现在只重算年龄、种族、等级、基础属性和派生属性，并在完成后写入存档。
+- 🆕 新增 `assert:rebirth-soft-reset-player-state` 转生软重置 guard，并补充 `p0-rebirth-soft-reset-player-state.md` parity 卡，明确新建角色初始化与转生软重置的契约边界。
+- 🛠 同步 0.1.1 桌面构建产物，使打包入口指向最新前端 bundle。
