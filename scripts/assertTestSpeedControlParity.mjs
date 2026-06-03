@@ -42,6 +42,9 @@ const mainScene = read('src/components/scenes/MainScene.tsx');
 const speedControl = read('src/components/debug/TestSpeedControl.tsx');
 const testSpeed = read('src/core/debug/testSpeedControl.ts');
 const useGameLoop = read('src/hooks/useGameLoop.ts');
+const gameLoop = read('src/core/systems/GameLoop.ts');
+const actions = read('src/state/actions.ts');
+const battle = read('src/core/models/Battle.ts');
 const saveSystem = read('src/core/systems/SaveSystem.ts');
 const types = read('src/core/types.ts');
 
@@ -58,27 +61,44 @@ if (packageJson.scripts?.['assert:test-speed-control'] !== 'node scripts/assertT
 }
 
 assertIncludes(testSpeed, 'export const TEST_SPEED_CONTROL_ENABLED = true', 'Speed control must be removable through one feature flag.');
-assertIncludes(testSpeed, 'export const TEST_SPEED_MULTIPLIERS = [1, 2, 5, 10] as const', 'Speed control must expose exactly 1x/2x/5x/10x.');
-assertIncludes(testSpeed, 'export const DEFAULT_TEST_SPEED_MULTIPLIER = 1', 'Speed control default must be 1x.');
+assertIncludes(testSpeed, 'Remove TEST_SPEED_CONTROL_ENABLED, TestSpeedControl, and BattleDebugOptions before a production release.', 'Temporary test controls must carry a production-removal note.');
+assertIncludes(testSpeed, 'export const TEST_SPEED_MULTIPLIERS = [1, 10, 25, 50] as const', 'Speed control must expose exactly 1x/10x/25x/50x for the pet-exp test build.');
+assertIncludes(testSpeed, 'export const DEFAULT_TEST_SPEED_MULTIPLIER = 1', 'Speed control default must stay 1x for normal launch.');
+assertIncludes(testSpeed, 'export const DEFAULT_TEST_ONE_HIT_KILL_ENABLED = false', 'One-hit kill must default off for normal launch.');
 assertIncludes(testSpeed, 'baseIntervalMs / multiplier', 'Speed control must affect effective loop interval only.');
 
 assertIncludes(speedControl, 'data-bwe-test-speed-control', 'Speed control must render a browser-visible smoke target.');
 assertIncludes(speedControl, 'TEST_SPEED_MULTIPLIERS.map', 'Speed control UI must be generated from the shared multiplier list.');
 assertIncludes(speedControl, 'aria-pressed={multiplier === value}', 'Speed control must expose selected state to browser smoke.');
+assertIncludes(speedControl, 'data-bwe-test-one-hit-kill', 'One-hit kill must render next to the temporary speed controls for browser smoke.');
+assertIncludes(speedControl, 'aria-pressed={oneHitKillEnabled}', 'One-hit kill must expose selected state to browser smoke.');
+assertIncludes(speedControl, 'onOneHitKillChange(!oneHitKillEnabled)', 'One-hit kill button must toggle the local test-only state.');
 
 assertIncludes(mainScene, 'TEST_SPEED_CONTROL_ENABLED', 'MainScene must keep speed UI behind the feature flag.');
 assertIncludes(mainScene, 'DEFAULT_TEST_SPEED_MULTIPLIER', 'MainScene must default speed control to 1x.');
+assertIncludes(mainScene, 'DEFAULT_TEST_ONE_HIT_KILL_ENABLED', 'MainScene must default one-hit kill off.');
 assertIncludes(mainScene, 'getTestSpeedIntervalMs(500, testSpeedMultiplier)', 'MainScene must derive useGameLoop effective interval from multiplier.');
+assertIncludes(mainScene, 'oneHitKill: testOneHitKillEnabled', 'MainScene must pass one-hit kill through the tick meta only while the debug toggle is enabled.');
 assertIncludes(mainScene, 'intervalMs: gameLoopIntervalMs', 'useGameLoop must consume the effective interval.');
 assertIncludes(mainScene, '<TestSpeedControl', 'MainScene must render the speed control while the feature flag is enabled.');
 
 assertIncludes(useGameLoop, 'intervalMs = 500', 'useGameLoop must preserve the 500ms default baseline.');
 assertNotIncludes(useGameLoop, 'TEST_SPEED', 'useGameLoop must stay generic and not own the temporary test feature.');
+assertIncludes(gameLoop, 'debugOptions?: BattleDebugOptions', 'gameTick must accept transient battle debug options.');
+assertIncludes(gameLoop, "meta: { battleDebug: debugOptions }", 'gameTick must pass one-hit kill through action meta, not saved state.');
+assertIncludes(actions, 'battleDebug?: BattleDebugOptions', 'BATTLE_TICK debug options must live in action meta only.');
+assertIncludes(battle, 'export interface BattleDebugOptions', 'Battle must type the transient one-hit kill option locally.');
+assertIncludes(battle, 'oneHitKill?: boolean', 'Battle debug options must include an optional one-hit kill flag.');
+assertIncludes(battle, 'debugOptions?: BattleDebugOptions', 'Battle.run must receive transient debug options.');
+assertIncludes(battle, 'this.debugOptions.oneHitKill', 'One-hit kill must be checked from transient debug options.');
+assertIncludes(battle, 'this.monsterHp = 0', 'One-hit kill must reduce the current monster HP to zero.');
 
 for (const source of [saveSystem, types]) {
   assertNotIncludes(source, 'testSpeed', 'Test speed state must not be serialized or typed as save state.');
   assertNotIncludes(source, 'speedMultiplier', 'Speed multiplier must not be serialized or typed as save state.');
   assertNotIncludes(source, 'TEST_SPEED', 'Feature flag names must not leak into save state.');
+  assertNotIncludes(source, 'oneHitKill', 'One-hit kill state must not be serialized or typed as save state.');
+  assertNotIncludes(source, 'BattleDebugOptions', 'Battle debug options must not leak into save state.');
 }
 
 console.log('Test speed control parity checks passed.');

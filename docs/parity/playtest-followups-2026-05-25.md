@@ -1,6 +1,6 @@
 # BWE Playtest Follow-up Parity Queue - 2026-05-25
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 
 ## 中文
 
@@ -263,9 +263,9 @@ Last updated: 2026-06-02
 
 ### `P2-TEST-SPEED-CONTROL`
 
-**Scope:** 测试阶段临时增加游戏倍率按钮，方便快速推进进度。
+**Scope:** 测试阶段临时增加游戏倍率按钮和一击必杀开关，方便快速推进进度。
 
-**Parity Note:** 这是临时测试工具，不进入正式 parity 完成定义。实现必须有单一常量或 feature flag，便于发布前整卡移除。
+**Parity Note:** 这是临时测试工具，不进入正式 parity 完成定义。实现必须有单一常量或 feature flag，便于发布前整卡移除；正式版发布前需要删除倍率控件、一击必杀开关和对应 `BattleDebugOptions` 链路。
 
 **AS3 Source of Truth:** `MainScene.as`, `Battle.as`, `Player.as` only to protect normal 500ms baseline.
 
@@ -273,17 +273,17 @@ Last updated: 2026-06-02
 
 **Current Symptom:** 试玩测试需要快速推进年龄成长、掉落、称号、存档等长周期流程。
 
-**Red Guard Contract:** 新增 `assert:test-speed-control`，确认倍率选项为 `1x/2x/5x/10x`，只影响 `useGameLoop` 的 effective interval，不写入存档；默认仍为 `1x`。
+**Red Guard Contract:** 新增/扩展 `assert:test-speed-control`，确认倍率选项为 `1x/10x/25x/50x`，只影响 `useGameLoop` 的 effective interval；一击必杀默认关闭，只通过 `BATTLE_TICK` meta 传入当前 `Battle.run()`，不写入存档。
 
-**Expected Behavior:** 测试控件可在主界面切换倍率；倍率越高逻辑 tick 越快；刷新或读档后倍率回到默认；生产移除时只需要删除一个 feature flag 分支和对应控件。
+**Expected Behavior:** 测试控件可在主界面切换倍率和一击必杀；倍率越高逻辑 tick 越快；一击必杀打开后玩家回合会让当前怪物 HP 归零，便于验证 boss/宠物/掉落等长周期流程；刷新或读档后倍率回到 1x、一击必杀回到关闭；生产移除时只需要删除一个 feature flag 分支、对应控件和 transient debug option。
 
-**Forbidden Behavior:** 不允许把倍率序列化进 save；不允许倍率改变视觉 FPS cap 常量；不允许默认打开非 1x。
+**Forbidden Behavior:** 不允许把倍率或一击必杀序列化进 save；不允许倍率改变视觉 FPS cap 常量；不允许默认打开非 1x 或一击必杀；不允许把一击必杀做进 `GlobalConfig` 或 `GameState`。
 
 **Acceptance Tests:** `npm run assert:test-speed-control`, `npm run assert:game-loop`, `npm run assert:age-growth-visible` after that card exists, `npx tsc -b`.
 
-**Manual Smoke:** 在主场景切换 1x/2x/5x/10x，观察战斗日志和年龄成长进度加速；刷新后确认回到 1x。
+**Manual Smoke:** 在主场景切换 1x/10x/25x/50x，观察战斗日志和年龄成长进度加速；打开一击必杀后确认当前怪物在玩家回合被击杀；刷新后确认倍率回到 1x、一击必杀回到关闭。
 
-**Current Status:** Verified. `MainScene` renders a feature-flagged temporary speed control with `1x/2x/5x/10x`, derives only the `useGameLoop` interval from the selected multiplier, defaults to `1x`, and leaves save/config state untouched.
+**Current Status:** Verified. `MainScene` renders a feature-flagged temporary speed control with `1x/10x/25x/50x` plus one-hit kill, derives only the `useGameLoop` interval from the selected multiplier, passes one-hit kill only through transient battle meta, defaults to `1x`/off, and leaves save/config state untouched.
 
 ## English
 
@@ -306,7 +306,7 @@ This document turns the 2026-05-25 playtest findings into executable follow-up c
 | `P1-MONSTER-TITLE-TOOLTIP` | P1 | AS3 parity | 12 | Verified | `assert:monster-title-tooltip` | Monster title hover uses the global HTML info window and displays AS3 `MonsterTitle.description` stat modifiers. |
 | `P1-VISIBLE-AUTOSAVE-SLOT` | P1 | Product override | 5 | Needs repair card | `assert:visible-autosave-slot` | A visible `自动保存` slot receives auto-saves without overwriting manual slots. |
 | `P2-VISUAL-FPS-CAP` | P2 | Performance guard | 11 | Needs repair card | `assert:visual-fps-cap` | Visual RAF loops are capped by a shared helper, while 500ms logic ticks remain unchanged. |
-| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Verified | `assert:test-speed-control` | `1x/2x/5x/10x` debug speed affects loop interval only and is not saved. |
+| `P2-TEST-SPEED-CONTROL` | P2 | Temporary test tool | 13 | Verified | `assert:test-speed-control` | `1x/10x/25x/50x` debug speed affects loop interval only; one-hit kill uses transient battle meta; neither is saved. |
 
 ### Implementation Notes
 

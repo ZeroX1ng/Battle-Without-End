@@ -8,7 +8,7 @@ import type { Race } from '../core/models/Race';
 import type { Equipment } from '../core/models/Equipment';
 import type { Skill } from '../core/models/Skill';
 import type { Map } from '../core/models/Map';
-import type { Battle } from '../core/models/Battle';
+import type { Battle, BattleDebugOptions } from '../core/models/Battle';
 import type { Pet } from '../core/models/Pet';
 
 export interface GameActionMeta {
@@ -17,6 +17,7 @@ export interface GameActionMeta {
   shop?: ShopState;
   randomPercents?: number[];
   loadSaveData?: { userName: string; time: string; info: string } | null;
+  battleDebug?: BattleDebugOptions;
 }
 
 type GameActionCore =

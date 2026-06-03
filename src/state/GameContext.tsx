@@ -37,6 +37,8 @@ import {
 
 // ═══ 初始状态 ═══
 
+const MAX_BATTLE_LOG_MESSAGES = 100;
+
 function createInitialConfig(): GlobalConfig {
   return {
     battle_toggle: true, battleIntro_toggle: true,
@@ -458,7 +460,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'BATTLE_TICK': {
       if (!state.battle) return state;
       const battle = state.battle.cloneForTransition(state.player, state.config);
-      const result = battle.run(state.config);
+      const result = battle.run(state.config, action.meta?.battleDebug);
 
       let playerState = battle.playerState;
       let newState: GameState = { ...state, battle, tick: state.tick + 1 };
@@ -725,7 +727,13 @@ function addLog(state: GameState, text: string, category?: string, timestamp: nu
   if (!shouldDisplayLog(state.config, category)) return state;
   const previous = state.ui.infoMessages[state.ui.infoMessages.length - 1];
   const msg = { id: (previous?.id ?? 0) + 1, text, category, timestamp };
-  return { ...state, ui: { ...state.ui, infoMessages: [...state.ui.infoMessages.slice(-199), msg] } };
+  return {
+    ...state,
+    ui: {
+      ...state.ui,
+      infoMessages: [...state.ui.infoMessages.slice(-(MAX_BATTLE_LOG_MESSAGES - 1)), msg],
+    },
+  };
 }
 
 function createActionMeta(action: GameAction, effectBatchId: number): GameActionMeta {

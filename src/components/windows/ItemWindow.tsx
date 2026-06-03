@@ -183,12 +183,6 @@ export function ItemWindow() {
               <span style={{ color: selectedItem.level > 0 ? '#FFD700' : 'var(--color-text-dim)' }}>+{selectedItem.level}</span>
             </div>
 
-            <button
-              onClick={() => { dispatch({ type: 'EQUIP_ITEM', item: selectedItem }); setSelectedIndex(null); hideItemInfo() }}
-              style={btnStyle('var(--color-blue)')}
-            >
-              穿戴
-            </button>
           </div>
         )}
       </div>

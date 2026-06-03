@@ -276,13 +276,15 @@ export class Pet {
    * 公式: 需求经验 = level² * ((level+1)² - 13*(level+1) + 82)
    * playerLevel: 玩家等级，宠物等级不能超过玩家等级+5
    */
-  addExp(exp: number, playerLevel: number = Infinity): void {
-    if (this.getLevelExp() < 0) return;
-    if (this.level - playerLevel > 5) return;
+  addExp(exp: number, playerLevel: number = Infinity): string[] {
+    if (this.getLevelExp() < 0) return [];
+    if (this.level - playerLevel > 5) return [];
+    const logs = [`你的宠物获得了<font color='#4a60d7'>${exp}</font>经验.`];
     this._exp = encryptInt(this.exp + exp);
     if (this.exp > this.getLevelExp()) {
-      this.levelUp();
+      logs.push(...this.levelUp());
     }
+    return logs;
   }
 
   private getLevelExp(): number {
@@ -290,7 +292,7 @@ export class Pet {
     return this.level * this.level * ((this.level + 1) * (this.level + 1) - 13 * (this.level + 1) + 82);
   }
 
-  private levelUp(): void {
+  private levelUp(): string[] {
     this.level++;
     this._exp = encryptInt(0);
     let i = 0;
@@ -298,12 +300,16 @@ export class Pet {
       this.currentStat[STAT_NAMES[i]] += this.growStat[STAT_NAMES[i]];
       i++;
     }
+    const logs = [`<font color='#ff4040'>你的宠物升级了!你的宠物达到了Lv.${this.level}!</font>`];
     // 升级时有概率学会新技能，等级越高概率越低
     if (Math.random() * 100 < 1 - this.level * 0.01) {
       const total = PetSkillDataList.length;
       const idx = Math.floor(Math.random() * total);
-      this.addSkill(PetSkillDataList[idx]);
+      if (this.addSkill(PetSkillDataList[idx])) {
+        logs.push(`<font color='#ff4040'>你的宠物学会了${PetSkillDataList[idx].realName}!</font>`);
+      }
     }
+    return logs;
   }
 
   save(): string {

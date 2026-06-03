@@ -43,6 +43,10 @@ export interface BattleTitleEvent {
   countVal?: number;
 }
 
+export interface BattleDebugOptions {
+  oneHitKill?: boolean;
+}
+
 function cloneRuntimeValue<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
   if (value === null || typeof value !== 'object') {
     return value;
@@ -110,6 +114,7 @@ export class Battle {
   private _playerDied: boolean = false;
   private _loot: Partial<LootState> = {};
   private _titleEvents: BattleTitleEvent[] = [];
+  private debugOptions: BattleDebugOptions = {};
 
   constructor(playerState: PlayerState, map: Map, config?: GlobalConfig) {
     this.playerState = playerState;
@@ -231,7 +236,10 @@ export class Battle {
     }
     if (this.pet) {
       const petExpGain = this.monster.getExp(this.playerState, this.map.mapData.modifier);
-      this.pet.addExp(petExpGain, this.playerState.lv);
+      const petLogs = this.pet.addExp(petExpGain, this.playerState.lv);
+      if (petLogs?.length) {
+        this.emitLogs(petLogs, 'exp');
+      }
     }
   }
 
@@ -274,6 +282,7 @@ export class Battle {
     if (this.turn > 0) {
       this.playerTurn();
       this.petTurn();
+      this.applyOneHitKill();
     } else {
       this.monsterTurn();
     }
@@ -292,10 +301,11 @@ export class Battle {
    *
    * @returns BattleRunResult — caculate 值和触发信号
    */
-  run(config?: GlobalConfig): BattleRunResult {
+  run(config?: GlobalConfig, debugOptions?: BattleDebugOptions): BattleRunResult {
     if (config) {
       this.config = config;
     }
+    this.debugOptions = debugOptions ?? {};
     const logs: GameLog[] = [];
     if (this.monster) {
       this.fight();
@@ -348,6 +358,14 @@ export class Battle {
     if (!usedSkill) {
       this.playerAttack();
     }
+  }
+
+  private applyOneHitKill(): void {
+    if (!this.debugOptions.oneHitKill || !this.monster || this.monsterHp <= 0) {
+      return;
+    }
+    this.monsterHp = 0;
+    this.emitLogs(['[测试] 一击必杀已触发。'], 'battle');
   }
 
   private emitLogs(logs: string[], category: string = 'battle'): void {

@@ -160,7 +160,8 @@ async function withRandomSequence(values, fn) {
   let index = 0;
   Math.random = () => values[Math.min(index++, values.length - 1)];
   try {
-    return await fn();
+    const result = await fn();
+    return { result, reads: index };
   } finally {
     Math.random = original;
   }
@@ -171,7 +172,7 @@ function getLogText(playerState) {
 }
 
 function assertNoTemplateFragments(logText, message) {
-  assert(!/\{mon(?:\.|\b)/.test(logText), message);
+  assert(!/\{(?:mon|monsterName|monName)[^}]*\}/.test(logText), message);
 }
 
 const as3Battle = readAs3('scripts/iData/Battle.as');
@@ -196,11 +197,17 @@ assertIncludes(as3Battle, 'this.pet.getSkill(PetSkillList.life_drain)', 'AS3 pet
 assertIncludes(as3Pet, 'public function get attack()', 'AS3 Pet.attack owns pet physical damage randomness');
 assertIncludes(as3PetSkillList, 'public static const dodge', 'AS3 PetSkillList defines Dodge values');
 assertIncludes(as3PetSkillList, 'public static const life_drain', 'AS3 PetSkillList defines Life Drain values');
+assertIncludes(as3PetSkillList, 'private static function behave_ice_spear', 'AS3 PetSkillList owns Ice Spear active behavior');
+assertIncludes(as3PetSkillList, 'if(MainScene.battle.petMp < _loc2_[3])', 'AS3 Ice Spear fails without consuming MP when pet MP is low');
+assertIncludes(as3PetSkillList, 'MainScene.battle.petMp -= _loc2_[3];', 'AS3 Ice Spear consumes MP only after the MP gate passes');
+assertIncludes(as3PetSkillList, 'monster.addBuff(new BuffFrozen(_loc2_[2]))', 'AS3 Ice Spear applies Frozen after a successful cast');
 assertIncludes(battleModelSource, 'private monsterAttackPet()', 'React Battle must own monster-on-pet flow');
 assertIncludes(battleModelSource, 'private petAttack()', 'React Battle must own pet normal attack flow');
 assertIncludes(petModelSource, 'getSkill(skillData: PetSkillData)', 'React Pet must own skill lookup');
 assertIncludes(petSkillDataSource, "name: 'Life Drain'", 'React pet skill data must include Life Drain');
 assertIncludes(petSkillBehaviorSource, 'petTraceAttackInfo', 'React pet skill behaviors must emit attack-skill logs');
+assertIncludes(petSkillBehaviorSource, 'if (battle.petMp < params[3]) return noop();', 'React Ice Spear must preserve AS3 low-MP fallback');
+assertIncludes(petSkillBehaviorSource, 'battle.petMp -= params[3];', 'React Ice Spear must consume MP after passing the MP gate');
 
 if (packageJson.scripts?.['assert:battle-pet-flow-logs'] !== 'node scripts/assertBattlePetFlowLogsParity.mjs') {
   throw new Error('package.json must expose assert:battle-pet-flow-logs');
@@ -208,6 +215,11 @@ if (packageJson.scripts?.['assert:battle-pet-flow-logs'] !== 'node scripts/asser
 
 const { Battle } = await importTsModule({
   entry: join(root, 'src/core/models/Battle.ts'),
+  root,
+  outRoot,
+});
+const { PetSkillDataMap } = await importTsModule({
+  entry: join(root, 'src/core/data/petSkillData.ts'),
   root,
   outRoot,
 });
@@ -273,6 +285,77 @@ await withRandomSequence([0.99, 0.99], async () => {
   assertMatch(logText, /hp/i, 'Life Drain must emit a visible pet heal log');
   assertNoTemplateFragments(logText, 'Pet attack and Life Drain logs must not expose template fragments');
 });
+
+await withRandomSequence([0, 0, 0.99], async () => {
+  const player = createPlayerState();
+  const battle = new Battle(player, createMap());
+  battle.monster = createMonster();
+  battle.monster.addBuff = buff => battle.monster.buffList.push(buff);
+  battle.pet = {
+    ...createPet(),
+    level: 1,
+    magicatt: 100,
+    getAttackSkill() {
+      return [{
+        level: 0,
+        skillData: PetSkillDataMap.Fireball,
+        getSetArray() {
+          return PetSkillDataMap.Fireball.setList[0];
+        },
+        getRealName() {
+          return PetSkillDataMap.Fireball.realName;
+        },
+      }];
+    },
+  };
+  battle.petHp = 50;
+  battle.petMp = 50;
+  battle.monsterHp = 100;
+
+  battle.petTurn();
+  const logText = getLogText(player);
+
+  assertEqual(battle.petMp, 20, 'Successful pet Fireball must consume AS3 MP cost after the cast gate');
+  assertEqual(battle.monsterHp, 91, 'Successful pet Fireball must damage the monster');
+  assert(battle.monster.buffList.some(buff => buff.name === 'burn'), 'Successful pet Fireball must apply Burn');
+  assertMatch(logText, /Test Monster.*9/, 'Pet active-skill log must include monster name and damage');
+  assertNoTemplateFragments(logText, 'Pet active-skill log must not expose template fragments');
+});
+
+const failedCast = await withRandomSequence([0, 0, 0.99], async () => {
+  const player = createPlayerState();
+  const battle = new Battle(player, createMap());
+  battle.monster = createMonster();
+  battle.pet = {
+    ...createPet(),
+    level: 1,
+    magicatt: 100,
+    getAttackSkill() {
+      return [{
+        level: 0,
+        skillData: PetSkillDataMap.Fireball,
+        getSetArray() {
+          return PetSkillDataMap.Fireball.setList[0];
+        },
+        getRealName() {
+          return PetSkillDataMap.Fireball.realName;
+        },
+      }];
+    },
+  };
+  battle.petHp = 50;
+  battle.petMp = 0;
+  battle.monsterHp = 100;
+
+  battle.petTurn();
+  const logText = getLogText(player);
+
+  assertEqual(battle.petMp, 0, 'Failed low-MP pet active skill must not consume MP');
+  assertEqual(battle.monsterHp, 92, 'Failed low-MP pet active skill must fall back to normal pet attack');
+  assertMatch(logText, /Test Monster.*8/, 'Low-MP fallback must emit the normal pet attack log');
+  assertNoTemplateFragments(logText, 'Low-MP fallback log must not expose template fragments');
+});
+assertEqual(failedCast.reads, 3, 'Low-MP active pet skill fallback must preserve AS3 random consumption order');
 
 await withRandomSequence([0.99, 0, 0, 0.99, 0.99], async () => {
   const player = createPlayerState();

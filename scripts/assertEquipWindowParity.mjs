@@ -25,6 +25,8 @@ function assertNotIncludes(source, needle, message) {
 }
 
 const equipWindow = read('src/components/windows/EquipWindow.tsx');
+const itemWindow = read('src/components/windows/ItemWindow.tsx');
+const common = read('src/components/common/Common.tsx');
 const equipment = read('src/core/models/Equipment.ts');
 const player = read('src/core/models/Player.ts');
 const gameContext = read('src/state/GameContext.tsx');
@@ -53,5 +55,28 @@ assertIncludes(gameContext, 'unequipItem(state.player, action.slot)', 'UNEQUIP_I
 assertIncludes(gameContext, 'withBattlePlayer', 'Equipment changes must keep an active Battle playerState in sync');
 assertNotIncludes(gameContext, "case 'UNEQUIP_ITEM':\r\n      return state;", 'UNEQUIP_ITEM must not be a no-op');
 assertNotIncludes(gameContext, "case 'UNEQUIP_ITEM':\n      return state;", 'UNEQUIP_ITEM must not be a no-op');
+
+assertIncludes(common, "actionButton('equip', 'E', onEquip)", 'Inventory equipment rows must keep the AS3 inline equip button');
+assertIncludes(common, "actionButton('sell', sellLabel, onSell)", 'Inventory equipment rows must keep the AS3 inline sell/money button');
+assertIncludes(common, 'showItemInfo(candidateHtml, compareHtml)', 'Inventory equipment rows must keep AS3 hover comparison details');
+assertIncludes(itemWindow, 'currentEquip={getEquipmentComparisonSlot(item, state.player)}', 'ItemWindow must pass current same-slot equipment into bag rows');
+assertIncludes(itemWindow, "dispatch({ type: 'EQUIP_ITEM', item })", 'ItemWindow bag rows must equip through their inline EquipmentCell action');
+
+const selectedDetailStart = itemWindow.indexOf('{selectedItem && (');
+const forgePanelStart = itemWindow.indexOf('data-bwe-forge-panel="inventory-lower"');
+if (selectedDetailStart === -1 || forgePanelStart === -1 || forgePanelStart < selectedDetailStart) {
+  throw new Error('ItemWindow must render the selected-item area before the lower forge panel');
+}
+
+const selectedDetailBlock = itemWindow.slice(selectedDetailStart, forgePanelStart);
+assertNotIncludes(
+  selectedDetailBlock,
+  "dispatch({ type: 'EQUIP_ITEM', item: selectedItem })",
+  'Selected item detail panel must not render a second equip/wear action; AS3 EquipmentCell only equips from the row button',
+);
+
+const forgePanelBlock = itemWindow.slice(forgePanelStart);
+assertIncludes(forgePanelBlock, 'selectedItem ? (', 'Lower forge panel must still use selectedItem for forge preview and actions');
+assertIncludes(forgePanelBlock, 'onClick={handleForge}', 'Lower forge panel must keep the selectedItem-driven forge action');
 
 console.log('EquipWindow parity checks passed.');

@@ -33,10 +33,16 @@ function assert(condition, message) {
 }
 
 const petWindow = read('src/components/windows/PetWindow.tsx');
+const petInfoPanel = read('src/components/panels/PetInfoPanel.tsx');
 const petModel = read('src/core/models/Pet.ts');
 const petSkillModel = read('src/core/models/PetSkill.ts');
 const player = read('src/core/models/Player.ts');
 const gameContext = read('src/state/GameContext.tsx');
+
+assertIncludes(petInfoPanel, 'Lv.', 'PetInfoPanel must show the AS3 main-panel Lv label/value');
+assertIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must show the AS3 main-panel HP bar');
+assertIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must show the AS3 main-panel Exp progress bar');
+assertIncludes(petInfoPanel, 'getLevelExp', 'PetInfoPanel Exp max must come from the AS3 pet level-exp formula');
 
 assertIncludes(petWindow, 'useInfoWindow', 'PetWindow must use the global info window for AS3 hover details');
 assertIncludes(petWindow, 'showItemInfo(getPetDescription(pet))', 'PetWindow must show the original PetInfoWindow stat details on pet hover');
@@ -45,7 +51,12 @@ assertIncludes(petWindow, "dispatch({ type: 'PET_SET'", 'PetWindow must keep the
 assertIncludes(petWindow, "dispatch({ type: 'PET_REMOVE'", 'PetWindow must expose the original delete/sell pet action');
 assertIncludes(petWindow, 'selectedPet', 'PetWindow must keep selected pet state for detail/status display');
 assertIncludes(petWindow, 'PET_STATS', 'PetWindow must render the original PetInfoWindow status rows');
+for (const statLabel of ['Hp', 'Mp', '攻击', '平衡', '暴击率', '防御', '护甲', '魔法攻击']) {
+  assertIncludes(petWindow, `label: '${statLabel}'`, `PetWindow detail panel must show AS3 PetInfoWindow ${statLabel}`);
+  assertIncludes(petModel, `${statLabel}\\t`, `Pet hover description must include AS3 PetInfoWindow ${statLabel}`);
+}
 assertIncludes(petWindow, 'pet.skillList', 'PetWindow must render the original pet skill cells');
+assertIncludes(petWindow, 'getPetSkillDescription(skill)', 'PetWindow must render PetSkillCell skill descriptions on hover');
 assertIncludes(petWindow, 'handleSetPet', 'PetWindow must separate equip/switch behavior from row selection');
 assertIncludes(petWindow, 'handleRemovePet', 'PetWindow must separate delete behavior from row selection');
 assertNotIncludes(petWindow, 'onClick={() => dispatch({ type: \'PET_SET\', pet })}', 'PetWindow row click must not be the only pet interaction');

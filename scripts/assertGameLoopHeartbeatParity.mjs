@@ -64,7 +64,7 @@ assertIncludes(
 );
 assertIncludes(
   mainScene,
-  'gameTick(stateRef.current, dispatch)',
+  'gameTick(stateRef.current, dispatch,',
   'MainScene useGameLoop callback must delegate tick dispatching to core GameLoop.'
 );
 assertNotIncludes(
@@ -105,7 +105,7 @@ assertIncludes(
 );
 assertIncludes(
   gameLoop,
-  "dispatch({ type: 'BATTLE_TICK' })",
+  "dispatch({ type: 'BATTLE_TICK', meta: { battleDebug: debugOptions } })",
   'core GameLoop must own battle heartbeat dispatch.'
 );
 assertNotIncludes(

@@ -112,6 +112,7 @@ const battleModelSource = read('src/core/models/Battle.ts');
 const monsterModelSource = read('src/core/models/Monster.ts');
 const playerModelSource = read('src/core/models/Player.ts');
 const petModelSource = read('src/core/models/Pet.ts');
+const petSkillDataSource = read('src/core/data/petSkillData.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 assertIncludes(as3Battle, 'Player.addExp(this.monster.exp);', 'AS3 Battle.giveTrophy first reads monster.exp for the player');
@@ -121,9 +122,15 @@ assertIncludes(as3Monster, 'this.CP / Player.combatPower + Global.map.mapData.mo
 assertIncludes(as3Player, 'xp += param1;', 'AS3 Player.addExp settles player exp before the pet reward branch');
 assertIncludes(as3Player, '++lv;', 'AS3 Player.levelUp changes player level during reward settlement');
 assertIncludes(as3Pet, 'if(this.level - Player.lv > 5)', 'AS3 Pet.addExp gates pet leveling with the current Player.lv');
+assertIncludes(as3Pet, 'this.exp += param1;', 'AS3 Pet.addExp accumulates pet exp');
+assertIncludes(as3Pet, '你的宠物获得了', 'AS3 Pet.addExp emits a visible pet exp log');
+assertIncludes(as3Pet, '你的宠物升级了!你的宠物达到了Lv.', 'AS3 Pet.levelUp emits a visible level-up log');
+assertIncludes(as3Pet, '你的宠物学会了', 'AS3 Pet.levelUp emits a visible learned-skill log when addSkill succeeds');
 assertIncludes(monsterModelSource, 'getExp(playerState: PlayerState, mapModifier: number)', 'React Monster must own the AS3 exp formula');
 assertIncludes(playerModelSource, 'export function addExp', 'React Player.addExp must settle level-up before pet reward');
 assertIncludes(petModelSource, 'this.level - playerLevel > 5', 'React Pet.addExp must receive the current player level for AS3 gating');
+assertIncludes(petModelSource, 'addExp(exp: number, playerLevel: number = Infinity): string[]', 'React Pet.addExp must return AS3-visible pet reward logs');
+assertIncludes(petSkillDataSource, 'PetSkillDataList', 'React pet skill table must be available for learned-skill logs');
 
 if (packageJson.scripts?.['assert:battle-pet-exp-reward'] !== 'node scripts/assertBattlePetExpRewardParity.mjs') {
   throw new Error('package.json must expose assert:battle-pet-exp-reward');
@@ -144,10 +151,22 @@ const basicStatusModule = await importTsModule({
   root,
   outRoot,
 });
+const petModule = await importTsModule({
+  entry: join(root, 'src/core/models/Pet.ts'),
+  root,
+  outRoot,
+});
+const petDataModule = await importTsModule({
+  entry: join(root, 'src/core/data/petData.ts'),
+  root,
+  outRoot,
+});
 
 const { Battle } = battleModule;
 const { getCombatPower } = playerModule;
 const { BasicStatus } = basicStatusModule;
+const { Pet } = petModule;
+const { PetDataList } = petDataModule;
 
 const player = createPlayerState(BasicStatus);
 const battle = new Battle(player, createMap(), {});
@@ -208,6 +227,56 @@ assert(expReads[0].combatPower !== expReads[1].combatPower, 'Player combatPower 
 assertEqual(staleBattlePet.exp, 0, 'Stale cloned battle.pet must not receive the active pet reward');
 assertEqual(pet.exp, 7, 'Pet exp must use the second monster.getExp value after player state changes');
 assertEqual(pet.playerLevelReceived, 2, 'Pet exp gate must receive the updated player level');
+
+const loggedBattlePlayer = createPlayerState(BasicStatus);
+const loggedBattle = new Battle(loggedBattlePlayer, createMap(), {});
+loggedBattle.monster = {
+  CP: 1,
+  data: { realName: 'Pet Log Monster' },
+  title: null,
+  getNameHtml: () => 'Pet Log Monster',
+  getExp() {
+    return 4;
+  },
+  getMoney() {
+    return 0;
+  },
+  dropItem(playerState) {
+    return { playerState, dropped: false, added: false, convertedToGold: 0 };
+  },
+  dropPet() {
+    return null;
+  },
+};
+loggedBattle.pet = {
+  addExp(exp, playerLevel) {
+    return [`pet exp sentinel ${exp}/${playerLevel}`];
+  },
+};
+loggedBattle.playerState.pet = loggedBattle.pet;
+loggedBattle.giveTrophy();
+assert(
+  (loggedBattle.playerState._logs ?? []).some(log => log.text.includes('pet exp sentinel 4/2')),
+  'Battle.giveTrophy must emit visible logs returned from Pet.addExp',
+);
+
+const originalRandom = Math.random;
+let randomIndex = 0;
+const randomValues = [0.99, 0.99, 0.99, 0.99, 0, 0];
+Math.random = () => randomValues[Math.min(randomIndex++, randomValues.length - 1)];
+try {
+  const levelingPet = new Pet(PetDataList[0], 1);
+  levelingPet.skillList = [];
+  levelingPet.exp = levelingPet.getLevelExp();
+  const logs = levelingPet.addExp(1, 10);
+
+  assert(Array.isArray(logs), 'Pet.addExp must return visible logs');
+  assert(logs.some(log => /宠物获得了/.test(log) && /1/.test(log)), 'Pet.addExp must include the pet exp gain log');
+  assert(logs.some(log => /Lv\.2/.test(log)), 'Pet.addExp must include the pet level-up log when exp crosses the threshold');
+  assert(logs.some(log => /学会了/.test(log)), 'Pet.addExp must include the learned-skill log when levelUp adds a skill');
+} finally {
+  Math.random = originalRandom;
+}
 
 const deadBattle = new Battle(createPlayerState(BasicStatus), createMap(), {});
 const deadPet = {

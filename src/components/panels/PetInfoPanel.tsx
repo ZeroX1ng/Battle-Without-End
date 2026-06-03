@@ -13,7 +13,8 @@ export function PetInfoPanel() {
   // Treat battle.pet as the active-combat gate; petHp can be zero for a defeated pet.
   const inBattle = (battle?.pet) != null;
   const hp = inBattle ? battle.petHp : (p ? p.hp : 0);
-  const mp = inBattle ? battle.petMp : (p ? p.mp : 0);
+  const exp = p ? (p.exp ?? 0) : 0;
+  const expMax = p && typeof p.getLevelExp === 'function' ? p.getLevelExp() : 1;
 
   return (
     <div style={{
@@ -28,7 +29,7 @@ export function PetInfoPanel() {
           <div style={{ color: 'var(--color-text-dim)', fontSize: 10, marginBottom: 2 }}>{p.type}</div>
           <Bar value={hp} max={p.hp} color='var(--color-hp)' label={`HP ${Math.floor(hp)}/${p.hp}`} height={8} />
           <div style={{ marginBottom: 1 }} />
-          <Bar value={mp} max={p.mp} color='var(--color-mp)' label={`MP ${Math.floor(mp)}/${p.mp}`} height={8} />
+          <Bar value={exp} max={expMax} color='var(--color-exp)' label={`Exp ${Math.floor(exp)}/${expMax}`} height={8} />
         </>
       ) : (
         <div style={{

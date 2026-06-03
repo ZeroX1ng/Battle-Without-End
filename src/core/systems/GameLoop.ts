@@ -8,6 +8,7 @@
 // 4. 处理自动存档
 
 import type { GameState } from '../types';
+import type { BattleDebugOptions } from '../models/Battle';
 import type { GameAction } from '../../state/actions';
 
 /**
@@ -19,10 +20,11 @@ import type { GameAction } from '../../state/actions';
  */
 export function gameTick(
   state: GameState,
-  dispatch: React.Dispatch<GameAction>
+  dispatch: React.Dispatch<GameAction>,
+  debugOptions?: BattleDebugOptions
 ): void {
   if (state.battle) {
-    dispatch({ type: 'BATTLE_TICK' });
+    dispatch({ type: 'BATTLE_TICK', meta: { battleDebug: debugOptions } });
   }
 }
 

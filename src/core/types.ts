@@ -327,7 +327,7 @@ export interface PetInstance {
   getDescription(): string;
   getAttackSkill(): PetSkillInstance[];
   getSkill(data: PetSkillData): PetSkillInstance | null;
-  addExp(exp: number): void;
+  addExp(exp: number, playerLevel?: number): string[];
   save(): string;
 }
 

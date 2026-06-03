@@ -3,6 +3,7 @@ import { useGameContext } from '../../state/GameContext'
 import { useGameLoop } from '../../hooks/useGameLoop'
 import { gameTick } from '../../core/systems/GameLoop'
 import {
+  DEFAULT_TEST_ONE_HIT_KILL_ENABLED,
   DEFAULT_TEST_SPEED_MULTIPLIER,
   TEST_SPEED_CONTROL_ENABLED,
   getTestSpeedIntervalMs,
@@ -36,6 +37,7 @@ const overlayWindows: Record<string, JSX.Element> = {
 export function MainScene() {
   const { state, dispatch } = useGameContext()
   const [testSpeedMultiplier, setTestSpeedMultiplier] = useState<TestSpeedMultiplier>(DEFAULT_TEST_SPEED_MULTIPLIER)
+  const [testOneHitKillEnabled, setTestOneHitKillEnabled] = useState(DEFAULT_TEST_ONE_HIT_KILL_ENABLED)
   const stateRef = useRef(state)
   stateRef.current = state
   const overlay = state.ui.activeWindow ? overlayWindows[state.ui.activeWindow] : null
@@ -53,7 +55,7 @@ export function MainScene() {
 
   useGameLoop({
     callback: () => {
-      gameTick(stateRef.current, dispatch)
+      gameTick(stateRef.current, dispatch, { oneHitKill: testOneHitKillEnabled })
     },
     intervalMs: gameLoopIntervalMs,
     enabled: true,
@@ -62,7 +64,12 @@ export function MainScene() {
   return (
     <div className="main-scene">
       {TEST_SPEED_CONTROL_ENABLED && (
-        <TestSpeedControl value={testSpeedMultiplier} onChange={setTestSpeedMultiplier} />
+        <TestSpeedControl
+          value={testSpeedMultiplier}
+          onChange={setTestSpeedMultiplier}
+          oneHitKillEnabled={testOneHitKillEnabled}
+          onOneHitKillChange={setTestOneHitKillEnabled}
+        />
       )}
 
       <section className="main-scene__player" aria-label="玩家状态">
