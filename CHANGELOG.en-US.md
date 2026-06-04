@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 - 2026-06-04
+
+- 🛠 Released v0.2.0 desktop build artifacts.
+
 ## 0.1.1 - 2026-06-02
 
 - 🐞 Fixed `DO_REBIRTH` losing equipment, inventory, gold, AP, pets, skills, equipped skills, and title progress after rebirth. Rebirth now recalculates only age, race, level, base stats, and derived stats, then writes the updated save.
