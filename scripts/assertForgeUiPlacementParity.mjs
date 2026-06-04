@@ -39,25 +39,28 @@ assertIncludes(itemWindow, 'selectedItem ? (', 'Forge panel must render selected
 assertIncludes(itemWindow, 'const [selectedIndex, setSelectedIndex] = useState<number | null>(null)', 'ItemWindow must track the selected equipment by list index so battle transition cloning does not clear forge selection');
 assertIncludes(itemWindow, 'const selectedItem = selectedIndex === null ? null : items[selectedIndex] ?? null', 'ItemWindow selected equipment must be derived from the current item list');
 assertNotIncludes(itemWindow, 'const [selectedItem, setSelectedItem] = useState<any | null>(null)', 'ItemWindow must not store selected equipment by object reference because Battle ticks clone itemList entries');
+assertNotIncludes(itemWindow, 'QualityName', 'ItemWindow must not render a separate AS3-missing quality label panel for the selected equipment');
+assertNotIncludes(itemWindow, 'QualityColor[selectedItem.quality]', 'ItemWindow must not render selected-equipment quality in a separate detail panel');
+assertNotIncludes(itemWindow, 'const detailPanelStyle', 'ItemWindow must not keep the extra selected-equipment detail panel between the list and forge panel');
+assertNotIncludes(itemWindow, '品质:', 'ItemWindow must not render a separate quality row for selected equipment');
 
-const detailPanelStart = itemWindow.indexOf('const detailPanelStyle');
 const forgePanelStart = itemWindow.indexOf('const forgePanelStyle');
-if (detailPanelStart === -1 || forgePanelStart === -1 || forgePanelStart < detailPanelStart) {
-  throw new Error('Forge panel style must be defined separately after the item detail panel style');
+if (forgePanelStart === -1) {
+  throw new Error('Forge panel style must be defined separately for the AS3 lower forge area');
 }
 
-const selectedDetailStart = itemWindow.indexOf('{selectedItem && (');
+const itemBodyStart = itemWindow.indexOf('<div style={itemBodyStyle}>');
 const forgePanelRenderStart = itemWindow.indexOf('data-bwe-forge-panel="inventory-lower"');
-if (selectedDetailStart === -1 || forgePanelRenderStart === -1 || forgePanelRenderStart < selectedDetailStart) {
+if (itemBodyStart === -1 || forgePanelRenderStart === -1 || forgePanelRenderStart < itemBodyStart) {
   throw new Error('Forge panel must render after the item list/detail area, matching AS3 ItemWindow.setForge() lower placement');
 }
 
-const selectedDetailBlock = itemWindow.slice(selectedDetailStart, forgePanelRenderStart);
-assertNotIncludes(selectedDetailBlock, 'autoForgeLabel', 'Item detail area must not contain auto-forge controls');
-assertNotIncludes(selectedDetailBlock, "state.config.sound_toggle", 'Item detail area must not contain sound controls');
-assertNotIncludes(selectedDetailBlock, 'onClick={handleForge}', 'Item detail area must not contain the forge button');
-assertNotIncludes(selectedDetailBlock, 'forgeInfo.rate', 'Item detail area must not contain forge success rate');
-assertNotIncludes(selectedDetailBlock, 'forgeInfo.cost', 'Item detail area must not contain forge cost');
+const itemBodyBlock = itemWindow.slice(itemBodyStart, forgePanelRenderStart);
+assertNotIncludes(itemBodyBlock, 'autoForgeLabel', 'Item list area must not contain auto-forge controls');
+assertNotIncludes(itemBodyBlock, "state.config.sound_toggle", 'Item list area must not contain sound controls');
+assertNotIncludes(itemBodyBlock, 'onClick={handleForge}', 'Item list area must not contain the forge button');
+assertNotIncludes(itemBodyBlock, 'forgeInfo.rate', 'Item list area must not contain forge success rate');
+assertNotIncludes(itemBodyBlock, 'forgeInfo.cost', 'Item list area must not contain forge cost');
 
 if (packageJson.scripts?.['assert:forge-ui-placement'] !== 'node scripts/assertForgeUiPlacementParity.mjs') {
   throw new Error('package.json must expose assert:forge-ui-placement');

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = process.cwd();
+const as3AllInfoInnerPanel = readFileSync(join(root, 'reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iAllInfo/AllInfoInnerPanel.as'), 'utf8');
 const allInfoPanel = readFileSync(join(root, 'src/components/panels/AllInfoPanel.tsx'), 'utf8');
 const gameContext = readFileSync(join(root, 'src/state/GameContext.tsx'), 'utf8');
 const mainSceneCss = readFileSync(join(root, 'src/styles/main-scene.css'), 'utf8');
@@ -87,19 +88,24 @@ if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 32) {
 }
 
 assertIncludes(
+  as3AllInfoInnerPanel,
+  'if(this.list.length > 100)',
+  'AS3 AllInfoInnerPanel must still document the original 100-message retention baseline',
+);
+assertIncludes(
   gameContext,
-  'const MAX_BATTLE_LOG_MESSAGES = 100;',
-  'GameContext.addLog must declare the AS3 battle log retention limit of 100 messages',
+  'const MAX_BATTLE_LOG_MESSAGES = 150;',
+  'GameContext.addLog must intentionally raise the React battle log retention limit to 150 messages',
 );
 assertIncludes(
   gameContext,
   'infoMessages.slice(-(MAX_BATTLE_LOG_MESSAGES - 1))',
-  'GameContext.addLog must retain at most 100 visible messages after long battles',
+  'GameContext.addLog must retain at most the configured visible message capacity after long battles',
 );
 assertNotIncludes(
   gameContext,
   'infoMessages.slice(-199)',
-  'GameContext.addLog must not keep 200 battle-log messages; AS3 caps the list around 100 entries',
+  'GameContext.addLog must not keep 200 battle-log messages; this intentional divergence is capped at 150',
 );
 assertIncludes(
   mainSceneCss,

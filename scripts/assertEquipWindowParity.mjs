@@ -62,18 +62,18 @@ assertIncludes(common, 'showItemInfo(candidateHtml, compareHtml)', 'Inventory eq
 assertIncludes(itemWindow, 'currentEquip={getEquipmentComparisonSlot(item, state.player)}', 'ItemWindow must pass current same-slot equipment into bag rows');
 assertIncludes(itemWindow, "dispatch({ type: 'EQUIP_ITEM', item })", 'ItemWindow bag rows must equip through their inline EquipmentCell action');
 
-const selectedDetailStart = itemWindow.indexOf('{selectedItem && (');
 const forgePanelStart = itemWindow.indexOf('data-bwe-forge-panel="inventory-lower"');
-if (selectedDetailStart === -1 || forgePanelStart === -1 || forgePanelStart < selectedDetailStart) {
-  throw new Error('ItemWindow must render the selected-item area before the lower forge panel');
+if (forgePanelStart === -1) {
+  throw new Error('ItemWindow must render the lower forge panel');
 }
 
-const selectedDetailBlock = itemWindow.slice(selectedDetailStart, forgePanelStart);
 assertNotIncludes(
-  selectedDetailBlock,
+  itemWindow,
   "dispatch({ type: 'EQUIP_ITEM', item: selectedItem })",
-  'Selected item detail panel must not render a second equip/wear action; AS3 EquipmentCell only equips from the row button',
+  'ItemWindow must not render a second selected-item equip/wear action; AS3 EquipmentCell only equips from the row button',
 );
+assertNotIncludes(itemWindow, 'const detailPanelStyle', 'ItemWindow must not render the AS3-missing selected-equipment quality/detail panel');
+assertNotIncludes(itemWindow, 'QualityName', 'ItemWindow must not render selected equipment quality outside the hover info window');
 
 const forgePanelBlock = itemWindow.slice(forgePanelStart);
 assertIncludes(forgePanelBlock, 'selectedItem ? (', 'Lower forge panel must still use selectedItem for forge preview and actions');

@@ -37,7 +37,8 @@ import {
 
 // ═══ 初始状态 ═══
 
-const MAX_BATTLE_LOG_MESSAGES = 100;
+// AS3 keeps 100 entries; React keeps 150 so sticky-scroll history is more useful during playtests.
+const MAX_BATTLE_LOG_MESSAGES = 150;
 
 function createInitialConfig(): GlobalConfig {
   return {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useInfoWindow } from '../common/InfoWindow'
 import { EquipmentCell } from '../common/Common'
-import { QualityColor, QualityName } from '../../core/constants'
 import { getAutoForgeTarget, getForgeCost, getForgeSuccessRate } from '../../core/systems/ForgeSystem'
 import { getEquipmentComparisonSlot, getLuck } from '../../core/models/Player'
 import { useGameContext } from '../../state/GameContext'
@@ -139,7 +138,7 @@ export function ItemWindow() {
       </div>
 
       <div style={itemBodyStyle}>
-        <div style={{ flex: '1 1 55%', overflowY: 'auto', maxHeight: '100%' }}>
+        <div style={{ flex: '1 1 auto', overflowY: 'auto', maxHeight: '100%' }}>
           {items.length === 0
             ? <div style={{ color: 'var(--color-text-dim)', textAlign: 'center', padding: 20 }}>背包是空的</div>
             : items.map((item: any, i: number) => (
@@ -167,24 +166,6 @@ export function ItemWindow() {
           }
         </div>
 
-        {selectedItem && (
-          <div style={detailPanelStyle}>
-            <div
-              style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--color-text-bright)' }}
-              dangerouslySetInnerHTML={{ __html: getItemName(selectedItem) }}
-            />
-
-            <div style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>
-              品质:{' '}
-              <span style={{ color: QualityColor[selectedItem.quality] ?? 'var(--color-text)' }}>
-                {QualityName[selectedItem.quality] ?? '未知'}
-              </span>
-              {' | '}等级:{' '}
-              <span style={{ color: selectedItem.level > 0 ? '#FFD700' : 'var(--color-text-dim)' }}>+{selectedItem.level}</span>
-            </div>
-
-          </div>
-        )}
       </div>
 
       <div data-bwe-forge-panel="inventory-lower" style={forgePanelStyle}>
@@ -290,16 +271,6 @@ const itemBodyStyle: CSSProperties = {
   flex: 1,
   minHeight: 0,
   overflow: 'hidden',
-}
-
-const detailPanelStyle: CSSProperties = {
-  flex: '1 1 45%',
-  background: 'var(--color-bg-panel)',
-  borderRadius: 'var(--radius-md)',
-  padding: 10,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 6,
 }
 
 const forgePanelStyle: CSSProperties = {
