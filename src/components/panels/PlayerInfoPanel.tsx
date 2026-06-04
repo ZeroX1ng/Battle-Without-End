@@ -5,6 +5,7 @@ import { selectPlayerStats } from '../../state/selectors'
 import { getAgeGrowthInfo } from '../../core/models/Player'
 import { Bar } from '../common/Common'
 import { useInfoWindow } from '../common/InfoWindow'
+import { formatAttackRange, formatCritMultiplier, formatPrimaryAttribute } from './playerInfoDisplay'
 
 export function PlayerInfoPanel() {
   const { state } = useGameContext();
@@ -85,17 +86,17 @@ export function PlayerInfoPanel() {
       <div style={{ marginTop: 4, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 6px' }}>
         <StatLine label="AP" value={s.ap} color="#ff4040" />
         <StatLine label="金币" value={s.gold} color="#FFA640" />
-        <StatLine label="力量" value={Math.floor(s.str)} />
-        <StatLine label="敏捷" value={Math.floor(s.dex)} />
-        <StatLine label="智力" value={Math.floor(s.intelligence)} />
-        <StatLine label="意志" value={Math.floor(s.will)} />
-        <StatLine label="幸运" value={Math.floor(s.luck)} />
+        <PrimaryAttributeLine label="力量" value={s.str} basicValue={s.basicStr} />
+        <PrimaryAttributeLine label="敏捷" value={s.dex} basicValue={s.basicDex} />
+        <PrimaryAttributeLine label="智力" value={s.intelligence} basicValue={s.basicInt} />
+        <PrimaryAttributeLine label="意志" value={s.will} basicValue={s.basicWill} />
+        <PrimaryAttributeLine label="幸运" value={s.luck} basicValue={s.basicLuck} />
         <StatLine label="防御" value={Math.floor(s.defence)} />
         <StatLine label="护甲" value={Math.floor(s.protection)} />
         <StatLine label="暴击" value={`${Math.floor(s.crit)}%`} />
-        <StatLine label="攻击" value={Math.floor(s.attack)} />
+        <StatLine label="攻击" value={formatAttackRange(s.attmin, s.attmax)} />
         <StatLine label="平衡" value={Math.floor(s.balance)} />
-        <StatLine label="暴击倍数" value={s.crit_mul.toFixed(1)} />
+        <StatLine label="暴击倍数" value={formatCritMultiplier(s.crit_mul)} />
         <StatLine label="无视护甲" value={Math.floor(s.protectionIgnore)} />
         <StatLine label="战力" value={Math.floor(s.combatPower)} color="#21c4af" />
       </div>
@@ -108,6 +109,19 @@ function StatLine({ label, value, color }: { label: string; value: string | numb
     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10 }}>
       <span style={{ color: 'var(--color-text-dim)' }}>{label}</span>
       <span style={{ color: color || 'var(--color-text)', fontWeight: 'bold' }}>{value}</span>
+    </div>
+  )
+}
+
+function PrimaryAttributeLine({ label, value, basicValue }: { label: string; value: number; basicValue: number }) {
+  const display = formatPrimaryAttribute(value, basicValue);
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10 }}>
+      <span style={{ color: 'var(--color-text-dim)' }}>{label}</span>
+      <span style={{ fontWeight: 'bold' }}>
+        <span style={{ color: display.color }}>{display.valueText}</span>
+        <span style={{ color: 'var(--color-text-dim)', fontSize: 9, marginLeft: 1 }}>({display.basicText})</span>
+      </span>
     </div>
   )
 }

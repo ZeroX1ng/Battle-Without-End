@@ -6,10 +6,11 @@ import type { PlayerState, GameState, GlobalConfig } from '../core/types';
 import {
   getCombatPower, getHp, getMp, getStr, getDex,
   getIntelligence, getWill, getLuck,
-  getAttack, getDefence, getProtection,
+  getAttMin, getAttMax, getAttack, getDefence, getProtection,
   getCrit, getCritMul, getBalance,
   getSpellChance, getProtectionIgnore, getProtectionReduce,
   getMagicDamage, getLevelExp,
+  getBasicStr, getBasicDex, getBasicInt, getBasicWill, getBasicLuck,
 } from '../core/models/Player';
 
 export const selectPlayer = (state: GameState) => state.player;
@@ -29,6 +30,13 @@ export function selectPlayerStats(player: PlayerState) {
     intelligence: getIntelligence(player),
     will: getWill(player),
     luck: getLuck(player),
+    basicStr: getBasicStr(player),
+    basicDex: getBasicDex(player),
+    basicInt: getBasicInt(player),
+    basicWill: getBasicWill(player),
+    basicLuck: getBasicLuck(player),
+    attmin: getAttMin(player),
+    attmax: getAttMax(player),
     attack: getAttack(player),
     defence: getDefence(player),
     protection: getProtection(player),

@@ -58,7 +58,7 @@
   right: 10px;
   z-index: 10;
   display: inline-grid;
-  grid-template-columns: repeat(4, 34px) 72px;
+  grid-template-columns: repeat(5, 34px);
   gap: 4px;
   padding: 4px;
   background: rgba(25, 25, 25, 0.82);
@@ -81,10 +81,6 @@
   background: var(--color-accent);
   color: var(--color-bg-dark);
   font-weight: 700;
-}
-
-.test-speed-control__button--wide {
-  width: 72px;
 }
 
 .main-scene__player,

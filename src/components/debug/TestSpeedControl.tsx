@@ -5,14 +5,14 @@ type TestSpeedControlProps = {
   value: TestSpeedMultiplier;
   onChange: (value: TestSpeedMultiplier) => void;
   oneHitKillEnabled: boolean;
-  onOneHitKillChange: (enabled: boolean) => void;
+  onOneHitKillToggle: () => void;
 };
 
 export function TestSpeedControl({
   value,
   onChange,
   oneHitKillEnabled,
-  onOneHitKillChange,
+  onOneHitKillToggle,
 }: TestSpeedControlProps) {
   return (
     <div className="test-speed-control" data-bwe-test-speed-control aria-label="Test speed control">
@@ -30,14 +30,14 @@ export function TestSpeedControl({
       ))}
       <button
         type="button"
-        className="test-speed-control__button test-speed-control__button--wide"
+        className="test-speed-control__button"
         data-bwe-test-one-hit-kill
         aria-pressed={oneHitKillEnabled}
-        aria-label="一击必杀开关"
-        title="一击必杀开关"
-        onClick={() => onOneHitKillChange(!oneHitKillEnabled)}
+        aria-label="无敌开关"
+        title="无敌开关"
+        onClick={onOneHitKillToggle}
       >
-        一击必杀
+        无敌
       </button>
     </div>
   );

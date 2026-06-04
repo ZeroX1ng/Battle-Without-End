@@ -123,6 +123,10 @@ export function formula_StatAddUp(state: PlayerState, name: string): number {
   return as3Int((state.basicStatus as any)[name] + (state.skillStatus as any)[name] + (state.equipStatus as any)[name]);
 }
 
+export function formula_BasicStatAddUp(state: PlayerState, name: string): number {
+  return as3Int((state.basicStatus as any)[name] + (state.skillStatus as any)[name]);
+}
+
 /** 称号加成 */
 export function formula_title_stat(state: PlayerState, value: number, name: string): number {
   value = as3Int(value);
@@ -210,6 +214,12 @@ export function getProtectionReduce(state: PlayerState): number { return formula
 export function getMagicDamage(state: PlayerState): number {
   return formula_title_stat(state, formula_StatAddUp(state, Stat.magicDamage) + getIntelligence(state) / 20, Stat.magicDamage);
 }
+
+export function getBasicStr(state: PlayerState): number { return formula_BasicStatAddUp(state, Stat.str); }
+export function getBasicDex(state: PlayerState): number { return formula_BasicStatAddUp(state, Stat.dex); }
+export function getBasicInt(state: PlayerState): number { return formula_BasicStatAddUp(state, Stat.intelligence); }
+export function getBasicWill(state: PlayerState): number { return formula_BasicStatAddUp(state, Stat.will); }
+export function getBasicLuck(state: PlayerState): number { return formula_BasicStatAddUp(state, Stat.luck); }
 
 /** 魔法平衡值 = (int - 10)/4 + 30，上限 99 */
 export function getMagicBalance(state: PlayerState): number {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { useGameLoop } from '../../hooks/useGameLoop'
 import { gameTick } from '../../core/systems/GameLoop'
@@ -39,12 +39,17 @@ export function MainScene() {
   const [testSpeedMultiplier, setTestSpeedMultiplier] = useState<TestSpeedMultiplier>(DEFAULT_TEST_SPEED_MULTIPLIER)
   const [testOneHitKillEnabled, setTestOneHitKillEnabled] = useState(DEFAULT_TEST_ONE_HIT_KILL_ENABLED)
   const stateRef = useRef(state)
+  const testOneHitKillEnabledRef = useRef(testOneHitKillEnabled)
   stateRef.current = state
+  testOneHitKillEnabledRef.current = testOneHitKillEnabled
   const overlay = state.ui.activeWindow ? overlayWindows[state.ui.activeWindow] : null
   const gameLoopIntervalMs = useMemo(
     () => getTestSpeedIntervalMs(500, testSpeedMultiplier),
     [testSpeedMultiplier],
   )
+  const toggleTestOneHitKill = useCallback(() => {
+    setTestOneHitKillEnabled(enabled => !enabled)
+  }, [])
 
   useEffect(() => {
     if (!stateRef.current.battle) {
@@ -55,7 +60,8 @@ export function MainScene() {
 
   useGameLoop({
     callback: () => {
-      gameTick(stateRef.current, dispatch, { oneHitKill: testOneHitKillEnabled })
+      const battleDebugOptions = testOneHitKillEnabledRef.current ? { oneHitKill: true } : undefined
+      gameTick(stateRef.current, dispatch, battleDebugOptions)
     },
     intervalMs: gameLoopIntervalMs,
     enabled: true,
@@ -68,7 +74,7 @@ export function MainScene() {
           value={testSpeedMultiplier}
           onChange={setTestSpeedMultiplier}
           oneHitKillEnabled={testOneHitKillEnabled}
-          onOneHitKillChange={setTestOneHitKillEnabled}
+          onOneHitKillToggle={toggleTestOneHitKill}
         />
       )}
 

@@ -40,6 +40,7 @@ const as3Player = readAs3('iGlobal/Player.as');
 const packageJson = JSON.parse(read('package.json'));
 const mainScene = read('src/components/scenes/MainScene.tsx');
 const speedControl = read('src/components/debug/TestSpeedControl.tsx');
+const mainSceneCss = read('src/styles/main-scene.css');
 const testSpeed = read('src/core/debug/testSpeedControl.ts');
 const useGameLoop = read('src/hooks/useGameLoop.ts');
 const gameLoop = read('src/core/systems/GameLoop.ts');
@@ -72,13 +73,22 @@ assertIncludes(speedControl, 'TEST_SPEED_MULTIPLIERS.map', 'Speed control UI mus
 assertIncludes(speedControl, 'aria-pressed={multiplier === value}', 'Speed control must expose selected state to browser smoke.');
 assertIncludes(speedControl, 'data-bwe-test-one-hit-kill', 'One-hit kill must render next to the temporary speed controls for browser smoke.');
 assertIncludes(speedControl, 'aria-pressed={oneHitKillEnabled}', 'One-hit kill must expose selected state to browser smoke.');
-assertIncludes(speedControl, 'onOneHitKillChange(!oneHitKillEnabled)', 'One-hit kill button must toggle the local test-only state.');
+assertIncludes(speedControl, 'aria-label="无敌开关"', 'One-hit kill control must use the shorter visible "无敌" label.');
+assertIncludes(speedControl, 'title="无敌开关"', 'One-hit kill control title must match the shorter visible label.');
+assertIncludes(speedControl, '无敌', 'One-hit kill control must display the shorter "无敌" text.');
+assertNotIncludes(speedControl, '一击必杀', 'One-hit kill control must not keep the oversized visible label.');
+assertIncludes(speedControl, 'onOneHitKillToggle', 'One-hit kill button must use a functional toggle owned by MainScene.');
+assertNotIncludes(speedControl, 'test-speed-control__button--wide', 'One-hit kill button must use the normal compact speed-control button width.');
+assertIncludes(mainSceneCss, 'grid-template-columns: repeat(5, 34px);', 'Speed control layout must reserve only one compact slot for the one-hit control.');
+assertNotIncludes(mainSceneCss, 'test-speed-control__button--wide', 'Speed control CSS must not keep the old oversized one-hit slot.');
 
 assertIncludes(mainScene, 'TEST_SPEED_CONTROL_ENABLED', 'MainScene must keep speed UI behind the feature flag.');
 assertIncludes(mainScene, 'DEFAULT_TEST_SPEED_MULTIPLIER', 'MainScene must default speed control to 1x.');
 assertIncludes(mainScene, 'DEFAULT_TEST_ONE_HIT_KILL_ENABLED', 'MainScene must default one-hit kill off.');
 assertIncludes(mainScene, 'getTestSpeedIntervalMs(500, testSpeedMultiplier)', 'MainScene must derive useGameLoop effective interval from multiplier.');
-assertIncludes(mainScene, 'oneHitKill: testOneHitKillEnabled', 'MainScene must pass one-hit kill through the tick meta only while the debug toggle is enabled.');
+assertIncludes(mainScene, 'setTestOneHitKillEnabled(enabled => !enabled)', 'MainScene must flip one-hit kill with the latest state so the button can close after opening.');
+assertIncludes(mainScene, 'testOneHitKillEnabledRef.current ? { oneHitKill: true } : undefined', 'MainScene must omit transient one-hit debug meta when the toggle is off.');
+assertIncludes(mainScene, 'gameTick(stateRef.current, dispatch, battleDebugOptions)', 'MainScene must pass one-hit kill through the tick meta only while the debug toggle is enabled.');
 assertIncludes(mainScene, 'intervalMs: gameLoopIntervalMs', 'useGameLoop must consume the effective interval.');
 assertIncludes(mainScene, '<TestSpeedControl', 'MainScene must render the speed control while the feature flag is enabled.');
 
