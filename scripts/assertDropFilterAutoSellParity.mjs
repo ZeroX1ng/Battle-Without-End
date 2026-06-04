@@ -119,7 +119,9 @@ const battleModel = read('src/core/models/Battle.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 assertIncludes(as3Global, 'public static var item2_toggle:Boolean = true;', 'AS3 Global owns quality filter toggles');
+assertIncludes(as3Global, 'public static var autoSell_toggle:Boolean = true;', 'AS3 Global keeps the full-bag auto-sell preference enabled by default');
 assertIncludes(as3SystemWindow, 'Global.item2_toggle = false;', 'AS3 SystemWindow can disable quality filters');
+assertIncludes(as3SystemWindow, 'Auto sell lowest value while bag is full', 'AS3 SystemWindow exposes the full-bag auto-sell preference');
 assertIncludes(as3Monster, 'Global["item" + _loc2_.quality + "_toggle"]', 'AS3 Monster.dropItem consumes quality filters');
 assertIncludes(as3Monster, 'Player.addMoney(_loc2_.getMoney());', 'AS3 Monster.dropItem converts filtered/rejected drops to gold');
 assertIncludes(as3Boss, 'Global["item" + _loc2_.quality + "_toggle"]', 'AS3 Boss.dropItem consumes the same quality filters');
@@ -146,8 +148,53 @@ try {
     outRoot,
   });
 
-  const { handleDroppedItem } = systemConfigModule;
+  const { addItemWithAutoSell, handleDroppedItem } = systemConfigModule;
   const { Battle } = battleModule;
+  const lowBagItem = {
+    name: 'low-bag-item',
+    getMoney: () => 2,
+    getSellMoney: () => 200,
+  };
+  const highBagItem = {
+    name: 'high-bag-item',
+    getMoney: () => 20,
+    getSellMoney: () => 20,
+  };
+  const incomingDrop = {
+    name: 'incoming-drop',
+    quality: 1,
+    getMoney: () => 7,
+    getSellMoney: () => 700,
+  };
+  const fullBagPlayer = {
+    ...createPlayerState(),
+    gold: 3,
+    BAGMAX: 2,
+    itemList: [highBagItem, lowBagItem],
+  };
+  const autoSellResult = addItemWithAutoSell(fullBagPlayer, incomingDrop, createConfig());
+
+  assertEqual(autoSellResult.added, true, 'full-bag auto-sell keeps the incoming drop when enabled');
+  assert(autoSellResult.soldItem === lowBagItem, 'full-bag auto-sell removes the lowest AS3 getMoney value item');
+  assertEqual(autoSellResult.state.gold, 5, 'full-bag auto-sell awards AS3 getMoney value for the sold bag item');
+  assertEqual(autoSellResult.state.itemList.length, 2, 'full-bag auto-sell keeps bag size at BAGMAX');
+  assert(autoSellResult.state.itemList.includes(highBagItem), 'full-bag auto-sell preserves non-sold existing bag items');
+  assert(autoSellResult.state.itemList.includes(incomingDrop), 'full-bag auto-sell inserts the incoming drop');
+  assert(!autoSellResult.state.itemList.includes(lowBagItem), 'full-bag auto-sell removes only the selected low-value bag item');
+
+  const weakerIncomingDrop = {
+    name: 'weaker-incoming-drop',
+    quality: 0,
+    getMoney: () => 1,
+    getSellMoney: () => 1000,
+  };
+  const weakerAutoSellResult = addItemWithAutoSell(fullBagPlayer, weakerIncomingDrop, createConfig());
+  assertEqual(weakerAutoSellResult.added, false, 'full-bag auto-sell rejects an incoming drop when it is the lowest AS3 value');
+  assertEqual(weakerAutoSellResult.state.gold, 3, 'rejecting the lowest incoming drop defers gold conversion to the drop handler');
+  assert(weakerAutoSellResult.state.itemList.includes(highBagItem), 'rejecting the lowest incoming drop preserves the high-value bag item');
+  assert(weakerAutoSellResult.state.itemList.includes(lowBagItem), 'rejecting the lowest incoming drop preserves the existing low-value bag item');
+  assert(!weakerAutoSellResult.state.itemList.includes(weakerIncomingDrop), 'rejecting the lowest incoming drop leaves it out of the bag');
+
   const filteredDrop = {
     name: 'sword',
     position: 'body',

@@ -97,7 +97,7 @@ const fullPlayer = {
 const autoSold = addItemWithAutoSell(fullPlayer, incoming, config);
 assertEqual(autoSold.added, true, 'auto sell accepts incoming item when bag is full');
 assertEqual(autoSold.soldItem?.name, 'low', 'auto sell removes lowest value item');
-assertEqual(autoSold.state.gold, 17, 'auto sell adds sold item gold');
+assertEqual(autoSold.state.gold, 8, 'auto sell adds the sold item AS3 getMoney value');
 assertEqual(autoSold.state.itemList.map((entry: any) => entry.name), ['high', 'incoming'], 'auto sell keeps remaining items and incoming item');
 
 const blocked = addItemWithAutoSell(fullPlayer, incoming, { ...config, autoSell_toggle: false });

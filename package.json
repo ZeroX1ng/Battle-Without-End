@@ -1,7 +1,7 @@
 {
   "name": "boe-refactor",
   "private": true,
-  "version": "1.1.2",
+  "version": "0.1.3",
   "description": "BWE desktop playtest build",
   "type": "module",
   "main": "electron/main.cjs",
@@ -72,6 +72,7 @@
     "assert:reducer-purity-strictmode": "node scripts/assertReducerPurityStrictMode.mjs",
     "assert:game-loop": "node scripts/assertGameLoopHeartbeatParity.mjs",
     "assert:visual-fps-cap": "node scripts/assertVisualFpsCapParity.mjs",
+    "assert:pet-window-selection": "node scripts/assertPetWindowSelectionParity.mjs",
     "assert:pet-window": "node scripts/assertPetWindowParity.mjs",
     "assert:scroll-panel": "node scripts/assertScrollPanelParity.mjs",
     "assert:text-resources": "node scripts/assertTextResourceEncoding.mjs",

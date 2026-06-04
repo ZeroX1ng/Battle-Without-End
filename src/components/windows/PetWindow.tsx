@@ -6,6 +6,7 @@ import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { ScrollPanel } from '../common/ScrollPanel'
 import { useInfoWindow } from '../common/InfoWindow'
+import { getPetSelectionKey, resolveSelectedPet } from './petWindowSelection'
 
 const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
   { label: 'Hp', getValue: pet => String(Math.floor(pet.hp ?? 0)) },
@@ -52,12 +53,14 @@ export function PetWindow() {
   const { state, dispatch } = useGameContext()
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const { petList } = state.player
-  const [selectedPet, setSelectedPet] = useState<any>(petList[0] ?? state.player.pet ?? null)
+  const [selectedPetKey, setSelectedPetKey] = useState<string | null>(() => getPetSelectionKey(petList[0] ?? state.player.pet))
 
   const visibleSelectedPet = useMemo(() => {
-    if (selectedPet && (petList.includes(selectedPet) || state.player.pet === selectedPet)) return selectedPet
-    return petList[0] ?? state.player.pet ?? null
-  }, [petList, selectedPet, state.player.pet])
+    return resolveSelectedPet(petList, state.player.pet, selectedPetKey)
+  }, [petList, selectedPetKey, state.player.pet])
+  const visibleSelectedPetKey = getPetSelectionKey(visibleSelectedPet)
+  const activePetKey = getPetSelectionKey(state.player.pet)
+  const visibleSelectedPetEquipped = Boolean(activePetKey && activePetKey === visibleSelectedPetKey)
 
   const handlePetHover = (pet: any, event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
@@ -72,17 +75,22 @@ export function PetWindow() {
   const handleSetPet = (pet: any, event: ReactMouseEvent) => {
     event.stopPropagation()
     hideItemInfo()
+    setSelectedPetKey(getPetSelectionKey(pet))
     dispatch({ type: 'PET_SET', pet })
-    setSelectedPet(pet)
   }
 
   const handleRemovePet = (pet: any, event: ReactMouseEvent) => {
     event.stopPropagation()
     hideItemInfo()
+    const removedPetKey = getPetSelectionKey(pet)
     dispatch({ type: 'PET_REMOVE', pet })
-    if (visibleSelectedPet === pet) {
-      setSelectedPet(null)
+    if (removedPetKey && removedPetKey === selectedPetKey) {
+      setSelectedPetKey(null)
     }
+  }
+
+  const handleSelectPet = (pet: any) => {
+    setSelectedPetKey(getPetSelectionKey(pet))
   }
 
   return (
@@ -106,10 +114,10 @@ export function PetWindow() {
               </div>
             ) : petList.map((pet: any, i: number) => (
               <PetCell
-                key={`${pet.name ?? pet.realName ?? 'pet'}-${i}`}
+                key={getPetSelectionKey(pet) ?? `${getPetName(pet)}-${i}`}
                 pet={pet}
-                selected={visibleSelectedPet === pet}
-                onSelect={setSelectedPet}
+                selected={getPetSelectionKey(pet) === visibleSelectedPetKey}
+                onSelect={handleSelectPet}
                 onHover={handlePetHover}
                 onLeave={hideItemInfo}
                 onSetPet={handleSetPet}
@@ -121,7 +129,7 @@ export function PetWindow() {
 
         <PetDetailPanel
           pet={visibleSelectedPet}
-          equipped={state.player.pet === visibleSelectedPet}
+          equipped={visibleSelectedPetEquipped}
           onSkillHover={handlePetSkillHover}
           onLeave={hideItemInfo}
           onSetPet={handleSetPet}

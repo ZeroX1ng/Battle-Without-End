@@ -10,8 +10,8 @@ function getToggle(config: GlobalConfig, key: string): boolean {
 }
 
 function getItemValue(item: any): number {
-  if (typeof item?.getSellMoney === 'function') return item.getSellMoney();
   if (typeof item?.getMoney === 'function') return item.getMoney();
+  if (typeof item?.getSellMoney === 'function') return item.getSellMoney();
   return 0;
 }
 
@@ -62,6 +62,10 @@ export function addItemWithAutoSell(
       soldValue = value;
       soldIndex = i;
     }
+  }
+
+  if (getItemValue(item) <= soldValue) {
+    return { state, added: false };
   }
 
   const soldItem = state.itemList[soldIndex];
