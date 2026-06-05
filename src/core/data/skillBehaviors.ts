@@ -7,6 +7,7 @@
 import type { BattleBehaviorResult } from '../types';
 import { SkillCategory } from '../constants';
 import { balanceRandom } from '../math/MyMath';
+import { caculateProtection } from '../models/Battle';
 import { BuffBurn, BuffFrozen, BuffPoison, BuffCorrosion } from '../models/Buff';
 import {
   getAttack, getCrit, getCritMul,
@@ -31,17 +32,11 @@ function emitTitleEvent(battle: any, name: string, maxVal: number = 0, countVal:
 
 // ═══ 辅助函数 ═══
 
-function calcProtection(p: number): number {
-  if (p >= 0) return 0.06 * p / (1 + 0.06 * p);
-  if (p < -1000) return -1;
-  return -(1 - Math.pow(0.94, -p));
-}
-
 function monsterPro(battle: any): number {
   const m = battle.monster;
   if (!m) return 1;
   const p = m.protection - getProtectionReduce(battle.playerState) - getProtectionIgnore(battle.playerState);
-  return 1 - calcProtection(p);
+  return 1 - caculateProtection(p);
 }
 
 function skillGetCritMul(battle: any, extraCrit: number = 0): number {
@@ -118,7 +113,7 @@ export function behave_defence(skill: any, battle: any): BattleBehaviorResult {
   let critMul: number = 1;
   if (Math.random() * 100 < cr) critMul = mon.crit_mul / 100;
   let damage = Math.floor((mon.attack * critMul - getDefence(player) - params[0]) *
-    (1 - calcProtection(getProtection(player) * params[2] + params[1])));
+    (1 - caculateProtection(getProtection(player) * params[2] + params[1])));
   if (damage < 1) damage = 1;
   battle.playerHp -= damage;
   emitTitleEvent(battle, 'endure', damage);
@@ -139,7 +134,7 @@ export function behave_mana_shield(skill: any, battle: any): BattleBehaviorResul
   if (cr > CR) cr = CR;
   let critMul: number = 1;
   if (Math.random() * 100 < cr) critMul = mon.crit_mul / 100;
-  let rawDamage = Math.floor((mon.attack * critMul - getDefence(player)) * (1 - calcProtection(getProtection(player))));
+  let rawDamage = Math.floor((mon.attack * critMul - getDefence(player)) * (1 - caculateProtection(getProtection(player))));
   let absorbed = Math.floor(rawDamage * params[3] / 100);
   let damage = rawDamage - absorbed;
   if (damage < 1) damage = 1;
@@ -162,7 +157,7 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
   if (cr > CR) cr = CR;
   let critMul: number = 1;
   if (Math.random() * 100 < cr) critMul = mon.crit_mul / 100;
-  let takenDamage = Math.floor((mon.attack * critMul - getDefence(player)) * (1 - calcProtection(getProtection(player))));
+  let takenDamage = Math.floor((mon.attack * critMul - getDefence(player)) * (1 - caculateProtection(getProtection(player))));
   if (takenDamage < 1) takenDamage = 1;
   battle.playerHp -= takenDamage;
   emitTitleEvent(battle, 'endure', takenDamage);
@@ -177,7 +172,7 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
   }
   let retCritMul = skillGetCritMul(battle, params[2]);
   let retDamage = Math.floor((getAttack(player) * retCritMul * params[1] / 100 + takenDamage * params[0] / 100 - mon.defence) *
-    (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - params[2] * 3)));
+    (1 - caculateProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - params[2] * 3)));
   if (retDamage < 1) retDamage = 1;
   battle.monsterHp -= retDamage;
   emitTitleEvent(battle, 'damage', retDamage, retDamage);
@@ -217,7 +212,7 @@ export function behave_thunder(skill: any, battle: any): BattleBehaviorResult {
   const critMul = skillGetCritMul(battle, params[3]);
   const baseDmg = Math.floor(balanceRandom(getMagicBalance(player)) * (params[1] - params[0]) + params[0]);
   let damage = Math.floor(baseDmg * critMul * (100 + getMagicDamage(player)) / 100 *
-    (1 - calcProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - extraIgnore)));
+    (1 - caculateProtection(mon.protection - getProtectionReduce(player) - getProtectionIgnore(player) - extraIgnore)));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   emitTitleEvent(battle, 'damage', damage, damage);

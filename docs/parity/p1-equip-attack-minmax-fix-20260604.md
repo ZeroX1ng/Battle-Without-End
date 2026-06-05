@@ -1,12 +1,16 @@
-# P1 Equipment Attack MinMax Fix — 装备生成时 min>max 修复过于粗暴
+# P1 Equipment Attack MinMax Fix — 装备生成 min>max 处理 AS3 一致
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
+
+Current status: AS3-identical（2026-06-05 纠偏）
 
 ## 中文
 
 ### 当前状态
 
-2026-06-04 新增：来自战斗公式代码审阅。装备生成基础属性时，若 `attackMin > attackMax`（可能因精灵族等低敏捷种族属性计算导致），当前修复方式是将 `attackMin` 直接覆盖为 `attackMax` 的值，导致 min==max，完全消除该装备的伤害波动。
+2026-06-05 纠偏：对照 AS3 `Equipment.as generateBasicStat()` 后确认，原版在 `attackMin > attackMax` 时同样将 `attackMin` 直接设为 `attackMax`。React 当前实现与 AS3 一致，本卡不应继续停留在 `Needs AS3 verification` 或升级为待修复项。
+
+补充说明：本卡的 `AS3-identical` 只表示 `generateBasicStat()` 这一处边界处理没有 React 漂移，不表示“玩家最终伤害固定”可以接受。若试玩输出长期固定，应继续走 `p0-battle-damage-flat-20260604.md` 的最终伤害波动修复，而不是在本卡里单独改装备生成逻辑。
 
 ### AS3 Source of Truth
 
@@ -37,14 +41,13 @@ if (min > max) return as3Int(max + (min - max) * balanceRandom(getBalance(state)
 
 ### Expected Behavior
 
-- 若 AS3 原版也是将 min 设为 max 值，则保持 AS3 行为不变
-- 若 AS3 原版是交换两者或其他处理方式，则应与 AS3 一致
-- 无论如何，需对照 AS3 `Equipment.as` 确认原版行为
+- `generateBasicStat()` 在 `attackMin > attackMax` 时应将 `attackMin` 设为当前 `attackMax`，与 AS3 一致
+- 不为“保留波动”而自行改成交换 min/max 或其他现代化修正
 
 ### Forbidden Behavior
 
-- 不经 AS3 对照就自行"改进"修复逻辑
-- 保留 min==max 导致伤害零波动的行为（除非 AS3 原版如此）
+- 不经 AS3 对照就自行“改进”修复逻辑
+- 在没有新 AS3 证据的情况下移除 `min == max` 的原作行为
 
 ### State Ownership
 
@@ -52,9 +55,9 @@ if (min > max) return as3Int(max + (min - max) * balanceRandom(getBalance(state)
 
 ### Acceptance Tests
 
-- [ ] 对照 AS3 `Equipment.as.generateBasicStat()` 确认 min>max 的原版处理逻辑
-- [ ] 若 AS3 原版行为不同，修改 React 实现以匹配
-- [ ] Guard：构造 min>max 的装备属性场景，验证修复行为与 AS3 一致
+- [x] 对照 AS3 `Equipment.as.generateBasicStat()` 确认 min>max 的原版处理逻辑
+- [x] 对照 React `Equipment.ts generateBasicStat()` 确认实现一致
+- [x] 状态纠偏为 `AS3-identical`；不需要 React 逻辑修复
 
 ### Related Cards
 

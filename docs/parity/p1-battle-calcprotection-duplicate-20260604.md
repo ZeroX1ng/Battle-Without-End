@@ -1,12 +1,16 @@
 # P1 Battle CalcProtection Duplicate — 护甲公式重复实现且负护甲阈值不一致
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
+
+Current status: Guarded（2026-06-05 修复）
 
 ## 中文
 
 ### 当前状态
 
 2026-06-04 新增：来自战斗公式代码审阅。护甲减伤公式 `calcProtection` 在两个文件中各自实现了一份，且负护甲阈值参数不同（-100 vs -1000）。
+
+2026-06-05 修复：对照 AS3 `Battle.as` 确认战斗层负护甲阈值为 `param1 < -100`。React `skillBehaviors.ts` 已删除本地 `calcProtection`，改为复用 `Battle.ts` 导出的 `caculateProtection`；新增 `assert:battle-calcprotection-duplicate` 覆盖负护甲区间的技能伤害一致性。
 
 ### AS3 Source of Truth
 
@@ -15,7 +19,7 @@ Last updated: 2026-06-04
 ### React Targets
 
 - `src/core/models/Battle.ts:91-99` — `caculateProtection()`（导出）
-- `src/core/data/skillBehaviors.ts:34-38` — `calcProtection()`（局部重复）
+- `src/core/data/skillBehaviors.ts` — 通过 `import { caculateProtection } from '../models/Battle'` 复用战斗层实现
 
 ### Original Symptom
 
@@ -63,10 +67,10 @@ function calcProtection(p: number): number {
 
 ### Acceptance Tests
 
-- [ ] 对照 AS3 `Battle.as` 确认正确的负护甲阈值
-- [ ] 删除 `skillBehaviors.ts:34-38` 的局部实现，改为 `import { caculateProtection } from '../models/Battle'`
-- [ ] Guard：验证普攻和技能在负护甲区间的伤害计算一致
-- [ ] 技能行为函数中 `monsterPro()` 也应复用 `caculateProtection`
+- [x] 对照 AS3 `Battle.as` 确认正确的负护甲阈值为 `param1 < -100`
+- [x] 删除 `skillBehaviors.ts` 的局部实现，改为 `import { caculateProtection } from '../models/Battle'`
+- [x] Guard：`assert:battle-calcprotection-duplicate` 验证技能在负护甲区间复用 `Battle.ts` 伤害倍率
+- [x] 技能行为函数中 `monsterPro()` 也复用 `caculateProtection`
 
 ### Related Cards
 

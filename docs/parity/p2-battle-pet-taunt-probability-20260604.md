@@ -1,12 +1,14 @@
-# P2 Battle Pet Taunt Probability — 宠物 Taunt 技能缺少概率判定
+# P2 Battle Pet Taunt Probability — 宠物 Taunt 目标选择 AS3 一致
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
+
+Current status: AS3-identical（2026-06-05 纠偏）
 
 ## 中文
 
 ### 当前状态
 
-2026-06-04 新增：来自战斗公式代码审阅。`Battle.monsterTurn()` 中宠物有 `Taunt` 技能时无条件使怪物攻击宠物，缺少概率判定。AS3 原版中 Taunt 应有触发概率。
+2026-06-05 纠偏：对照 AS3 `Battle.as` 后确认，原版 `monsterTurn()` 在宠物拥有 `PetSkillList.taunt` 时同样无条件调用 `monsterAttackPet()`，没有读取 `Taunt` 的 `setList` 概率参数。React 当前行为与 AS3 一致，本卡不应进入 `Needs repair`。
 
 ### AS3 Source of Truth
 
@@ -34,7 +36,7 @@ if (this.pet && this.petHp > 0) {
 }
 ```
 
-当宠物有 `Taunt` 技能时，怪物 **总是** 攻击宠物。但 Taunt 技能数据中 `setList` 的第一个元素通常是触发概率（如 `getSetArray()[0]`），当前代码未检查此概率。
+2026-06-04 原始审阅曾把 Taunt `setList` 的第一个元素推断为触发概率，因此怀疑 React 无条件攻击宠物过强。2026-06-05 复核后确认：AS3 `monsterTurn()` 也只检查 `this.pet.getSkill(PetSkillList.taunt)` 是否存在，存在时立即攻击宠物；`PetSkillList.taunt` 参数不参与目标选择。
 
 对比宠物 `Dodge` 技能（line 527-531）正确检查了概率：
 ```typescript
@@ -45,12 +47,13 @@ if (Math.random() * 100 < dodgeSkill.getSetArray()[0]) {
 
 ### Expected Behavior
 
-- Taunt 技能应按其 `setList` 参数中的概率触发
-- 未触发时回退到正常的 50/50 随机选择攻击目标
+- Taunt 技能存在时，怪物应无条件攻击宠物，与 AS3 `Battle.monsterTurn()` 一致
+- 未装备 Taunt 时，保留 AS3 的普通 50/50 玩家/宠物目标选择
 
 ### Forbidden Behavior
 
-- 保持无条件触发（过于强大）
+- 未经新的 AS3 证据就给 Taunt 增加概率判定
+- 把 `PetSkillList.taunt` / `petSkillData.ts` 的 `setList` 参数推断为目标选择概率
 
 ### State Ownership
 
@@ -59,9 +62,9 @@ if (Math.random() * 100 < dodgeSkill.getSetArray()[0]) {
 
 ### Acceptance Tests
 
-- [ ] 对照 AS3 确认 Taunt 的触发概率参数
-- [ ] 在 `monsterTurn()` 中添加 Taunt 概率判定
-- [ ] Guard：验证有 Taunt 技能的宠物不会使怪物 100% 攻击宠物
+- [x] 对照 AS3 `Battle.as monsterTurn()` 确认 Taunt 无概率判定
+- [x] 对照 React `Battle.ts monsterTurn()` 确认目标选择行为一致
+- [x] 状态纠偏为 `AS3-identical`；不需要 React 逻辑修复
 
 ### Related Cards
 

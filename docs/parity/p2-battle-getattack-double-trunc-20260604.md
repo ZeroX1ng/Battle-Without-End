@@ -1,12 +1,16 @@
-# P2 Battle GetAttack Double Truncation — `getAttack` 双重截断降低精度
+# P2 Battle GetAttack Double Truncation — `getAttack` 双重截断 AS3 一致
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
+
+Current status: AS3-identical（2026-06-05 纠偏）
 
 ## 中文
 
 ### 当前状态
 
-2026-06-04 新增：来自战斗公式代码审阅。`getAttack()` 返回值经 `as3Int` 截断，但其入参 `getAttMin()` 和 `getAttMax()` 内部已通过 `formula_title_stat` → `as3Int` 截断过一次。双重截断进一步降低了 `balanceRandom` 随机分布的精度。
+2026-06-05 纠偏：对照 AS3 `Player.as` 后确认，原版 `attMin` / `attMax` getter 返回 `int`，`get attack():int` 又把随机结果赋给 `var _loc1_:int` 后返回。React `getAttMin()` / `getAttMax()` 与 `getAttack()` 的截断链路匹配 AS3；本卡不应继续停留在 `Needs AS3 verification`。
+
+补充说明：本卡的 `AS3-identical` 只表示 `getAttack()` 截断链路没有 React 漂移，不表示最终战斗日志固定伤害合理。若 `Player.attack` 的多个离散值经过怪物防御、护甲和最终 `floor` 后仍显示为同一非 1 数字，应继续走 `p0-battle-damage-flat-20260604.md`，必要时作为 intentional divergence 处理。
 
 ### AS3 Source of Truth
 
@@ -50,9 +54,9 @@ str/2.5 = 6.4
 
 ### Acceptance Tests
 
-- [ ] 对照 AS3 `Player.as` 确认 `get attack()` 及其依赖的 `attMin`/`attMax` getter 中各 `int()` 的位置
-- [ ] 验证 React 截断链路与 AS3 完全一致
-- [ ] 如有差异，调整 React 以匹配 AS3
+- [x] 对照 AS3 `Player.as get attack()` 与 `attMin`/`attMax` getter 确认双重截断位置
+- [x] 对照 React `Player.ts getAttack()` 与 `getAttMin()` / `getAttMax()` 确认链路一致
+- [x] 状态纠偏为 `AS3-identical`；不需要 React 逻辑修复
 
 ### Related Cards
 

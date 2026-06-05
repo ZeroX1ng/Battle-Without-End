@@ -1,12 +1,14 @@
-# P0 Battle Formula Title Truncation — `formula_title_stat` 过早截断压缩 min-max 差距
+# P0 Battle Formula Title Truncation — `formula_title_stat` 截断时机 AS3 一致
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
+
+Current status: AS3-identical（2026-06-05 纠偏）
 
 ## 中文
 
 ### 当前状态
 
-2026-06-04 新增：来自战斗公式代码审阅。`formula_title_stat()` 在应用称号倍数之前先调用 `as3Int(value)` 截断，使 `getAttMin`/`getAttMax` 中 `str/3` vs `str/2.5` 的小数差异被抹平，进一步压缩了攻击力的 min-max 差距。
+2026-06-05 纠偏：对照 AS3 `Player.as` 后确认，原版 `formula_title_stat(param1:int, param2:String):int` 的 `param1:int` 会在进入函数前完成 `int` 转换，称号乘法后也通过 `int(param1 + add)` 返回。React `formula_title_stat()` 入口 `as3Int(value)` 与返回截断均匹配 AS3；本卡不应继续停留在 `Needs AS3 verification`。
 
 ### AS3 Source of Truth
 
@@ -56,9 +58,9 @@ export function formula_title_stat(state, value, name): number {
 
 ### Acceptance Tests
 
-- [ ] 对照 AS3 `Player.as` 逐行确认 `formula_title_stat` 中 `int()` 的确切时机
-- [ ] 验证有称号 / 无称号两种路径下 `getAttMin`/`getAttMax` 返回值与 AS3 一致
-- [ ] Guard 覆盖：str=15/30/100 三种档位，有/无称号，有/无 `ATTACK` 倍数称号
+- [x] 对照 AS3 `Player.as formula_title_stat(param1:int, ...)` 确认入口截断时机
+- [x] 对照 React `Player.ts formula_title_stat()` 确认入口与称号后截断均一致
+- [x] 状态纠偏为 `AS3-identical`；不需要 React 逻辑修复
 
 ### Related Cards
 

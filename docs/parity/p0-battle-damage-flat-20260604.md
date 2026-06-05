@@ -1,12 +1,14 @@
 # P0 Battle Damage Flat — min-max 差距压缩导致伤害固定值
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 ## 中文
 
 ### 当前状态
 
-2026-06-04 新增：来自战斗公式代码审阅。核心症状是玩家物理普攻和物理技能造成的伤害表现为固定值（或在极小范围内仅 1~2 个离散值），缺少 AS3 原版应有的 min-max 波动。
+2026-06-04 新增：来自战斗公式代码审阅。核心症状是玩家物理普攻和物理技能造成的伤害表现为固定值（或在极小范围内仅 1~2 个离散值），缺少武器 min-max 应有的玩家可见波动。
+
+2026-06-05 复核：`P1-EQUIP-MINMAX` 与 `P2-ATK-DBL-TRUNC` 作为孤立公式片段与 AS3 一致，但这不能关闭本卡。数值复现显示，+15 剑仍有 7 个 `Player.attack` 离散值（743~749），但打 `defence=200` / `protection=85` 的怪物时最终日志伤害会全部压成 89。也就是说，固定输出可发生在最终伤害层：`(attack - defence) * (1 - caculateProtection(protection))` 的可见差距小于 1 后，被最终 `floor`/`int` 压成同一个数字。
 
 ### AS3 Source of Truth
 
@@ -30,7 +32,7 @@ Last updated: 2026-06-04
 
 ### Root Cause Analysis
 
-经完整链路追踪，根因是 **多个环节协同压缩了 min-max 差距**，导致 `balanceRandom` 的 0.01 步进配合 `Math.trunc` 只能产生极少甚至唯一最终值：
+经完整链路追踪，根因是 **多个环节协同压缩了玩家可见的最终伤害差距**，导致 `balanceRandom` 的 0.01 步进、`Math.trunc`/`Math.floor` 与怪物防御/护甲缩放叠加后只能产生极少甚至唯一最终值：
 
 1. **武器升级 `Stat.ATTACK` 等量加到 min 和 max**（`constants.ts:120-123`, `Player.ts:592-594`）
    - `WeaponTypeBase` 中所有武器升级基准使用 `Stat.ATTACK`
@@ -51,17 +53,22 @@ Last updated: 2026-06-04
    - 中后期攻击力几百到上千，而 min-max 差距仅来自初始装备差异和 str 贡献（约 2~10 点）
    - 波动比例 < 2%，玩家完全无法感知
 
+5. **最终伤害层继续压缩可见差距**
+   - 怪物防御先做线性扣减，护甲再把剩余差距按 `1 - caculateProtection(protection)` 缩放
+   - 当 `floor((attMax - attMin) * protectionScale) < 1` 时，即使 `Player.attack` 有多个离散值，战斗日志也会显示固定伤害
+   - 这类固定值不是单纯的 AS3 抄写错误，更像 AS3 原公式在现代试玩体验中的 intentional-divergence 候选点
+
 ### Expected Behavior
 
 - 每次物理普攻应从 `attMin ~ attMax` 范围内随机取值，且波动应能产生多个可感知的离散伤害值
-- 武器升级应适当扩大（或至少保持）min-max 差距
-- `balanceRandom` 的结果不应被 `Math.trunc` 过度压缩
+- 平衡值应改变抽样分布，使高平衡更接近上限，但不应让最终日志长期固定为单一数字
+- 武器升级、高护甲和防御修正后，仍应保留合理的最终伤害离散值，除非攻击完全被压到最低 1 点
 
 ### Forbidden Behavior
 
 - 依赖单一的 `Stat.ATTACK` 同时等量增加 min/max 从而消除波动
 - 在 `formula_title_stat` 中过早截断小数导致 min-max 差距丢失
-- 只在最终伤害 `Math.floor` 但不处理中间截断导致的差距压缩
+- 只用“某个中间公式与 AS3 一致”来关闭最终玩家可见固定伤害问题
 
 ### State Ownership
 
@@ -69,13 +76,15 @@ Last updated: 2026-06-04
 - `constants.ts` 负责 `WeaponTypeBase` 的升级加成向量
 - `MyMath.ts` 负责 `balanceRandom()` 的分布质量
 - `Equipment.ts` 负责基础属性 min/max 的生成与修正
+- `Battle.ts` 负责最终伤害层的防御、护甲缩放和取整
 
 ### Acceptance Tests
 
 - [ ] 验证连续 100 次普攻伤害产生至少 5 个不同的伤害值（在合理 min-max 差距下）
-- [ ] 验证武器升级后 min-max 差距不会缩小
-- [ ] 验证 `getAttack()` 在 min ≠ max 时确实能返回多个不同值
-- [ ] 与 AS3 原版同装备/同属性下的伤害波动范围对比
+- [ ] 验证高护甲/高防御但非最低 1 点伤害场景下，最终日志不应固定为单一非 1 数字
+- [ ] 验证平衡值升高时输出分布向上限偏移，而不是直接消除全部波动
+- [ ] 验证 `getAttack()` 在 min ≠ max 时能返回多个不同值，并验证这些差异能穿透到最终伤害层
+- [ ] 若决定偏离 AS3，文档必须标记 intentional divergence，并说明玩家可见原因
 
 ### Related Cards
 
