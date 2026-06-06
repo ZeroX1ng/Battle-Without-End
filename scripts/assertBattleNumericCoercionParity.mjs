@@ -41,6 +41,28 @@ function withRandom(value, fn) {
   }
 }
 
+function withFinitePowExponentGuard(fn) {
+  const originalPow = Math.pow;
+  let calls = 0;
+  Math.pow = (base, exponent) => {
+    calls++;
+    if (!Number.isFinite(exponent)) {
+      throw new Error(`balanceRandom must not rely on Math.pow with a non-finite exponent: ${exponent}`);
+    }
+    return originalPow(base, exponent);
+  };
+  try {
+    return { value: fn(), calls };
+  } finally {
+    Math.pow = originalPow;
+  }
+}
+
+function assertFiniteRatio(value, message) {
+  assert(Number.isFinite(value), `${message}: expected a finite number, got ${value}`);
+  assert(value >= 0 && value <= 1, `${message}: expected a 0..1 ratio, got ${value}`);
+}
+
 const as3Player = readAs3('scripts/iGlobal/Player.as');
 const as3Battle = readAs3('scripts/iData/Battle.as');
 const as3Monster = readAs3('scripts/iData/iMonster/Monster.as');
@@ -55,6 +77,8 @@ assertIncludes(as3Battle, 'var _loc3_:int = (Player.attack', 'AS3 player attack 
 assertIncludes(as3Monster, 'public function get attack() : int', 'AS3 Monster.attack must be an int getter');
 assertIncludes(as3Pet, 'public function get attack() : int', 'AS3 Pet.attack must be an int getter');
 assertIncludes(as3MyMath, 'public static function balanceRandom(param1:int) : Number', 'AS3 balanceRandom receives an int parameter');
+assertIncludes(as3MyMath, 'var _loc3_:Number = (3 * _loc2_ - 100) / (100 - _loc2_);', 'AS3 balanceRandom has the documented 100-balance division edge');
+assertIncludes(as3MyMath, 'return 1;', 'AS3 balanceRandom falls through to 1 at the 0/100 edge');
 
 if (packageJson.scripts?.['assert:battle-numeric-coercion'] !== 'node scripts/assertBattleNumericCoercionParity.mjs') {
   throw new Error('package.json must expose assert:battle-numeric-coercion');
@@ -96,7 +120,7 @@ const {
 } = playerModule;
 const { Monster } = monsterModule;
 const { Pet } = petModule;
-const { encryptInt } = mathModule;
+const { balanceRandom, encryptInt } = mathModule;
 const { behave_bolt } = skillBehaviorModule;
 
 const player = createInitialPlayerState();
@@ -113,6 +137,19 @@ assertEqual(getAttMax(player), 4, 'Player.getAttMax must truncate the AS3 int lo
 assertEqual(getBalance(player), 32, 'Player.getBalance must pass an AS3 int value into balanceRandom');
 assertEqual(getMagicBalance(player), 37, 'Player.getMagicBalance must truncate its AS3 int local before magic rolls');
 assertEqual(getMagicDamage(player), 10, 'Player.getMagicDamage must truncate formula_StatAddUp before later fractional stat intermediates');
+
+withRandom(0.5, () => {
+  const balance0 = withFinitePowExponentGuard(() => balanceRandom(0));
+  assertEqual(balance0.value, 1, 'balanceRandom(0) must preserve AS3 fallthrough behavior');
+  assertEqual(balance0.calls, 0, 'balanceRandom(0) must use an explicit edge guard instead of Math.pow(..., Infinity)');
+
+  const balance100 = withFinitePowExponentGuard(() => balanceRandom(100));
+  assertEqual(balance100.value, 1, 'balanceRandom(100) must preserve AS3 fallthrough behavior');
+  assertEqual(balance100.calls, 0, 'balanceRandom(100) must use an explicit edge guard instead of Math.pow(..., Infinity)');
+
+  assertFiniteRatio(withFinitePowExponentGuard(() => balanceRandom(50)).value, 'balanceRandom(50) must stay finite after the edge guard');
+  assertFiniteRatio(withFinitePowExponentGuard(() => balanceRandom(99)).value, 'balanceRandom(99) must stay finite after the edge guard');
+});
 
 const monster = withRandom(0.99, () => new Monster({
   name: 'coercion_monster',

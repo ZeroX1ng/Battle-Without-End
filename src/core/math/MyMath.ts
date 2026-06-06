@@ -34,6 +34,10 @@ export function balanceRandom(param1: number): number {
   if (param1 < 50) {
     _loc2_ = 100 - param1;
   }
+  // AS3 falls through to 1 when _loc2_ is exactly 100; make the div-zero edge explicit.
+  if (_loc2_ === 100) {
+    return 1;
+  }
   // 计算幂分布曲率参数 λ = (3*b - 100) / (100 - b)
   // 当 b→100 时 λ→∞，曲线极陡；当 b→50 时 λ→1，接近均匀分布
   const _loc3_: number = (3 * _loc2_ - 100) / (100 - _loc2_);
