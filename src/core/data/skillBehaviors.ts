@@ -5,6 +5,8 @@
 // 返回 BattleBehaviorResult 包含 HP/MP 变化和日志消息。
 
 import type { BattleBehaviorResult } from '../types';
+import type { Battle } from '../models/Battle';
+import type { Skill } from '../models/Skill';
 import { SkillCategory } from '../constants';
 import { balanceRandom } from '../math/MyMath';
 import { caculateProtection } from '../models/Battle';
@@ -22,24 +24,38 @@ const GREEN = '#4BB814';
 const YELLOW = '#FFA640';
 const RED = '#ff4040';
 
+function getSkillSetNumber(skill: Skill): number {
+  const value = skill.skillData.setList?.[skill.level];
+  if (typeof value === 'number') return value;
+  throw new Error(`Skill ${skill.skillData.name} expected a numeric setList entry.`);
+}
+
+function getSkillSetArray(skill: Skill): number[] {
+  const value = skill.skillData.setList?.[skill.level];
+  if (Array.isArray(value)) return value;
+  throw new Error(`Skill ${skill.skillData.name} expected an array setList entry.`);
+}
+
 function noop(): BattleBehaviorResult {
   return { success: false, logs: [], playerHpDelta: 0, playerMpDelta: 0, monsterHpDelta: 0 };
 }
 
-function emitTitleEvent(battle: any, name: string, maxVal: number = 0, countVal: number = 0): void {
-  battle.addTitleEvent?.(name, maxVal, countVal);
+function emitTitleEvent(battle: Battle, name: string, maxVal: number = 0, countVal: number = 0): void {
+  if (typeof battle.addTitleEvent === 'function') {
+    battle.addTitleEvent(name, maxVal, countVal);
+  }
 }
 
 // ═══ 辅助函数 ═══
 
-function monsterPro(battle: any): number {
+function monsterPro(battle: Battle): number {
   const m = battle.monster;
   if (!m) return 1;
   const p = m.protection - getProtectionReduce(battle.playerState) - getProtectionIgnore(battle.playerState);
   return 1 - caculateProtection(p);
 }
 
-function skillGetCritMul(battle: any, extraCrit: number = 0): number {
+function skillGetCritMul(battle: Battle, extraCrit: number = 0): number {
   const player = battle.playerState;
   const mon = battle.monster;
   let cr = getCrit(player) - (mon ? mon.protection - getProtectionReduce(player) : 0) * 2;
@@ -53,7 +69,18 @@ function skillGetCritMul(battle: any, extraCrit: number = 0): number {
   return 1;
 }
 
-function traceAttackInfo(battle: any, skillName: string, damage: number, critMul: number): string {
+function requireMonster(battle: Battle): NonNullable<Battle['monster']> {
+  if (!battle.monster) {
+    throw new Error('Battle behavior requires an active monster.');
+  }
+  return battle.monster;
+}
+
+function skillRealName(skill: Skill): string {
+  return skill.skillData.realName ?? skill.skillData.name;
+}
+
+function traceAttackInfo(battle: Battle, skillName: string, damage: number, critMul: number): string {
   const monName = battle.monster ? battle.monster.getNameHtml(getCombatPower(battle.playerState)) : '怪物';
   if (critMul > 1) {
     return `你使用了<font color='${RED}'>${skillName}</font>,对${monName}造成了<font color='${RED}' size='20'> ${damage}!</font>伤害.`;
@@ -63,28 +90,30 @@ function traceAttackInfo(battle: any, skillName: string, damage: number, critMul
 
 // ═══ 行为函数 ═══
 
-export function behave_smash(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_smash(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetNumber(skill);
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
-  let damage = Math.floor((getAttack(battle.playerState) * critMul * params / 100 - battle.monster.defence) * monsterPro(battle));
+  let damage = Math.floor((getAttack(battle.playerState) * critMul * params / 100 - mon.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   emitTitleEvent(battle, 'damage', damage, damage);
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: 0, monsterHpDelta: -damage,
   };
 }
 
-export function behave_life_drain(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_life_drain(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[0]) return noop();
   battle.playerMp -= params[0];
   const player = battle.playerState;
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
-  let damage = Math.floor((getAttack(player) * critMul * (1 + params[1] * getStr(player)) - battle.monster.defence) * monsterPro(battle));
+  let damage = Math.floor((getAttack(player) * critMul * (1 + params[1] * getStr(player)) - mon.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   emitTitleEvent(battle, 'damage', damage, damage);
@@ -97,16 +126,16 @@ export function behave_life_drain(skill: any, battle: any): BattleBehaviorResult
   return {
     success: true,
     logs: [
-      traceAttackInfo(battle, skill.skillData.realName, damage, critMul),
+      traceAttackInfo(battle, skillRealName(skill), damage, critMul),
       `你回复了 <font color='${GREEN}'>${heal} hp!</font>`,
     ],
     playerHpDelta: heal, playerMpDelta: -params[0], monsterHpDelta: -damage,
   };
 }
 
-export function behave_defence(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
-  const mon = battle.monster;
+export function behave_defence(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
+  const mon = requireMonster(battle);
   const player = battle.playerState;
   let cr = mon.crit - getProtection(player) * 2;
   if (cr > CR) cr = CR;
@@ -124,11 +153,11 @@ export function behave_defence(skill: any, battle: any): BattleBehaviorResult {
   return { success: true, logs: [log], playerHpDelta: -damage, playerMpDelta: 0, monsterHpDelta: 0 };
 }
 
-export function behave_mana_shield(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_mana_shield(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[0]) return noop();
   battle.playerMp -= params[0];
-  const mon = battle.monster;
+  const mon = requireMonster(battle);
   const player = battle.playerState;
   let cr = mon.crit - getProtection(player) * 2;
   if (cr > CR) cr = CR;
@@ -149,9 +178,9 @@ export function behave_mana_shield(skill: any, battle: any): BattleBehaviorResul
   return { success: true, logs: [log], playerHpDelta: -damage, playerMpDelta: -(params[0] + mpCost), monsterHpDelta: 0 };
 }
 
-export function behave_counterattack(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
-  const mon = battle.monster;
+export function behave_counterattack(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
+  const mon = requireMonster(battle);
   const player = battle.playerState;
   let cr = mon.crit - getProtection(player) * 2;
   if (cr > CR) cr = CR;
@@ -183,8 +212,8 @@ export function behave_counterattack(skill: any, battle: any): BattleBehaviorRes
   return { success: true, logs, playerHpDelta: -takenDamage, playerMpDelta: 0, monsterHpDelta: -retDamage };
 }
 
-export function behave_bolt(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_bolt(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
@@ -197,17 +226,17 @@ export function behave_bolt(skill: any, battle: any): BattleBehaviorResult {
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }
 
-export function behave_thunder(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_thunder(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
-  const mon = battle.monster;
+  const mon = requireMonster(battle);
   const extraIgnore = params[3] + getWill(player) * params[4];
   const critMul = skillGetCritMul(battle, params[3]);
   const baseDmg = Math.floor(balanceRandom(getMagicBalance(player)) * (params[1] - params[0]) + params[0]);
@@ -219,89 +248,93 @@ export function behave_thunder(skill: any, battle: any): BattleBehaviorResult {
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }
 
-export function behave_fireball(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_fireball(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
   const baseDmg = Math.floor(balanceRandom(getMagicBalance(player)) * (params[1] - params[0]) + params[0]);
   let damage = Math.floor(baseDmg * critMul * (100 + getMagicDamage(player)) / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  battle.monster.addBuff(new BuffBurn(Math.floor(params[3] * getIntelligence(player))));
+  mon.addBuff(new BuffBurn(Math.floor(params[3] * getIntelligence(player))));
   emitTitleEvent(battle, 'damage', damage, damage);
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }
 
-export function behave_ice_spear(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_ice_spear(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
   const baseDmg = Math.floor(balanceRandom(getMagicBalance(player)) * (params[1] - params[0]) + params[0]);
   let damage = Math.floor(baseDmg * critMul * (100 + getMagicDamage(player)) / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   if (Math.random() * 100 < params[3] + getIntelligence(player) * params[4]) {
-    battle.monster.addBuff(new BuffFrozen(params[5]));
+    mon.addBuff(new BuffFrozen(params[5]));
   }
   emitTitleEvent(battle, 'damage', damage, damage);
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }
 
-export function behave_mirage_missle(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_mirage_missle(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
-  let damage = Math.floor((getAttack(player) * critMul * params[0] / 100 - battle.monster.defence) * monsterPro(battle));
+  let damage = Math.floor((getAttack(player) * critMul * params[0] / 100 - mon.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   const poisonVal = Math.floor(params[1] + params[3] * getWill(player));
-  battle.monster.addBuff(new BuffPoison(poisonVal));
-  battle.monster.addBuff(new BuffPoison(poisonVal));
+  mon.addBuff(new BuffPoison(poisonVal));
+  mon.addBuff(new BuffPoison(poisonVal));
   emitTitleEvent(battle, 'damage', damage, damage);
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }
 
-export function behave_corrosive_shot(skill: any, battle: any): BattleBehaviorResult {
-  const params = skill.skillData.setList[skill.level];
+export function behave_corrosive_shot(skill: Skill, battle: Battle): BattleBehaviorResult {
+  const params = getSkillSetArray(skill);
   if (battle.playerMp < params[2]) return noop();
   battle.playerMp -= params[2];
   const player = battle.playerState;
+  const mon = requireMonster(battle);
   const critMul = skillGetCritMul(battle);
-  let damage = Math.floor((getAttack(player) * critMul * (params[0] / 100 + getDex(player) * params[4] / 100) - battle.monster.defence) * monsterPro(battle));
+  let damage = Math.floor((getAttack(player) * critMul * (params[0] / 100 + getDex(player) * params[4] / 100) - mon.defence) * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  battle.monster.addBuff(new BuffCorrosion(Math.floor(params[1] + getDex(player) * params[3])));
+  mon.addBuff(new BuffCorrosion(Math.floor(params[1] + getDex(player) * params[3])));
   emitTitleEvent(battle, 'damage', damage, damage);
   emitTitleEvent(battle, 'crit', 0, critMul > 1 ? 1 : -1);
   return {
     success: true,
-    logs: [traceAttackInfo(battle, skill.skillData.realName, damage, critMul)],
+    logs: [traceAttackInfo(battle, skillRealName(skill), damage, critMul)],
     playerHpDelta: 0, playerMpDelta: -params[2], monsterHpDelta: -damage,
   };
 }

@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-07 (battle audit guarded formula and DOT updates)
+Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-contract updates)
 
 ## 中文
 
@@ -8,7 +8,7 @@ Last updated: 2026-06-07 (battle audit guarded formula and DOT updates)
 
 这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果出现新问题、guard 变红或需要浏览器 smoke，只选一个条目，先读 AS3，再补/确认 guard，再做最小修复。
 
-**2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-BUFF-DOT` 已通过 DOT HP/log/kill guard；`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。后续建议修复顺序：`P2-BATTLE-TYPE-CONTRACTS`；`P2-BALRAND-STATUS` 是本次文档路由修正卡，代码无需修复。
+**2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-BUFF-DOT` 已通过 DOT HP/log/kill guard；`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P2-BATTLE-TYPE-CONTRACTS` 已通过运行时类型契约 guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。`P2-BALRAND-STATUS` 是文档路由修正卡，代码无需修复。
 
 | ID | 优先级 | 模块 | 状态 | 规格卡 | AS3 源 | React 目标 | 当前症状 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ Last updated: 2026-06-07 (battle audit guarded formula and DOT updates)
 
 ### 后续推进顺序建议
 
-1. **战斗系统审计修复 2026-06-06/07**：`P0-BUFF-DOT` 当前为 Guarded；`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；后续按 `P2-BATTLE-TYPE-CONTRACTS` 处理。`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
+1. **战斗系统审计修复 2026-06-06/07**：`P0-BUFF-DOT` 当前为 Guarded；`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；`P2-BATTLE-TYPE-CONTRACTS` 当前为 Guarded；`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
 2. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复。
 3. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
 4. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
@@ -72,7 +72,7 @@ Last updated: 2026-06-07 (battle audit guarded formula and DOT updates)
 | P0-DMG-FLAT-OUT | P0 | 最终日志伤害波动被防御/护甲/取整压平 | Guarded | `p0-battle-damage-flat-output-guard-20260606.md` | Existing: `assert:battle-damage-flat-output` 输出攻击集合、AS3 最终集合、React 日志集合、防御/护甲和取整前范围；结论为 intentional divergence |
 | P1-PET-SKILL-PROT | P1 | 宠物技能仍保留本地护甲公式 | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` 覆盖 AS3 `Battle.as`/`PetSkillList.as` 证据、shared-formula 决策、静态公式所有权和 `p=-500` 宠物 Fireball 夹具 |
 | P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` 已 Guarded 但 manifest 状态过期 | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; 本卡为文档路由修正，不要求运行时代码改动 |
-| P2-BATTLE-TYPE-CONTRACTS | P2 | 战斗运行时类型契约过宽 | Guard needed | `p2-battle-runtime-type-contracts-20260606.md` | Next: 新增或扩展类型 guard，修正 `MonsterInstance.runBuff()` 返回契约和技能行为结果边界 |
+| P2-BATTLE-TYPE-CONTRACTS | P2 | 战斗运行时类型契约过宽 | Guarded | `p2-battle-runtime-type-contracts-20260606.md` | Existing: `assert:battle-runtime-type-contracts`; Adjacent: `assert:domain-type-boundaries`, `assert:battle-state-immutability`, `assert:battle-player-state`; Always: `npx tsc -b` |
 
 ### 状态含义
 
@@ -114,7 +114,7 @@ Last updated: 2026-06-07 (battle audit guarded formula and DOT updates)
 
 This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one new issue, red guard, or browser-smoke target, read AS3 first, add or confirm the guard, then make the smallest repair.
 
-**2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-BUFF-DOT` is now guarded for DOT HP/log/kill behavior, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue.
+**2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-BUFF-DOT` is now guarded for DOT HP/log/kill behavior, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, `P2-BATTLE-TYPE-CONTRACTS` is now Guarded for runtime type contracts, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue.
 
 | ID | Priority | Module | Status | Card | AS3 Sources | React Targets | Current Symptom | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -134,7 +134,7 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 
 ### Recommended Next Order
 
-1. **Battle-system audit fixes 2026-06-06/07**: `P0-BUFF-DOT` is now Guarded, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, and `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision; continue with `P2-BATTLE-TYPE-CONTRACTS`. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
+1. **Battle-system audit fixes 2026-06-06/07**: `P0-BUFF-DOT` is now Guarded, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P2-BATTLE-TYPE-CONTRACTS` is now Guarded. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For future runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
 2. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. No code change needed.
 3. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
 4. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
@@ -192,7 +192,7 @@ Added 2026-06-06: strict audit routing for combat formulas, numeric behavior, bu
 | P0-DMG-FLAT-OUT | P0 | Final logged damage variance collapses after defence/protection/rounding | Guarded | `p0-battle-damage-flat-output-guard-20260606.md` | Existing: `assert:battle-damage-flat-output` captures attack samples, AS3 final damage, React logged damage, defence/protection, and pre-round range; conclusion is intentional divergence |
 | P1-PET-SKILL-PROT | P1 | Pet skills still keep a local protection formula | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` covers AS3 `Battle.as`/`PetSkillList.as` evidence, the shared-formula decision, static formula ownership, and the `p=-500` pet Fireball fixture |
 | P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` is Guarded but manifest routing was stale | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; docs-routing correction only |
-| P2-BATTLE-TYPE-CONTRACTS | P2 | Battle runtime type contracts are too broad | Guard needed | `p2-battle-runtime-type-contracts-20260606.md` | Next: add or extend a type guard for `MonsterInstance.runBuff()` and skill behavior result contracts |
+| P2-BATTLE-TYPE-CONTRACTS | P2 | Battle runtime type contracts are too broad | Guarded | `p2-battle-runtime-type-contracts-20260606.md` | Existing: `assert:battle-runtime-type-contracts`; Adjacent: `assert:domain-type-boundaries`, `assert:battle-state-immutability`, `assert:battle-player-state`; Always: `npx tsc -b` |
 
 ### Status Meaning
 

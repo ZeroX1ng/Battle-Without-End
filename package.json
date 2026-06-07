@@ -61,6 +61,7 @@
     "assert:battle-damage-log-death": "node scripts/assertBattleDamageLogDeathParity.mjs",
     "assert:battle-buff-dot-effects": "node scripts/assertBattleBuffDotEffectsParity.mjs",
     "assert:battle-damage-flat-output": "node scripts/assertBattleDamageFlatOutputParity.mjs",
+    "assert:battle-runtime-type-contracts": "node scripts/assertBattleRuntimeTypeContracts.mjs",
     "assert:battle-death-penalty": "node scripts/assertBattleDeathPenaltyParity.mjs",
     "assert:battle-numeric-coercion": "node scripts/assertBattleNumericCoercionParity.mjs",
     "assert:battle-calcprotection-duplicate": "node scripts/assertBattleCalcProtectionDuplicateParity.mjs",

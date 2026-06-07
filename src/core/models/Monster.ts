@@ -3,7 +3,16 @@
 //
 // 管理怪物实例：BUFF、掉落、战斗属性。
 
-import type { GlobalConfig, LootState, MonsterData, PetData, PlayerState, WeaponData } from '../types';
+import type {
+  BuffData,
+  GlobalConfig,
+  LootState,
+  MonsterData,
+  MonsterTitleData,
+  PetData,
+  PlayerState,
+  WeaponData,
+} from '../types';
 import type { BuffContext } from './Buff';
 import { as3Int, balanceRandom } from '../math/MyMath';
 import { MonsterTitleList, REGION_BOSS_TITLE } from '../data/monsterData';
@@ -22,10 +31,28 @@ const GREEN = '#4BB814';
 const YELLOW = '#FFA640';
 const RED = '#ff4040';
 
+type NumericMonsterDataKey = 'hp' | 'balance' | 'crit' | 'crit_mul' | 'defence' | 'protection' | 'CP' | 'exp' | 'money';
+
+const NUMERIC_MONSTER_DATA_KEYS = new Set<string>([
+  'hp',
+  'balance',
+  'crit',
+  'crit_mul',
+  'defence',
+  'protection',
+  'CP',
+  'exp',
+  'money',
+]);
+
+function isNumericMonsterDataKey(name: string): name is NumericMonsterDataKey {
+  return NUMERIC_MONSTER_DATA_KEYS.has(name);
+}
+
 export class Monster {
-  public title: any = null;
+  public title: MonsterTitleData | null = null;
   public data: MonsterData;
-  public buffList: any[] = [];
+  public buffList: BuffData[] = [];
 
   constructor(data: MonsterData) {
     this.data = { ...data, attack: { ...data.attack } };
@@ -60,8 +87,8 @@ export class Monster {
       } else if (sm.name === 'ATTACK') {
         this.data.attack.min = this.data.attack.min * sm.mul + sm.add;
         this.data.attack.max = this.data.attack.max * sm.mul + sm.add;
-      } else {
-        (this.data as any)[sm.name] = ((this.data as any)[sm.name] || 0) * sm.mul + sm.add;
+      } else if (isNumericMonsterDataKey(sm.name)) {
+        this.data[sm.name] = (this.data[sm.name] ?? 0) * sm.mul + sm.add;
       }
     }
   }
@@ -198,7 +225,7 @@ export class Monster {
     return `<font color='${_loc2_}'>${this.data.realName}</font>`;
   }
 
-  isContainBuff(name: string): any {
+  isContainBuff(name: string): BuffData | null {
     let _loc2_: number = 0;
     while (_loc2_ < this.buffList.length) {
       if (this.buffList[_loc2_].name === name) return this.buffList[_loc2_];
@@ -207,7 +234,7 @@ export class Monster {
     return null;
   }
 
-  addBuff(buff: any): void {
+  addBuff(buff: BuffData): void {
     const _loc2_ = this.isContainBuff(buff.name);
     if (!_loc2_) {
       this.buffList.push(buff);

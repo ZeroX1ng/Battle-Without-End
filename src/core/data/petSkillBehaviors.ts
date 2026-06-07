@@ -4,6 +4,9 @@
 // 宠物攻击技能：冰刃/火球/雷击，通过魔法攻击造成伤害并附加 Buff 效果。
 
 import type { BattleBehaviorResult } from '../types';
+import type { PetSkillInstance } from '../types';
+import type { Battle } from '../models/Battle';
+import type { Pet } from '../models/Pet';
 import { BuffBurn, BuffFrozen, BuffCorrosion } from '../models/Buff';
 import { getCombatPower } from '../models/Player';
 import { balanceRandom } from '../math/MyMath';
@@ -18,12 +21,12 @@ function noop(): BattleBehaviorResult {
 
 // ═══ 辅助函数 ═══
 
-function monsterPro(battle: any): number {
+function monsterPro(battle: Battle): number {
   if (!battle.monster) return 1;
   return 1 - caculateProtection(battle.monster.protection);
 }
 
-function petGetCritMul(battle: any, pet: any, extraCrit: number = 0): number {
+function petGetCritMul(battle: Battle, pet: Pet, extraCrit: number = 0): number {
   let cr = pet.cri - (battle.monster ? battle.monster.protection * 2 : 0);
   if (cr < 0 && extraCrit > 0) {
     cr = extraCrit;
@@ -35,7 +38,7 @@ function petGetCritMul(battle: any, pet: any, extraCrit: number = 0): number {
   return 1;
 }
 
-function petTraceAttackInfo(battle: any, pet: any, skillName: string, damage: number, critMul: number): string {
+function petTraceAttackInfo(battle: Battle, pet: Pet, skillName: string, damage: number, critMul: number): string {
   const monName = battle.monster ? battle.monster.getNameHtml(getCombatPower(battle.playerState)) : '怪物';
   if (critMul > 1) {
     return `你的宠物使用了<font color='${RED}'>${skillName}</font>,对${monName}造成了<font color='${RED}' size='20'> ${damage}!</font>伤害.`;
@@ -43,27 +46,35 @@ function petTraceAttackInfo(battle: any, pet: any, skillName: string, damage: nu
   return `你的宠物使用了<font color='${RED}'>${skillName}</font>,对${monName}造成了<font color='${RED}'> ${damage}</font>伤害.`;
 }
 
-function getSetArray(skill: any): number[] {
+function requireMonster(battle: Battle): NonNullable<Battle['monster']> {
+  if (!battle.monster) {
+    throw new Error('Pet skill behavior requires an active monster.');
+  }
+  return battle.monster;
+}
+
+function getSetArray(skill: PetSkillInstance): number[] {
   return skill.level ? skill.skillData.setList[1] : skill.skillData.setList[0];
 }
 
 // ═══ 行为函数 ═══
 
 /** ICE_SPEAR - 冰刃: 魔法伤害 + 冰冻 */
-export function pet_behave_ice_spear(skill: any, battle: any, pet: any): BattleBehaviorResult {
+export function pet_behave_ice_spear(skill: PetSkillInstance, battle: Battle, pet: Pet): BattleBehaviorResult {
   const params = getSetArray(skill);
   if (battle.petMp < params[3]) return noop();
   battle.petMp -= params[3];
+  const mon = requireMonster(battle);
   const critMul = petGetCritMul(battle, pet);
   let damage = Math.floor((params[0] + params[1] * pet.level) * pet.magicatt / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   if (params.length > 5) {
     if (Math.random() < 0.1) {
-      battle.monster.addBuff(new BuffFrozen(params[5]));
+      mon.addBuff(new BuffFrozen(params[5]));
     }
   } else {
-    battle.monster.addBuff(new BuffFrozen(params[2]));
+    mon.addBuff(new BuffFrozen(params[2]));
   }
   return {
     success: true,
@@ -73,16 +84,17 @@ export function pet_behave_ice_spear(skill: any, battle: any, pet: any): BattleB
 }
 
 /** FIREBALL - 火球: 魔法伤害 + 灼伤 */
-export function pet_behave_fireball(skill: any, battle: any, pet: any): BattleBehaviorResult {
+export function pet_behave_fireball(skill: PetSkillInstance, battle: Battle, pet: Pet): BattleBehaviorResult {
   const params = getSetArray(skill);
   if (battle.petMp < params[2]) return noop();
   battle.petMp -= params[2];
+  const mon = requireMonster(battle);
   const critMul = petGetCritMul(battle, pet);
   let damage = Math.floor((params[0] + params[1] * pet.level) * pet.magicatt / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
   const burnVal = Math.floor(params[3] * pet.level * pet.magicatt / 100);
-  battle.monster.addBuff(new BuffBurn(burnVal));
+  mon.addBuff(new BuffBurn(burnVal));
   return {
     success: true,
     logs: [petTraceAttackInfo(battle, pet, skill.getRealName(), damage, critMul)],
@@ -91,15 +103,16 @@ export function pet_behave_fireball(skill: any, battle: any, pet: any): BattleBe
 }
 
 /** THUNDER - 雷击: 魔法伤害 + 腐蚀 */
-export function pet_behave_thunder(skill: any, battle: any, pet: any): BattleBehaviorResult {
+export function pet_behave_thunder(skill: PetSkillInstance, battle: Battle, pet: Pet): BattleBehaviorResult {
   const params = getSetArray(skill);
   if (battle.petMp < params[4]) return noop();
   battle.petMp -= params[4];
+  const mon = requireMonster(battle);
   const critMul = petGetCritMul(battle, pet);
   let damage = Math.floor((params[0] + params[1] * pet.level) * pet.magicatt / 100 * monsterPro(battle));
   if (damage < 1) damage = 1;
   battle.monsterHp -= damage;
-  battle.monster.addBuff(new BuffCorrosion(params[2] + params[3] * pet.level));
+  mon.addBuff(new BuffCorrosion(params[2] + params[3] * pet.level));
   return {
     success: true,
     logs: [petTraceAttackInfo(battle, pet, skill.getRealName(), damage, critMul)],

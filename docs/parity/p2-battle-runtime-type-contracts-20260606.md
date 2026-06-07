@@ -1,8 +1,8 @@
 # P2 Battle Runtime Type Contracts - runBuff 返回值和行为 any 边界
 
-Last updated: 2026-06-06
+Last updated: 2026-06-07
 
-Current status: Guard needed
+Current status: Guarded
 
 ## 中文
 
@@ -59,13 +59,19 @@ Current status: Guard needed
 
 ### Acceptance Tests
 
-- [ ] 新增或扩展 guard：`npm run assert:battle-runtime-type-contracts` 或 `npm run assert:domain-type-boundaries`。
-- [ ] `MonsterInstance.runBuff()` 与真实实现保持一致。
-- [ ] 玩家技能和宠物技能行为结果使用明确类型，关键 HP/log/buff 字段不再靠 broad `any`。
-- [ ] 相邻 guard：`npm run assert:battle-state-immutability`。
-- [ ] 相邻 guard：`npm run assert:battle-player-state`。
-- [ ] 相邻 guard：`npm run assert:domain-type-boundaries`。
-- [ ] Always：`npx tsc -b`。
+- [x] 新增或扩展 guard：`npm run assert:battle-runtime-type-contracts` 或 `npm run assert:domain-type-boundaries`。
+- [x] `MonsterInstance.runBuff()` 与真实实现保持一致。
+- [x] 玩家技能和宠物技能行为结果使用明确类型，关键 HP/log/buff 字段不再靠 broad `any`。
+- [x] 相邻 guard：`npm run assert:battle-state-immutability`。
+- [x] 相邻 guard：`npm run assert:battle-player-state`。
+- [x] 相邻 guard：`npm run assert:domain-type-boundaries`。
+- [x] Always：`npx tsc -b`。
+
+### 2026-06-07 Guarded Result
+
+- Added `assert:battle-runtime-type-contracts` to pin `MonsterInstance.runBuff(): string[]`, `Monster.runBuff(): string[]`, `Buff.run(): string | null`, `BattleBehaviorResult`, and the player/pet skill behavior context types.
+- `MonsterInstance.runBuff()` was already aligned to `string[]` in the live checkout; the red guard exposed the remaining `Monster.buffList: any[]` and skill behavior `battle: any` / `pet: any` boundaries.
+- Runtime behavior was not changed: formulas, DOT effects, final damage output, and pet protection behavior remain routed to their own cards.
 
 ## English
 
@@ -76,3 +82,7 @@ The battle runtime type boundary is too loose: `MonsterInstance.runBuff()` is ty
 ### Required Fix
 
 Add or extend a static guard, align `runBuff` contracts, and type the battle behavior result boundary narrowly enough to catch HP/log/buff drift without changing runtime behavior.
+
+### Guarded Result
+
+`assert:battle-runtime-type-contracts` now covers the runtime type contract. `Monster` buff ownership uses `BuffData`, battle skill behavior functions use `Skill` / `Battle`, and pet skill behavior functions use `PetSkillInstance` / `Battle` / `Pet`.

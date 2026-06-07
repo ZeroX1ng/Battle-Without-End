@@ -394,7 +394,7 @@ export class Battle {
     this._loot[key] = (this._loot[key] ?? 0) + amount;
   }
 
-  private addTitleEvent(name: string, maxVal?: number, countVal?: number): void {
+  addTitleEvent(name: string, maxVal?: number, countVal?: number): void {
     this._titleEvents.push({ name, maxVal, countVal });
   }
 
