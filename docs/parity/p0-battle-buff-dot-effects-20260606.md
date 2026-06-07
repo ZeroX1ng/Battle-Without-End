@@ -1,8 +1,8 @@
 # P0 Battle Buff DOT Effects - 灼伤/中毒没有扣减战斗层 monsterHp
 
-Last updated: 2026-06-06
+Last updated: 2026-06-07
 
-Current status: Needs repair
+Current status: Guarded - browser smoke pending
 
 ## 中文
 
@@ -11,6 +11,8 @@ Current status: Needs repair
 2026-06-06 战斗系统审计新增。`BuffBurn` 和 `BuffPoison` 的 React 实现只有在 `Buff.run()` 收到隐藏 `context` 时才会扣减怪物 HP；但 `Monster.runBuff()` 只调用 `buff.run()`，`Battle.ts` 又通过 `this.monster.runBuff()` 驱动 buff tick，导致灼伤/中毒可以留在怪物身上，却不会扣减实时 `Battle.monsterHp`，也不会产生日志。
 
 这类问题试玩时很容易漏掉：技能命中、buff 图标或状态都可能看起来存在，但真实 HP 没有变化。
+
+2026-06-07 修复：AS3 `BuffBurn.as` / `BuffPoison.as` 的 `run()` 均直接扣减 `MainScene.battle.monsterHp`。React 现在由 `Battle.ts` 在怪物回合向 `Monster.runBuff()` 传入战斗层 HP 上下文，`BuffBurn` / `BuffPoison` 扣减实时 `monsterHp` 并返回日志；`assert:battle-buff-dot-effects` 覆盖 Burn/Poison HP delta、日志和 DOT 击杀结算。玩家可见浏览器 smoke 仍需后续补做，因此状态为 Guarded。
 
 ### AS3 Source of Truth
 
@@ -79,21 +81,21 @@ Current status: Needs repair
 
 ### Acceptance Tests
 
-- [ ] AS3 对照 `BuffBurn.as` / `BuffPoison.as`，确认 DOT 直接影响战斗层 `monsterHp`。
-- [ ] 新增或复用 guard：`npm run assert:battle-buff-dot-effects`。
-- [ ] 相邻 guard：`npm run assert:battle-damage-log-death`。
-- [ ] 相邻 guard：`npm run assert:skill-eligibility-effects`。
-- [ ] 相邻 guard：`npm run assert:battle-pet-flow-logs`。
-- [ ] 相邻 guard：`npm run assert:monster-reward`。
-- [ ] Always：`npx tsc -b`。
+- [x] AS3 对照 `BuffBurn.as` / `BuffPoison.as`，确认 DOT 直接影响战斗层 `monsterHp`。
+- [x] 新增或复用 guard：`npm run assert:battle-buff-dot-effects`。
+- [x] 相邻 guard：`npm run assert:battle-damage-log-death`。
+- [x] 相邻 guard：`npm run assert:skill-eligibility-effects`。
+- [x] 相邻 guard：`npm run assert:battle-pet-flow-logs`。
+- [x] 相邻 guard：`npm run assert:monster-reward`。
+- [x] Always：`npx tsc -b`。
 - [ ] 玩家可见 smoke：触发灼伤/中毒后，确认日志伤害、怪物 HP 条和死亡奖励一致。
 
 ## English
 
 ### Summary
 
-Burn and poison currently damage the monster only when `Buff.run()` receives a hidden context. The real battle path calls `Monster.runBuff()` without that context, so DOT buffs can exist without reducing live `Battle.monsterHp` or producing logs.
+Burn and poison now tick through the battle-owned HP boundary. `assert:battle-buff-dot-effects` covers live HP deltas, logs, and DOT kill settlement; browser-visible smoke is still pending.
 
 ### Required Fix
 
-Route DOT ticks through the battle-owned HP boundary, keep logs and HP deltas consistent, and guard DOT kills through the same death/reward settlement used by normal damage.
+Keep DOT ticks routed through the battle-owned HP boundary, with logs and HP deltas guarded by `assert:battle-buff-dot-effects`. Finish later with a browser-visible Burn/Poison smoke pass.
