@@ -26,7 +26,7 @@ export function PetInfoPanel() {
           <div style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--color-green)', marginBottom: 4 }}>
             {p.name || p.realName} <span style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>Lv.{p.level}</span>
           </div>
-          <div style={{ color: 'var(--color-text-dim)', fontSize: 10, marginBottom: 2 }}>{p.type}</div>
+          <div style={{ color: 'var(--color-text-dim)', fontSize: 10, marginBottom: 2 }}>{p.getTypeLabel ? p.getTypeLabel() : p.type}</div>
           <Bar value={hp} max={p.hp} color='var(--color-hp)' label={`HP ${Math.floor(hp)}/${p.hp}`} height={8} />
           <div style={{ marginBottom: 1 }} />
           <Bar value={exp} max={expMax} color='var(--color-exp)' label={`Exp ${Math.floor(exp)}/${expMax}`} height={8} />

@@ -644,14 +644,14 @@ export class Battle {
     this.emitLogs([
       critMul > 1
         ? `你的宠物对${monsterName}造成了<font color='#ff4040' size='20'>${finalDamage}!</font> 伤害`
-        : `你的宠物对${monsterName}造成了<font color='#ff4040'>${finalDamage}</font> 伤害${monsterName}`,
+        : `你的宠物对${monsterName}造成了<font color='#ff4040'>${finalDamage}</font> 伤害`,
     ]);
 
     const ldSkill = this.pet.getSkill(PetSkillDataMap['Life Drain']);
     if (ldSkill) {
       const lifeDrainHeal = Math.floor(finalDamage * ldSkill.getSetArray()[0] / 100);
       this.petHp += lifeDrainHeal;
-      this.emitLogs([`你的宠物恢复了<font color='#7AEE3C' size='16'>${finalDamage}</font> hp`]);
+      this.emitLogs([`你的宠物恢复了<font color='#7AEE3C' size='16'>${lifeDrainHeal}</font> hp`]);
     }
   }
 

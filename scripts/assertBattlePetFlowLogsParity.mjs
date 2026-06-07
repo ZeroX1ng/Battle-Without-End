@@ -37,6 +37,12 @@ function assertMatch(value, pattern, message) {
   }
 }
 
+function assertNotMatch(value, pattern, message) {
+  if (pattern.test(value)) {
+    throw new Error(`${message}: ${value}`);
+  }
+}
+
 function createStatus(overrides = {}) {
   return {
     hp: 100,
@@ -282,7 +288,10 @@ await withRandomSequence([0.99, 0.99], async () => {
   assertEqual(battle.monsterHp, 92, 'Pet normal attack should reduce monster HP by calculated damage');
   assertEqual(battle.petHp, 24, 'Life Drain should heal pet HP from the pet damage path');
   assertMatch(logText, /Test Monster.*8/, 'Pet normal attack log must include monster name and damage');
+  assertNotMatch(logText, /<font color='#ff4040'>8<\/font>[^\n]*Test Monster/, 'Non-critical pet normal attack log must not repeat the monster name after damage text');
   assertMatch(logText, /hp/i, 'Life Drain must emit a visible pet heal log');
+  assertMatch(logText, /<font color='#7AEE3C' size='16'>4<\/font> hp/i, 'Life Drain heal log must show the actual HP delta');
+  assertNotMatch(logText, /<font color='#7AEE3C' size='16'>8<\/font> hp/i, 'Life Drain heal log must not show raw final damage');
   assertNoTemplateFragments(logText, 'Pet attack and Life Drain logs must not expose template fragments');
 });
 

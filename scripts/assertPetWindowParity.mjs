@@ -26,6 +26,12 @@ function assertNotIncludes(source, needle, message) {
   }
 }
 
+function assertMatches(source, pattern, message) {
+  if (!pattern.test(source)) {
+    throw new Error(message);
+  }
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -43,6 +49,12 @@ assertIncludes(petInfoPanel, 'Lv.', 'PetInfoPanel must show the AS3 main-panel L
 assertIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must show the AS3 main-panel HP bar');
 assertIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must show the AS3 main-panel Exp progress bar');
 assertIncludes(petInfoPanel, 'getLevelExp', 'PetInfoPanel Exp max must come from the AS3 pet level-exp formula');
+assertNotIncludes(petInfoPanel, '{p.type}', 'PetInfoPanel must not expose the raw pet type key on the main panel');
+assertMatches(
+  petInfoPanel,
+  /getTypeLabel\s*\?/,
+  'PetInfoPanel must localize the optional type helper row through getTypeLabel',
+);
 
 assertIncludes(petWindow, 'useInfoWindow', 'PetWindow must use the global info window for AS3 hover details');
 assertIncludes(petWindow, 'showItemInfo(getPetDescription(pet))', 'PetWindow must show the original PetInfoWindow stat details on pet hover');

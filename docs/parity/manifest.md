@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-contract updates)
+Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contract, and pet-module review updates)
 
 ## 中文
 
@@ -8,7 +8,7 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-co
 
 这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果出现新问题、guard 变红或需要浏览器 smoke，只选一个条目，先读 AS3，再补/确认 guard，再做最小修复。
 
-**2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-BUFF-DOT` 已通过 DOT HP/log/kill guard；`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P2-BATTLE-TYPE-CONTRACTS` 已通过运行时类型契约 guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。`P2-BALRAND-STATUS` 是文档路由修正卡，代码无需修复。
+**2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-BUFF-DOT` 已通过 DOT HP/log/kill guard；`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P2-BATTLE-TYPE-CONTRACTS` 已通过运行时类型契约 guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。`P2-BALRAND-STATUS` 是文档路由修正卡，代码无需修复。宠物模块复核中 `P1-PET-ATTACK-LOG-CONSISTENCY` 和 `P2-PET-INFO-TYPE-LABEL` 均已 Verified；其余审阅项已有 AS3/guard 证据，不纳入本轮新修复。
 
 | ID | 优先级 | 模块 | 状态 | 规格卡 | AS3 源 | React 目标 | 当前症状 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -29,14 +29,15 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-co
 ### 后续推进顺序建议
 
 1. **战斗系统审计修复 2026-06-06/07**：`P0-BUFF-DOT` 当前为 Guarded；`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；`P2-BATTLE-TYPE-CONTRACTS` 当前为 Guarded；`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
-2. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复。
-3. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
-4. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
-5. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
-6. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
-7. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
-8. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
-9. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+2. **宠物模块审阅 2026-06-07**：`P1-PET-ATTACK-LOG-CONSISTENCY` 和 `P2-PET-INFO-TYPE-LABEL` 均已 Verified；后续若出现新宠物模块回归，仍要先扩展红灯 guard，再做单点修复，且不要把已排除的 pet data / `Protective` / `mc_name` / 战斗宠物快照项带入修复。
+3. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复。
+4. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
+5. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
+6. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
+7. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
+8. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
+9. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+10. 重构工作：只做已有 guard 覆盖范围内的小步重构。
 
 ### 战斗核心公式复核卡
 
@@ -73,6 +74,15 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-co
 | P1-PET-SKILL-PROT | P1 | 宠物技能仍保留本地护甲公式 | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` 覆盖 AS3 `Battle.as`/`PetSkillList.as` 证据、shared-formula 决策、静态公式所有权和 `p=-500` 宠物 Fireball 夹具 |
 | P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` 已 Guarded 但 manifest 状态过期 | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; 本卡为文档路由修正，不要求运行时代码改动 |
 | P2-BATTLE-TYPE-CONTRACTS | P2 | 战斗运行时类型契约过宽 | Guarded | `p2-battle-runtime-type-contracts-20260606.md` | Existing: `assert:battle-runtime-type-contracts`; Adjacent: `assert:domain-type-boundaries`, `assert:battle-state-immutability`, `assert:battle-player-state`; Always: `npx tsc -b` |
+
+### 宠物模块审阅卡 2026-06-07
+
+2026-06-07 新增：对宠物战斗日志、宠物面板显示、宠物数据查找、宠物技能映射、战斗中宠物快照和 sprite key 的专项审阅。确认需要路由的修复只有两张：一张处理宠物普通攻击日志自洽，一张处理主界面宠物类型标签。`getPetDataByLegacyId`、`Protective` 映射、`mc_name` 前缀和战斗宠物快照均已有 AS3/guard 证据，不作为本轮新修复卡。
+
+| ID | 优先级 | 模块 | 状态 | 规格卡 | 验收 |
+| --- | --- | --- | --- | --- | --- |
+| P1-PET-ATTACK-LOG-CONSISTENCY | P1 | 宠物普攻与 Life Drain 日志自洽 | Verified | `p1-battle-pet-attack-log-consistency-20260607.md` | Existing: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources`; Always: `npx tsc -b`; Browser smoke passed 2026-06-07 |
+| P2-PET-INFO-TYPE-LABEL | P2 | 主界面宠物类型标签显示 | Verified | `p2-pet-info-panel-type-label-consistency-20260607.md` | Existing: `assert:pet-window`; Adjacent: `assert:pet-window-selection`, `assert:pet-data`; Always: `npx tsc -b`; Browser smoke passed 2026-06-07 |
 
 ### 状态含义
 
@@ -114,7 +124,7 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, and runtime type-co
 
 This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one new issue, red guard, or browser-smoke target, read AS3 first, add or confirm the guard, then make the smallest repair.
 
-**2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-BUFF-DOT` is now guarded for DOT HP/log/kill behavior, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, `P2-BATTLE-TYPE-CONTRACTS` is now Guarded for runtime type contracts, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue.
+**2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-BUFF-DOT` is now guarded for DOT HP/log/kill behavior, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, `P2-BATTLE-TYPE-CONTRACTS` is now Guarded for runtime type contracts, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue. In the pet-module review, `P1-PET-ATTACK-LOG-CONSISTENCY` and `P2-PET-INFO-TYPE-LABEL` are now Verified; the other reviewed pet findings already have AS3/guard evidence and should not be pulled into these fixes.
 
 | ID | Priority | Module | Status | Card | AS3 Sources | React Targets | Current Symptom | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -135,14 +145,15 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 ### Recommended Next Order
 
 1. **Battle-system audit fixes 2026-06-06/07**: `P0-BUFF-DOT` is now Guarded, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P2-BATTLE-TYPE-CONTRACTS` is now Guarded. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For future runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
-2. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. No code change needed.
-3. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
-4. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
-5. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
-6. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
-7. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
-8. New issue review: write a short audit before adding a new parity card.
-9. Refactor work: only make small refactors under existing guard coverage.
+2. **Pet-module review 2026-06-07**: `P1-PET-ATTACK-LOG-CONSISTENCY` and `P2-PET-INFO-TYPE-LABEL` are now Verified. For future pet-module regressions, add the red guard first, keep fixes separate, and do not pull the excluded pet data / `Protective` / `mc_name` / battle-pet snapshot findings into the repair.
+3. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. No code change needed.
+4. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
+5. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
+6. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
+7. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
+8. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
+9. New issue review: write a short audit before adding a new parity card.
+10. Refactor work: only make small refactors under existing guard coverage.
 
 ### Architecture Review Queue
 
@@ -193,6 +204,15 @@ Added 2026-06-06: strict audit routing for combat formulas, numeric behavior, bu
 | P1-PET-SKILL-PROT | P1 | Pet skills still keep a local protection formula | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` covers AS3 `Battle.as`/`PetSkillList.as` evidence, the shared-formula decision, static formula ownership, and the `p=-500` pet Fireball fixture |
 | P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` is Guarded but manifest routing was stale | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; docs-routing correction only |
 | P2-BATTLE-TYPE-CONTRACTS | P2 | Battle runtime type contracts are too broad | Guarded | `p2-battle-runtime-type-contracts-20260606.md` | Existing: `assert:battle-runtime-type-contracts`; Adjacent: `assert:domain-type-boundaries`, `assert:battle-state-immutability`, `assert:battle-player-state`; Always: `npx tsc -b` |
+
+### Pet Module Review Cards 2026-06-07
+
+Added 2026-06-07: a focused review of pet battle logs, pet panel display, pet data lookup, pet skill mapping, battle pet snapshots, and sprite keys. Only two findings are routed for repair: pet normal-attack log self-consistency and the main pet info panel type label. `getPetDataByLegacyId`, `Protective` map assignment, `mc_name` prefixing, and battle pet snapshot behavior already have AS3/guard evidence and are not new repair cards from this pass.
+
+| ID | Priority | Module | Status | Card | Acceptance |
+| --- | --- | --- | --- | --- | --- |
+| P1-PET-ATTACK-LOG-CONSISTENCY | P1 | Pet normal attack and Life Drain log consistency | Verified | `p1-battle-pet-attack-log-consistency-20260607.md` | Existing: `assert:battle-pet-flow-logs`; Adjacent: `assert:battle-damage-log-death`, `assert:monster-reward`, `assert:text-resources`; Always: `npx tsc -b`; Browser smoke passed 2026-06-07 |
+| P2-PET-INFO-TYPE-LABEL | P2 | Main pet info panel type label | Verified | `p2-pet-info-panel-type-label-consistency-20260607.md` | Existing: `assert:pet-window`; Adjacent: `assert:pet-window-selection`, `assert:pet-data`; Always: `npx tsc -b`; Browser smoke passed 2026-06-07 |
 
 ### Status Meaning
 
