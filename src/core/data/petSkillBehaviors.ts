@@ -7,6 +7,7 @@ import type { BattleBehaviorResult } from '../types';
 import { BuffBurn, BuffFrozen, BuffCorrosion } from '../models/Buff';
 import { getCombatPower } from '../models/Player';
 import { balanceRandom } from '../math/MyMath';
+import { caculateProtection } from '../models/Battle';
 
 const CR = 50;
 const RED = '#ff4040';
@@ -17,15 +18,9 @@ function noop(): BattleBehaviorResult {
 
 // ═══ 辅助函数 ═══
 
-function calcProtection(p: number): number {
-  if (p >= 0) return 0.06 * p / (1 + 0.06 * p);
-  if (p < -1000) return -1;
-  return -(1 - Math.pow(0.94, -p));
-}
-
 function monsterPro(battle: any): number {
   if (!battle.monster) return 1;
-  return 1 - calcProtection(battle.monster.protection);
+  return 1 - caculateProtection(battle.monster.protection);
 }
 
 function petGetCritMul(battle: any, pet: any, extraCrit: number = 0): number {

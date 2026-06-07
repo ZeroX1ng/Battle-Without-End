@@ -12,6 +12,7 @@ import type { BuffData } from '../types';
 /** Buff 运行时上下文 - 提供对战斗状态的访问 */
 export interface BuffContext {
   monsterHp: number;
+  monsterNameHtml?: string;
 }
 
 export class Buff implements BuffData {
@@ -34,7 +35,7 @@ export class Buff implements BuffData {
     this.context = ctx;
   }
 
-  run(): string | null { return null; }
+  run(_context?: BuffContext): string | null { return null; }
 
   combine(other: BuffData): void {}
 
@@ -51,10 +52,12 @@ export class BuffBurn extends Buff {
     this.count = damage;
   }
 
-  run(): string | null {
-    if (!this.context) return null;
-    this.context.monsterHp -= this.count;
-    return `<font color='#ff4040'>灼伤</font>造成了<font color='#ff4040'>${this.count}</font>伤害`;
+  run(context?: BuffContext): string | null {
+    const ctx = context ?? this.context;
+    if (!ctx) return null;
+    ctx.monsterHp -= this.count;
+    const target = ctx.monsterNameHtml ? `对${ctx.monsterNameHtml}` : '';
+    return `<font color='#ff4040'>灼伤</font>${target}造成了<font color='#ff4040'>${this.count}</font>伤害`;
   }
 
   combine(other: BuffData): void {
@@ -70,7 +73,7 @@ export class BuffFrozen extends Buff {
     this.count = turns;
   }
 
-  run(): string | null {
+  run(_context?: BuffContext): string | null {
     this.count--;
     return `被<font color='#ff4040'>冰冻了!</font>`;
   }
@@ -88,10 +91,12 @@ export class BuffPoison extends Buff {
     this.count = damage;
   }
 
-  run(): string | null {
-    if (!this.context) return null;
-    this.context.monsterHp -= this.count;
-    return `<font color='#ff4040'>毒</font>造成了<font color='#ff4040'>${this.count}</font>伤害`;
+  run(context?: BuffContext): string | null {
+    const ctx = context ?? this.context;
+    if (!ctx) return null;
+    ctx.monsterHp -= this.count;
+    const target = ctx.monsterNameHtml ? `对${ctx.monsterNameHtml}` : '';
+    return `<font color='#ff4040'>毒</font>${target}造成了<font color='#ff4040'>${this.count}</font>伤害`;
   }
 
   combine(other: BuffData): void {
@@ -107,7 +112,7 @@ export class BuffCorrosion extends Buff {
     this.count = value;
   }
 
-  run(): string | null { return null; }
+  run(_context?: BuffContext): string | null { return null; }
 
   combine(other: BuffData): void {
     this.count += other.count;

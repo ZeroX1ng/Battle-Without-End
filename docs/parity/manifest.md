@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-05 (battle formula AS3-identical corrections)
+Last updated: 2026-06-07 (P1-PET-SKILL-PROT guarded shared formula)
 
 ## 中文
 
@@ -8,7 +8,7 @@ Last updated: 2026-06-05 (battle formula AS3-identical corrections)
 
 这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果出现新问题、guard 变红或需要浏览器 smoke，只选一个条目，先读 AS3，再补/确认 guard，再做最小修复。
 
-**2026-06-05 重要提示：** P1-CALCPROT-DUP 已对照 AS3 `Battle.as` 确认 -100 阈值并标记为 Guarded。P0-TITLE-TRUNC / P1-EQUIP-MINMAX / P2-TAUNT-PROB / P2-ATK-DBL-TRUNC 已复核为孤立公式片段 AS3-identical，但这不关闭 P0-DMG-FLAT：试玩层若出现固定最终伤害，仍必须按 P0-DMG-FLAT 处理，必要时作为 intentional divergence 记录。战斗公式队列剩余重点：P0-DMG-FLAT 仍为最高优先级；P1-BALRAND-DIV0 仍为明确边界缺陷，需后续补 guard。建议顺序：P0-DMG-FLAT → P1-BALRAND-DIV0；每张卡必须先对照 AS3 源码再动手。
+**2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。后续建议修复顺序：`P0-BUFF-DOT` → `P2-BATTLE-TYPE-CONTRACTS`；`P2-BALRAND-STATUS` 是本次文档路由修正卡，代码无需修复。
 
 | ID | 优先级 | 模块 | 状态 | 规格卡 | AS3 源 | React 目标 | 当前症状 | 验收 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ Last updated: 2026-06-05 (battle formula AS3-identical corrections)
 
 ### 后续推进顺序建议
 
-1. **战斗公式修复 2026-06-04/05**：`P1-CALCPROT-DUP` 已 Guarded；`P0-TITLE-TRUNC`、`P1-EQUIP-MINMAX`、`P2-TAUNT-PROB`、`P2-ATK-DBL-TRUNC` 已对照 AS3 纠偏为孤立公式片段 AS3-identical，但最终伤害长期固定仍归 `P0-DMG-FLAT`。后续按优先级 `P0-DMG-FLAT` → `P1-BALRAND-DIV0` 处理，每张卡必须先对照 AS3 确认原版行为再修复。
+1. **战斗系统审计修复 2026-06-06/07**：`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；后续按 `P0-BUFF-DOT` → `P2-BATTLE-TYPE-CONTRACTS` 处理。`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
 2. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复。
 3. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
 4. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
@@ -53,14 +53,26 @@ Last updated: 2026-06-05 (battle formula AS3-identical corrections)
 
 | ID | 优先级 | 模块 | 状态 | 规格卡 | 验收 |
 | --- | --- | --- | --- | --- | --- |
-| P0-DMG-FLAT | P0 | 伤害固定值 — 最终伤害波动不可见 | Needs repair | `p0-battle-damage-flat-20260604.md` | `Player.attack` 可能仍有离散值，但经过防御、护甲缩放和最终取整后会固定为单一日志伤害；Next: 先补输出层 red guard，再决定是否 intentional divergence |
+| P0-DMG-FLAT | P0 | 伤害固定值 — 最终伤害波动不可见 | Guarded | `p0-battle-damage-flat-20260604.md` | `assert:battle-damage-flat-output` 证明 AS3 同夹具最终也压成 89；React 记录 intentional divergence，并用玩家普通攻击最终 nearest rounding 让日志伤害恢复可见波动 |
 | P0-TITLE-TRUNC | P0 | `formula_title_stat` 截断时机 | AS3-identical | `p0-battle-formula-title-trunc-20260604.md` | AS3 `Player.as` 的 `formula_title_stat(param1:int, ...)` 入口与称号后返回均执行 `int` 截断；React 匹配原作，无需修复 |
 | P1-MON-ATK-GET | P1 | Monster/Pet attack getter 随机副作用 | AS3-identical | `p1-battle-monster-attack-getter-20260604.md` | AS3 原版 `Monster.attack` / `Pet.attack` 也是 getter 每次重新随机，React 行为与原版一致；无需修改 |
 | P1-CALCPROT-DUP | P1 | 护甲公式重复实现且负护甲阈值不一致 | Guarded | `p1-battle-calcprotection-duplicate-20260604.md` | AS3 `Battle.as` 确认阈值为 -100；`skillBehaviors.ts` 已复用 `Battle.ts` 的 `caculateProtection`；Guard: `assert:battle-calcprotection-duplicate` |
 | P1-EQUIP-MINMAX | P1 | 装备生成 min>max 处理 | AS3-identical | `p1-equip-attack-minmax-fix-20260604.md` | 孤立装备生成逻辑与 AS3 一致；最终伤害固定仍归 `P0-DMG-FLAT`，不要用本状态关闭输出波动问题 |
-| P1-BALRAND-DIV0 | P1 | `balanceRandom(100)` 除零边界 | Needs repair | `p1-math-balancerandom-divzero-20260604.md` | `(100 - _loc2_)` 分母为 0 产生 Infinity；Next: 对照 AS3 确认边界处理，添加显式 guard |
+| P1-BALRAND-DIV0 | P1 | `balanceRandom(100)` 除零边界 | Guarded | `p1-math-balancerandom-divzero-20260604.md` | React 已显式处理 0/100 边界并由 `assert:battle-numeric-coercion` 覆盖；路由修正记录见 `p2-math-balancerandom-manifest-status-20260606.md` |
 | P2-TAUNT-PROB | P2 | 宠物 Taunt 目标选择 | AS3-identical | `p2-battle-pet-taunt-probability-20260604.md` | AS3 `Battle.monsterTurn()` 同样在宠物拥有 Taunt 时无条件攻击宠物；React 匹配原作，无需增加概率判定 |
 | P2-ATK-DBL-TRUNC | P2 | `getAttack` 双重截断 | AS3-identical | `p2-battle-getattack-double-trunc-20260604.md` | 孤立截断链路与 AS3 一致；最终伤害固定仍归 `P0-DMG-FLAT`，必要时作为 intentional divergence 处理 |
+
+### 战斗系统审计卡 2026-06-06
+
+2026-06-06 新增：对战斗公式、数值、buff tick、宠物技能公式和类型边界的严格审计路由。以下卡片按修复顺序排列；每次只处理一张。
+
+| ID | 优先级 | 模块 | 状态 | 规格卡 | 验收 |
+| --- | --- | --- | --- | --- | --- |
+| P0-BUFF-DOT | P0 | 灼伤/中毒 DOT 没有扣减实时 `monsterHp` | Needs repair | `p0-battle-buff-dot-effects-20260606.md` | Next: 新增 `assert:battle-buff-dot-effects`，验证 Burn/Poison tick 扣 HP、产生日志，并覆盖 DOT 击杀结算 |
+| P0-DMG-FLAT-OUT | P0 | 最终日志伤害波动被防御/护甲/取整压平 | Guarded | `p0-battle-damage-flat-output-guard-20260606.md` | Existing: `assert:battle-damage-flat-output` 输出攻击集合、AS3 最终集合、React 日志集合、防御/护甲和取整前范围；结论为 intentional divergence |
+| P1-PET-SKILL-PROT | P1 | 宠物技能仍保留本地护甲公式 | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` 覆盖 AS3 `Battle.as`/`PetSkillList.as` 证据、shared-formula 决策、静态公式所有权和 `p=-500` 宠物 Fireball 夹具 |
+| P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` 已 Guarded 但 manifest 状态过期 | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; 本卡为文档路由修正，不要求运行时代码改动 |
+| P2-BATTLE-TYPE-CONTRACTS | P2 | 战斗运行时类型契约过宽 | Guard needed | `p2-battle-runtime-type-contracts-20260606.md` | Next: 新增或扩展类型 guard，修正 `MonsterInstance.runBuff()` 返回契约和技能行为结果边界 |
 
 ### 状态含义
 
@@ -102,6 +114,8 @@ Last updated: 2026-06-05 (battle formula AS3-identical corrections)
 
 This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one new issue, red guard, or browser-smoke target, read AS3 first, add or confirm the guard, then make the smallest repair.
 
+**2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue.
+
 | ID | Priority | Module | Status | Card | AS3 Sources | React Targets | Current Symptom | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | P0-START | P0 | Character and age selection | Guarded | `p0-start-character-age.md` | `RaceList.as`, `Player.as`, `MainTimeline.as`, `MainScene.as` | `RaceScene.tsx`, `raceData.ts`, `Player.ts`, `GameContext.tsx` | The in-game character and age selection flow differs from the original | Existing: `assert:growth-skill-protection`, `assert:start-character-age`; Next: browser smoke |
@@ -120,7 +134,7 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 
 ### Recommended Next Order
 
-1. **Battle formula fixes 2026-06-04/05**: `P1-CALCPROT-DUP` is now Guarded; `P0-TITLE-TRUNC`, `P1-EQUIP-MINMAX`, `P2-TAUNT-PROB`, and `P2-ATK-DBL-TRUNC` are confirmed AS3-identical only as isolated formula slices. Player-visible fixed final damage still belongs to `P0-DMG-FLAT` and may require an intentional divergence. Process the remaining repair queue in priority order `P0-DMG-FLAT` → `P1-BALRAND-DIV0`.
+1. **Battle-system audit fixes 2026-06-06/07**: `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, and `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision; continue with `P0-BUFF-DOT` → `P2-BATTLE-TYPE-CONTRACTS`. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
 2. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. No code change needed.
 3. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
 4. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
@@ -159,14 +173,26 @@ Added 2026-06-04: Full code review of the core battle damage formula. The root c
 
 | ID | Priority | Topic | Status | Card | Acceptance |
 | --- | --- | --- | --- | --- | --- |
-| P0-DMG-FLAT | P0 | Flat damage — invisible final-damage variance | Needs repair | `p0-battle-damage-flat-20260604.md` | `Player.attack` can still have multiple values, but defence, protection scaling, and final integer rounding can collapse logs to one fixed damage value; Next: add an output-layer red guard before deciding the intentional divergence |
+| P0-DMG-FLAT | P0 | Flat damage — invisible final-damage variance | Guarded | `p0-battle-damage-flat-20260604.md` | `assert:battle-damage-flat-output` proves the same AS3 fixture also collapses to 89; React records an intentional divergence and uses nearest rounding for player normal-attack final visible damage |
 | P0-TITLE-TRUNC | P0 | `formula_title_stat` truncation timing | AS3-identical | `p0-battle-formula-title-trunc-20260604.md` | AS3 `Player.as` truncates at the `formula_title_stat(param1:int, ...)` boundary and again after title add/mul; React matches original behavior — no change needed |
 | P1-MON-ATK-GET | P1 | Monster/Pet attack getter hidden random side-effect | AS3-identical | `p1-battle-monster-attack-getter-20260604.md` | AS3 `Monster.attack` / `Pet.attack` also re-rolls on every getter access; React matches original behavior — no change needed |
 | P1-CALCPROT-DUP | P1 | Duplicate armor formula with inconsistent negative-armor thresholds | Guarded | `p1-battle-calcprotection-duplicate-20260604.md` | AS3 `Battle.as` confirms the -100 threshold; `skillBehaviors.ts` now reuses `Battle.ts` `caculateProtection`; Guard: `assert:battle-calcprotection-duplicate` |
 | P1-EQUIP-MINMAX | P1 | Equipment min>max handling | AS3-identical | `p1-equip-attack-minmax-fix-20260604.md` | The isolated equipment-generation behavior matches AS3; fixed final damage still belongs to `P0-DMG-FLAT` |
-| P1-BALRAND-DIV0 | P1 | `balanceRandom(100)` division-by-zero edge case | Needs repair | `p1-math-balancerandom-divzero-20260604.md` | Denominator `(100 - _loc2_)` → 0 producing Infinity; Next: cross-check AS3 boundary handling, add explicit guard |
+| P1-BALRAND-DIV0 | P1 | `balanceRandom(100)` division-by-zero edge case | Guarded | `p1-math-balancerandom-divzero-20260604.md` | React explicitly handles the 0/100 edge and `assert:battle-numeric-coercion` covers it; routing correction recorded in `p2-math-balancerandom-manifest-status-20260606.md` |
 | P2-TAUNT-PROB | P2 | Pet Taunt target selection | AS3-identical | `p2-battle-pet-taunt-probability-20260604.md` | AS3 `Battle.monsterTurn()` also always attacks the pet when Taunt exists; React matches original behavior — no probability check should be added |
 | P2-ATK-DBL-TRUNC | P2 | `getAttack` double truncation | AS3-identical | `p2-battle-getattack-double-trunc-20260604.md` | The isolated truncation chain matches AS3; fixed final damage still belongs to `P0-DMG-FLAT` and may become an intentional divergence |
+
+### Battle System Audit 2026-06-06
+
+Added 2026-06-06: strict audit routing for combat formulas, numeric behavior, buff ticks, pet-skill formulas, and runtime type boundaries. Cards are listed in recommended repair order.
+
+| ID | Priority | Topic | Status | Card | Acceptance |
+| --- | --- | --- | --- | --- | --- |
+| P0-BUFF-DOT | P0 | Burn/poison DOT does not reduce live `monsterHp` | Needs repair | `p0-battle-buff-dot-effects-20260606.md` | Next: add `assert:battle-buff-dot-effects` covering DOT HP deltas, logs, and DOT kill settlement |
+| P0-DMG-FLAT-OUT | P0 | Final logged damage variance collapses after defence/protection/rounding | Guarded | `p0-battle-damage-flat-output-guard-20260606.md` | Existing: `assert:battle-damage-flat-output` captures attack samples, AS3 final damage, React logged damage, defence/protection, and pre-round range; conclusion is intentional divergence |
+| P1-PET-SKILL-PROT | P1 | Pet skills still keep a local protection formula | Guarded | `p1-battle-pet-skill-protection-formula-20260606.md` | Existing: `assert:battle-calcprotection-duplicate` covers AS3 `Battle.as`/`PetSkillList.as` evidence, the shared-formula decision, static formula ownership, and the `p=-500` pet Fireball fixture |
+| P2-BALRAND-STATUS | P2 | `balanceRandom(0/100)` is Guarded but manifest routing was stale | Guarded | `p2-math-balancerandom-manifest-status-20260606.md` | Existing: `assert:battle-numeric-coercion`; docs-routing correction only |
+| P2-BATTLE-TYPE-CONTRACTS | P2 | Battle runtime type contracts are too broad | Guard needed | `p2-battle-runtime-type-contracts-20260606.md` | Next: add or extend a type guard for `MonsterInstance.runBuff()` and skill behavior result contracts |
 
 ### Status Meaning
 

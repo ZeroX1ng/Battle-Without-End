@@ -224,7 +224,7 @@ export interface BuffData {
   turn: number;
   maxTurn: number;
   perValue: number;
-  run(): void;
+  run(context?: { monsterHp: number; monsterNameHtml?: string }): string | null;
   isOver(): boolean;
   combine(other: BuffData): void;
 }
@@ -423,7 +423,7 @@ export interface MonsterInstance {
   protection: number;
   nameHtml: string;
   addBuff(buff: BuffData): void;
-  runBuff(): void;
+  runBuff(context?: { monsterHp: number; monsterNameHtml?: string }): string[];
   removeBuff(): void;
   isContainBuff(name: string): BuffData | null;
   dropItem(): void;

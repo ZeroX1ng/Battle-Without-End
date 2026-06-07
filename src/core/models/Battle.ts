@@ -25,6 +25,12 @@ import type { Skill } from './Skill';
 /** 暴击上限常量 */
 const CR = 50;
 
+function roundPlayerVisibleDamage(value: number): number {
+  // P0-DMG-FLAT-OUT intentional divergence: AS3 truncates here, but that
+  // can erase real attack variance after defence/protection scaling.
+  return Math.max(1, Math.round(value));
+}
+
 /** Battle.run() 返回的战斗结果 */
 export interface BattleRunResult {
   caculate: number;
@@ -412,9 +418,8 @@ export class Battle {
     const protection = caculateProtection(effProtection);
 
     // 伤害 = (攻击力 * 暴击倍率 - 防御力) * (1 - 护甲减伤)
-    let damage = (getAttack(player) * critMul - mon.defence) * (1 - protection);
-    if (damage < 1) damage = 1;
-    const finalDamage = Math.floor(damage);
+    const damage = (getAttack(player) * critMul - mon.defence) * (1 - protection);
+    const finalDamage = roundPlayerVisibleDamage(damage);
 
     this.monsterHp -= finalDamage;
     const monsterName = this.getMonsterNameHtml();
@@ -431,7 +436,12 @@ export class Battle {
   /** 怪物攻击回合 */
   private monsterTurn(): void {
     if (!this.monster) return;
-    const buffLogs = this.monster.runBuff();
+    const buffContext = {
+      monsterHp: this.monsterHp,
+      monsterNameHtml: this.getMonsterNameHtml(),
+    };
+    const buffLogs = this.monster.runBuff(buffContext);
+    this.monsterHp = buffContext.monsterHp;
     this.emitLogs(buffLogs);
     const frozen = this.monster.isContainBuff('frozen');
     if (frozen || this.monsterHp <= 0) return;

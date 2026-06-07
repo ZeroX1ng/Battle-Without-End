@@ -1,8 +1,16 @@
 # P0 Battle Damage Flat — min-max 差距压缩导致伤害固定值
 
-Last updated: 2026-06-05
+Last updated: 2026-06-07
 
 ## 中文
+
+### 2026-06-07 修复结论
+
+`P0-DMG-FLAT-OUT` 已按输出层 guard 完成。AS3 同一数值夹具下也会把 `Player.attack` 的 `743..749` 离散值压成单一最终日志伤害 `[89]`，因此本卡结论是 intentional divergence，而不是 React 公式漂移。React 现在保留 AS3 攻击采样、装备、`balanceRandom()`、防御和护甲公式，只在玩家普通攻击最终可见伤害层使用 nearest rounding，让非 1 的最终日志伤害不再长期固定为单一数字。
+
+### 2026-06-07 Resolution
+
+`P0-DMG-FLAT-OUT` is now covered by the output-layer guard. The same AS3 numeric fixture also collapses `Player.attack` samples `743..749` into one final logged damage value `[89]`, so this card is an intentional divergence rather than a React formula drift. React keeps AS3 attack sampling, equipment, `balanceRandom()`, defence, and protection formulas, and only uses nearest rounding for player normal-attack final visible damage.
 
 ### 当前状态
 

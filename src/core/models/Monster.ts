@@ -4,6 +4,7 @@
 // 管理怪物实例：BUFF、掉落、战斗属性。
 
 import type { GlobalConfig, LootState, MonsterData, PetData, PlayerState, WeaponData } from '../types';
+import type { BuffContext } from './Buff';
 import { as3Int, balanceRandom } from '../math/MyMath';
 import { MonsterTitleList, REGION_BOSS_TITLE } from '../data/monsterData';
 import { Pet } from './Pet';
@@ -215,11 +216,11 @@ export class Monster {
     }
   }
 
-  runBuff(): string[] {
+  runBuff(context?: BuffContext): string[] {
     const logs: string[] = [];
     let _loc1_: number = 0;
     while (_loc1_ < this.buffList.length) {
-      const msg = this.buffList[_loc1_].run();
+      const msg = this.buffList[_loc1_].run(context);
       if (msg) logs.push(msg);
       _loc1_++;
     }
