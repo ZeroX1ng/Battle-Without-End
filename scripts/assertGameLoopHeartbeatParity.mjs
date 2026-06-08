@@ -100,6 +100,21 @@ assertIncludes(
 );
 assertIncludes(
   useGameLoop,
+  'export function planGameLoopSchedule',
+  'useGameLoop must expose the scheduling helper used to clamp visible cadence.'
+);
+assertIncludes(
+  useGameLoop,
+  'ticksToRun',
+  'useGameLoop must separate elapsed debt from the visible ticks run in one scheduler pass.'
+);
+assertNotIncludes(
+  useGameLoop,
+  'for (let i = 0; i < dueTicks; i += 1)',
+  'useGameLoop must not synchronously replay every due tick in one visible scheduler pass.'
+);
+assertIncludes(
+  useGameLoop,
   'callbackRef.current()',
   'useGameLoop must continue to invoke the latest callback reference.'
 );

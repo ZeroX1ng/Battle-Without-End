@@ -1,34 +1,67 @@
-// ═══ useGameLoop - 心跳 Hook ═══
-// 替代 AS3 的 Timer(500) 自动战斗循环。
-// 使用墙钟时间补偿后台标签页期间错过的逻辑 tick。
-// 严格按照计划文档原则6设计。
-
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface GameLoopOptions {
-  /** 每 tick 回调 */
   callback: () => void;
-  /** 间隔毫秒（默认 500ms，对应原游戏） */
   intervalMs?: number;
-  /** 是否启用 */
   enabled?: boolean;
 }
 
-/**
- * 游戏主循环 Hook
- *
- * 用 Date.now() 计算经过的真实时间。
- * 浏览器后台节流导致回调延迟时，回到前台后会补齐应发生的逻辑 tick。
- *
- * @returns { tick, isRunning } - 当前 tick 计数和运行状态
- */
+type GameLoopScheduleInput = {
+  now: number;
+  lastTime: number;
+  intervalMs: number;
+  maxTicksPerLoop?: number;
+};
+
+export type GameLoopSchedulePlan = {
+  dueTicks: number;
+  ticksToRun: number;
+  skippedTicks: number;
+  nextLastTime: number;
+  nextDelayMs: number;
+};
+
+export function planGameLoopSchedule({
+  now,
+  lastTime,
+  intervalMs,
+  maxTicksPerLoop = 1,
+}: GameLoopScheduleInput): GameLoopSchedulePlan {
+  const safeIntervalMs = Math.max(1, intervalMs);
+  const safeMaxTicksPerLoop = Math.max(1, Math.floor(maxTicksPerLoop));
+  const elapsed = now - lastTime;
+
+  if (elapsed < safeIntervalMs) {
+    return {
+      dueTicks: 0,
+      ticksToRun: 0,
+      skippedTicks: 0,
+      nextLastTime: lastTime,
+      nextDelayMs: safeIntervalMs - Math.max(0, elapsed),
+    };
+  }
+
+  const dueTicks = Math.floor(elapsed / safeIntervalMs);
+  const ticksToRun = Math.min(dueTicks, safeMaxTicksPerLoop);
+  const skippedTicks = dueTicks - ticksToRun;
+  const nextLastTime = now;
+  const nextDelayMs = safeIntervalMs;
+
+  return {
+    dueTicks,
+    ticksToRun,
+    skippedTicks,
+    nextLastTime,
+    nextDelayMs,
+  };
+}
+
 export function useGameLoop({ callback, intervalMs = 500, enabled = true }: GameLoopOptions) {
   const tickRef = useRef(0);
   const lastTimeRef = useRef(0);
   const callbackRef = useRef(callback);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 保持 callback 引用最新
   callbackRef.current = callback;
 
   const clearLoop = useCallback(() => {
@@ -40,18 +73,22 @@ export function useGameLoop({ callback, intervalMs = 500, enabled = true }: Game
 
   const loop = useCallback(() => {
     const now = Date.now();
-    const elapsed = now - lastTimeRef.current;
+    const plan = planGameLoopSchedule({
+      now,
+      lastTime: lastTimeRef.current,
+      intervalMs,
+    });
 
-    if (elapsed >= intervalMs) {
-      const dueTicks = Math.floor(elapsed / intervalMs);
-      lastTimeRef.current += dueTicks * intervalMs;
-      for (let i = 0; i < dueTicks; i += 1) {
+    if (plan.ticksToRun > 0) {
+      lastTimeRef.current = plan.nextLastTime;
+      for (let i = 0; i < plan.ticksToRun; i += 1) {
         tickRef.current++;
         callbackRef.current();
       }
     }
 
-    const nextDelay = Math.max(0, intervalMs - (Date.now() - lastTimeRef.current));
+    const callbackElapsedMs = Date.now() - now;
+    const nextDelay = Math.max(0, plan.nextDelayMs - callbackElapsedMs);
     timeoutRef.current = setTimeout(loop, nextDelay);
   }, [intervalMs]);
 

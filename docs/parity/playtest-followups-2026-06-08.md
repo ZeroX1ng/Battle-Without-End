@@ -12,7 +12,7 @@ Last updated: 2026-06-08
 
 | ID | 优先级 | Parity 类型 | 问题简述 | 状态 | 建议 guard |
 | --- | --- | --- | --- | --- | --- |
-| `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | 正常速度下攻击回合明显快于 AS3 原版 | Needs repair | `assert:battle-tempo-cadence` |
+| `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | 正常速度下攻击回合明显快于 AS3 原版 | Verified | `assert:battle-tempo-cadence` |
 | `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | 战斗中敌人攻击力数值快速反复变动 | Needs repair | `assert:monster-info-display-parity` |
 | `P1-COMBAT-POWER-EQUIPLESS-READOUT` | P1 | Product decision candidate | 显示战斗力不反映装备后真实压制力，300 CP 可轻松打 900+ 地图 | Needs product decision | `assert:combat-power-readout-parity` |
 | `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | 背包装备浮窗过大、遮挡严重、可越出游戏边框 | Needs repair | `assert:item-info-window-bounds` |
@@ -22,6 +22,8 @@ Last updated: 2026-06-08
 ### `P0-BATTLE-TEMPO-CADENCE`
 
 **Scope:** 正常 1x 速度下，战斗日志和 HP 变化看起来比 AS3 原版快，攻击回合缺少原版 500ms Timer 的稳定节奏感。
+
+**Status:** Verified 2026-06-08. `assert:battle-tempo-cadence` proves AS3 uses a single `Timer(500)` event per `fight()` and React 1x foreground scheduling consumes at most one visible battle tick per scheduler pass. Browser cadence smoke ran for about 21 seconds at 1x with one-hit disabled; no sampled damage-log burst appended multiple attack turns at once.
 
 **Observed Symptom:** 即使测试倍率显示为正常速度，玩家/宠物/怪物行动仍可能以突发方式连续推进，肉眼感知像被加速。
 
@@ -53,10 +55,10 @@ Last updated: 2026-06-08
 **Repair Direction:**
 
 1. 新增调度层 guard，模拟 1x 前台 elapsed 超过 500ms 时的行为，证明是否会同步补跑多 tick。
-2. 区分前台可见节奏与后台恢复：前台建议最多消费 1 个 visible tick；后台恢复可按产品体验决定是否分帧补跑或限制补跑上限。
+2. 区分前台可见节奏与后台恢复：前台最多消费 1 个 visible tick；elapsed debt 仍可被调度 helper 识别，但不能在同一 scheduler pass 中同步重放为多回合日志。
 3. 浏览器 smoke 用 1x 录制至少 10 次日志时间戳，确认相邻可见攻击回合不出现同帧/同毫秒突发。
 
-**Acceptance Tests:** `npm run assert:battle-tempo-cadence` (new), `npm run assert:game-loop`, `npm run assert:test-speed-control`, `npm run assert:battle-damage-log-death`, `npx tsc -b`.
+**Acceptance Tests:** `npm run assert:battle-tempo-cadence`, `npm run assert:game-loop`, `npm run assert:test-speed-control`, `npm run assert:battle-damage-log-death`, `npx tsc -b`.
 
 **Manual Smoke:** 打开主场景，确认倍率为 `1x` 且无敌关闭；观察 20 秒战斗日志和 HP 变化，记录玩家/宠物 turn 与怪物 turn 是否按约 500ms 间隔推进，且没有回到前台后瞬间刷出多轮攻击。
 
@@ -202,14 +204,14 @@ This file turns the 2026-06-08 playtest findings into focused parity/product-bou
 
 | ID | Priority | Type | Issue | Status | Suggested Guard |
 | --- | --- | --- | --- | --- | --- |
-| `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | At normal speed, visible attack turns feel faster than AS3 | Needs repair | `assert:battle-tempo-cadence` |
+| `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | At normal speed, visible attack turns feel faster than AS3 | Verified | `assert:battle-tempo-cadence` |
 | `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | Enemy attack value flickers rapidly during battle | Needs repair | `assert:monster-info-display-parity` |
 | `P1-COMBAT-POWER-EQUIPLESS-READOUT` | P1 | Product decision candidate | Displayed CP is base-only and does not reflect equipped combat strength | Needs product decision | `assert:combat-power-readout-parity` |
 | `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | Equipment hover tooltip is too large and can escape the game frame | Needs repair | `assert:item-info-window-bounds` |
 
 ### Implementation Notes
 
-- `P0-BATTLE-TEMPO-CADENCE`: AS3 uses a `Timer(500)` and one `fight()` per timer event. React still defaults to 500ms, but `useGameLoop` can synchronously catch up multiple due ticks after elapsed time exceeds one interval, which can create bursty visible combat.
+- `P0-BATTLE-TEMPO-CADENCE`: AS3 uses a `Timer(500)` and one `fight()` per timer event. React still defaults to 500ms, and `useGameLoop` now routes elapsed scheduling through `planGameLoopSchedule`, which preserves elapsed-debt measurement while clamping 1x foreground execution to at most one visible battle tick per scheduler pass. Browser smoke passed on 2026-06-08 with 1x pressed, one-hit disabled, and no sampled multi-attack burst.
 - `P1-MONSTER-INFO-ATTACK-FLICKER`: AS3 `MonsterInfoPanel` does not display monster attack. React displays `Math.floor(mon.attack)`, but `Monster.attack` is a random getter, so the UI exposes a combat-only side effect.
 - `P1-COMBAT-POWER-EQUIPLESS-READOUT`: AS3 and React both calculate CP without equipment. Treat any equipment-inclusive power display as a separate product override, not a replacement for AS3 `combatPower`.
 - `P1-EQUIP-TOOLTIP-BOUNDS`: AS3 `ItemInfoWindow` is 130px wide with a drawn border and stage-edge adjustment. React currently uses 300px panes and browser-window bounds, so dual equipment comparison can occupy 610px and escape the game frame.

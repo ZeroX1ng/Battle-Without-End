@@ -27,6 +27,7 @@ function assertNotIncludes(source, needle, message) {
 const battleModel = read('src/core/models/Battle.ts');
 const gameContext = read('src/state/GameContext.tsx');
 const reducerEffects = read('src/state/reducerEffects.ts');
+const skillBehaviors = read('src/core/data/skillBehaviors.ts');
 const titleData = read('src/core/data/titleData.ts');
 const packageJson = JSON.parse(read('package.json'));
 
@@ -47,8 +48,13 @@ assertIncludes(
 );
 assertIncludes(
   battleModel,
-  'private addTitleEvent',
-  'Battle must collect title progress as explicit events.'
+  'addTitleEvent(name: string',
+  'Battle must expose title progress as explicit events for battle behavior helpers.'
+);
+assertIncludes(
+  skillBehaviors,
+  "typeof battle.addTitleEvent === 'function'",
+  'Battle behavior helpers must keep title-event dispatch optional for Battle-like fixtures.'
 );
 assertIncludes(
   gameContext,
