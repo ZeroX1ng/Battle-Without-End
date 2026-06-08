@@ -1,12 +1,14 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contract, and pet-module review updates)
+Last updated: 2026-06-08 (playtest cadence, monster-info flicker, combat-power readout, and equipment tooltip-bounds cards added)
 
 ## 中文
 
 ### 使用方式
 
 这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果出现新问题、guard 变红或需要浏览器 smoke，只选一个条目，先读 AS3，再补/确认 guard，再做最小修复。
+
+**2026-06-08 重要提示：** 本轮试玩新增 4 张路由卡：`P0-BATTLE-TEMPO-CADENCE`、`P1-MONSTER-INFO-ATTACK-FLICKER`、`P1-COMBAT-POWER-EQUIPLESS-READOUT`、`P1-EQUIP-TOOLTIP-BOUNDS`。其中战斗节奏、怪物信息面板攻击力跳变、装备浮窗边界均是玩家可见修复候选；战斗力读数已确认 AS3/React 都是不含装备的基础 CP，后续若要改善真实强度表达，应作为 product override 单独决策，不能直接替换 AS3 `combatPower` 语义。
 
 **2026-06-07 重要提示：** 严格战斗系统审计新增 5 张路由卡：`P0-BUFF-DOT`、`P0-DMG-FLAT-OUT`、`P1-PET-SKILL-PROT`、`P2-BALRAND-STATUS`、`P2-BATTLE-TYPE-CONTRACTS`。`P0-BUFF-DOT` 已通过 DOT HP/log/kill guard；`P0-DMG-FLAT-OUT` 已通过输出层 guard，并记录为 intentional divergence；`P1-PET-SKILL-PROT` 已通过 shared-formula guard；`P2-BATTLE-TYPE-CONTRACTS` 已通过运行时类型契约 guard；`P1-BALRAND-DIV0` 已复核为 Guarded，不再排入 active repair queue。`P2-BALRAND-STATUS` 是文档路由修正卡，代码无需修复。宠物模块复核中 `P1-PET-ATTACK-LOG-CONSISTENCY` 和 `P2-PET-INFO-TYPE-LABEL` 均已 Verified；其余审阅项已有 AS3/guard 证据，不纳入本轮新修复。
 
@@ -30,14 +32,15 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contra
 
 1. **战斗系统审计修复 2026-06-06/07**：`P0-BUFF-DOT` 当前为 Guarded；`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；`P2-BATTLE-TYPE-CONTRACTS` 当前为 Guarded；`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
 2. **宠物模块审阅 2026-06-07**：`P1-PET-ATTACK-LOG-CONSISTENCY` 和 `P2-PET-INFO-TYPE-LABEL` 均已 Verified；后续若出现新宠物模块回归，仍要先扩展红灯 guard，再做单点修复，且不要把已排除的 pet data / `Protective` / `mc_name` / 战斗宠物快照项带入修复。
-3. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复。
-4. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
-5. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
-6. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
-7. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
-8. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
-9. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
-10. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+3. **试玩 follow-up 2026-06-08**：优先处理 `P0-BATTLE-TEMPO-CADENCE`，因为节奏会影响所有战斗 smoke；其次处理 `P1-MONSTER-INFO-ATTACK-FLICKER` 和 `P1-EQUIP-TOOLTIP-BOUNDS` 两个 UI 可见问题；`P1-COMBAT-POWER-EQUIPLESS-READOUT` 先做产品决策，不要直接改 AS3 `combatPower` 公式。
+4. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复；但不要把该随机 getter 暴露在持续重渲染的怪物信息面板中。
+5. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
+6. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
+7. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
+8. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
+9. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
+10. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+11. 重构工作：只做已有 guard 覆盖范围内的小步重构。
 
 ### 战斗核心公式复核卡
 
@@ -88,6 +91,7 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contra
 
 - `Needs repair`: 已发现玩家可见错误，缺少完整行为还原。
 - `Needs AS3 verification`: 行为待对照 AS3 确认——可能已是原版行为，无需修复；也可能存在漂移。
+- `Needs product decision`: 已确认或高度怀疑 AS3 parity 本身成立，但当前试玩体验需要决定是否做 intentional product override。
 - `AS3-identical`: 已确认与原版行为一致，无需修改。
 - `Guard needed`: 行为已定位，但还没有可执行 guard。
 - `Guarded`: 已有 guard 覆盖核心行为，但仍需浏览器 smoke。
@@ -103,6 +107,11 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contra
 | PLAYTEST-2026-06-04 | Mixed | 2026-06-04 试玩发现 follow-up | Queued | `playtest-followups-2026-06-04.md` | 每次只选择一个卡片 ID；先读 AS3，先补/确认 red guard，再做最小修复；最后跑专属 guard、相邻 guard、`npx tsc -b` 和 UI smoke |
 | P0-BATTLE-INIT-HEAL | P0 | 战斗初始化回血 | Verified | `playtest-followups-2026-06-04.md#p0-battle-init-heal` | AS3 `Battle.init()` 与 React `Battle.init()` 均在击杀后重读最大 HP/MP；已确认是原作行为，无需修复 |
 | P1-PLAYER-INFO-DISPLAY | P1 | 角色状态栏显示 | Verified | `playtest-followups-2026-06-04.md#p1-player-info-display` | 状态栏攻击范围、主属性基础值括号/红金着色、暴击倍数百分比已由 `assert:stat-list` 覆盖；`assert:equip-window`、`npx tsc -b` 和浏览器 smoke 已通过 |
+| PLAYTEST-2026-06-08 | Mixed | 2026-06-08 试玩发现 follow-up | Queued | `playtest-followups-2026-06-08.md` | 每次只选择一个卡片 ID；先读 AS3，先补/确认 red guard，再做最小修复；最后跑专属 guard、相邻 guard、`npx tsc -b` 和 UI smoke |
+| P0-BATTLE-TEMPO-CADENCE | P0 | 战斗节奏可见 cadence | Needs repair | `playtest-followups-2026-06-08.md#p0-battle-tempo-cadence` | AS3 `Timer(500)` 每次只推进一个 `fight()`；React 需验证 1x 前台不会因 elapsed catch-up 同步补跑多回合；Suggested: `assert:battle-tempo-cadence`, adjacent `assert:game-loop`, `assert:test-speed-control`, `assert:battle-damage-log-death`, `npx tsc -b`, browser cadence smoke |
+| P1-MONSTER-INFO-ATTACK-FLICKER | P1 | 怪物信息面板攻击力跳变 | Needs repair | `playtest-followups-2026-06-08.md#p1-monster-info-attack-flicker` | AS3 怪物面板不显示随机攻击值；React 不应在渲染路径读取 `mon.attack`；Suggested: `assert:monster-info-display-parity`, adjacent `assert:monster-data-integrity`, `assert:monster-title-tooltip`, `npx tsc -b`, browser flicker smoke |
+| P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | 战斗力读数与装备实战力脱钩 | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` 均不含装备；后续若要表达装备后实战力，应新增 product override 显示，不要替换 AS3 内部 CP；Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
+| P1-EQUIP-TOOLTIP-BOUNDS | P1 | 装备浮窗尺寸与边界 | Needs repair | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` 固定 130px 并按 stage 边界修正；React 300px 双面板需限制到游戏容器内；Suggested: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, browser bounds smoke |
 
 ### Architecture Review Queue
 
@@ -123,6 +132,8 @@ Last updated: 2026-06-07 (battle audit guarded formula, DOT, runtime type-contra
 ### How To Use
 
 This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one new issue, red guard, or browser-smoke target, read AS3 first, add or confirm the guard, then make the smallest repair.
+
+**2026-06-08 note:** This playtest pass added four routed cards: `P0-BATTLE-TEMPO-CADENCE`, `P1-MONSTER-INFO-ATTACK-FLICKER`, `P1-COMBAT-POWER-EQUIPLESS-READOUT`, and `P1-EQUIP-TOOLTIP-BOUNDS`. Battle cadence, monster-info attack flicker, and equipment tooltip bounds are player-visible repair candidates. Combat power has AS3/React evidence showing that `combatPower` is base-only and excludes equipment; any stronger equipment-inclusive readout must be a product override and must not silently replace the AS3 `combatPower` semantics.
 
 **2026-06-07 note:** The strict battle-system audit added five routed cards: `P0-BUFF-DOT`, `P0-DMG-FLAT-OUT`, `P1-PET-SKILL-PROT`, `P2-BALRAND-STATUS`, and `P2-BATTLE-TYPE-CONTRACTS`. `P0-BUFF-DOT` is now guarded for DOT HP/log/kill behavior, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, `P2-BATTLE-TYPE-CONTRACTS` is now Guarded for runtime type contracts, and `P1-BALRAND-DIV0` is now Guarded; none of those should remain in the active repair queue. In the pet-module review, `P1-PET-ATTACK-LOG-CONSISTENCY` and `P2-PET-INFO-TYPE-LABEL` are now Verified; the other reviewed pet findings already have AS3/guard evidence and should not be pulled into these fixes.
 
@@ -146,14 +157,15 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 
 1. **Battle-system audit fixes 2026-06-06/07**: `P0-BUFF-DOT` is now Guarded, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P2-BATTLE-TYPE-CONTRACTS` is now Guarded. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For future runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
 2. **Pet-module review 2026-06-07**: `P1-PET-ATTACK-LOG-CONSISTENCY` and `P2-PET-INFO-TYPE-LABEL` are now Verified. For future pet-module regressions, add the red guard first, keep fixes separate, and do not pull the excluded pet data / `Protective` / `mc_name` / battle-pet snapshot findings into the repair.
-3. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. No code change needed.
-4. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
-5. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
-6. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
-7. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
-8. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
-9. New issue review: write a short audit before adding a new parity card.
-10. Refactor work: only make small refactors under existing guard coverage.
+3. **Playtest follow-up 2026-06-08**: prioritize `P0-BATTLE-TEMPO-CADENCE` because cadence affects every battle smoke; then handle the visible UI issues `P1-MONSTER-INFO-ATTACK-FLICKER` and `P1-EQUIP-TOOLTIP-BOUNDS`; keep `P1-COMBAT-POWER-EQUIPLESS-READOUT` in product-decision mode before changing any AS3 `combatPower` formula.
+4. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. Do not expose that random getter in continuously re-rendered monster info UI.
+5. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
+6. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
+7. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
+8. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
+9. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
+10. New issue review: write a short audit before adding a new parity card.
+11. Refactor work: only make small refactors under existing guard coverage.
 
 ### Architecture Review Queue
 
@@ -218,6 +230,7 @@ Added 2026-06-07: a focused review of pet battle logs, pet panel display, pet da
 
 - `Needs repair`: player-visible parity bug exists, code fix needed.
 - `Needs AS3 verification`: behavior matches AS3 original design but not yet confirmed — requires cross-referencing AS3 source before deciding whether to fix.
+- `Needs product decision`: AS3 parity is confirmed or strongly suspected, but the current playtest experience needs an intentional product-override decision.
 - `AS3-identical`: confirmed to match original AS3 behavior; no code change needed.
 - `Guard needed`: behavior is known, but executable coverage is missing.
 - `Guarded`: core behavior has a guard, browser smoke still needed.
@@ -233,3 +246,8 @@ Added 2026-06-07: a focused review of pet battle logs, pet panel display, pet da
 | PLAYTEST-2026-06-04 | Mixed | 2026-06-04 playtest follow-up findings | Queued | `playtest-followups-2026-06-04.md` | Pick one card ID per repair; read AS3 first; add or confirm the red guard; make the smallest repair; then run the dedicated guard, nearby guards, `npx tsc -b`, and UI smoke |
 | P0-BATTLE-INIT-HEAL | P0 | Battle init healing | Verified | `playtest-followups-2026-06-04.md#p0-battle-init-heal` | AS3 `Battle.init()` and React `Battle.init()` both refill from max HP/MP after a kill; confirmed original behavior, no repair needed |
 | P1-PLAYER-INFO-DISPLAY | P1 | Player info display | Verified | `playtest-followups-2026-06-04.md#p1-player-info-display` | Status-panel attack range, primary-stat basic-value parentheses/colors, and crit multiplier percent display are covered by `assert:stat-list`; `assert:equip-window`, `npx tsc -b`, and browser smoke passed |
+| PLAYTEST-2026-06-08 | Mixed | 2026-06-08 playtest follow-up findings | Queued | `playtest-followups-2026-06-08.md` | Pick one card ID per repair; read AS3 first; add or confirm the red guard; make the smallest repair; then run the dedicated guard, nearby guards, `npx tsc -b`, and UI smoke |
+| P0-BATTLE-TEMPO-CADENCE | P0 | Visible battle cadence | Needs repair | `playtest-followups-2026-06-08.md#p0-battle-tempo-cadence` | AS3 `Timer(500)` advances one `fight()` per event; React must verify that 1x foreground play does not synchronously catch up multiple visible turns; Suggested: `assert:battle-tempo-cadence`, adjacent `assert:game-loop`, `assert:test-speed-control`, `assert:battle-damage-log-death`, `npx tsc -b`, browser cadence smoke |
+| P1-MONSTER-INFO-ATTACK-FLICKER | P1 | Monster info attack flicker | Needs repair | `playtest-followups-2026-06-08.md#p1-monster-info-attack-flicker` | AS3 monster info does not display the random attack getter; React should not read `mon.attack` during render; Suggested: `assert:monster-info-display-parity`, adjacent `assert:monster-data-integrity`, `assert:monster-title-tooltip`, `npx tsc -b`, browser flicker smoke |
+| P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | Combat power readout excludes equipment | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` both exclude equipment; any equipment-inclusive strength display should be a product override and not replace internal AS3 CP; Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
+| P1-EQUIP-TOOLTIP-BOUNDS | P1 | Equipment tooltip size and bounds | Needs repair | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` is 130px wide and stage-clamped; React 300px dual panes must be constrained inside the game container; Suggested: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, browser bounds smoke |
