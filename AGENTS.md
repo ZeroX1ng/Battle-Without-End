@@ -1,6 +1,7 @@
 # BWE Agent Instructions
 
-本文件适用于 `BWE` 仓库根目录及其子目录，面向 Codex、DeepSeek Pro v4 和其他本地 coding agent。
+本文件是 BWE 项目的 **多 agent 系统路由中心**。面向 Claude Code、Codex 以及其他 coding agent。
+底层框架沿用 Claude Code Game Studios (CCGS) 的 agent/skill 体系，但当前 active route 只采用 `CCGS Skill Testing Framework/catalog.yaml` 登记的 BWE retained 子集：2 个 agent 与 5 个 skill。`.claude/` 中其他本地文件仅作为未登记 local extras 或 archive source，不视为 active BWE 路由。
 
 ## 沟通与范围
 
@@ -19,6 +20,37 @@
 4. 如任务涉及试玩 follow-up，再读 `docs/parity/playtest-followups-2026-05-25.md`
 
 AS3 真相源默认是 `reference/as3/BOE-O`。如果环境提供 `BWE_AS3_ROOT`，优先使用该变量；保留 `../BOE-O` 仅作为旧本机布局兜底。
+
+---
+
+## BWE 专属 Agent 路由
+
+以下 agent 专为 BWE 的 React/TypeScript/Electron 技术栈和 AS3 parity 工作流设计：
+
+| 任务类型 | 使用 Agent | 说明 |
+|---------|-----------|------|
+| AS3→React parity 修复 | `parity-engineer` | 读 AS3 源 → 定位 React → 跑 guard → 最小修复 → 验证 |
+| React/TS 代码审查 | `react-reviewer` | 专精 Electron + React 18 + reducer 架构 + parity 模式 |
+| AS3 行为溯源 | `parity-engineer` | 从 reference/as3/BOE-O 定位具体公式、状态流转 |
+
+其他导入的 CCGS agent（如引擎、GDD、sprint、team-management 类）默认不参与 BWE 路由，除非用户明确要求重新激活并同步 catalog。
+
+## BWE 专属 Skill 路由
+
+| 命令 | 用途 |
+|------|------|
+| `/parity-fix [card-path]` | 修复一张 parity card — 完整 AS3→React 工作流 |
+| `/browser-smoke [card-path]` | 浏览器冒烟测试 — 启动 dev server + 截图 + 日志 |
+| `/guard-report [all\|changed\|baseline\|<module>]` | 运行所有 guard 并生成格式化状态报告 |
+| `/skill-test static all` | 只读验证 retained skill/agent catalog 与结构约束 |
+| `/skill-improve [skill-name]` | 在用户明确批准后，改进一个 retained skill 并复测 |
+
+**BWE 工作流推荐顺序：**
+```
+/parity-fix docs/parity/<card>.md   → 修复
+/browser-smoke docs/parity/<card>.md → 验证
+/guard-report changed                 → 确认
+```
 
 ## Parity 工作规则
 
