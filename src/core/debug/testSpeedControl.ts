@@ -1,6 +1,6 @@
 // Temporary playtest helpers.
-// Remove TEST_SPEED_CONTROL_ENABLED, TestSpeedControl, and BattleDebugOptions before a production release.
-export const TEST_SPEED_CONTROL_ENABLED = true;
+// Controlled by import.meta.env.PROD: visible in dev (npm run dev), hidden in release (npm run build).
+export const TEST_SPEED_CONTROL_ENABLED = !import.meta.env.PROD;
 export const TEST_SPEED_MULTIPLIERS = [1, 10, 25, 50] as const;
 export const DEFAULT_TEST_SPEED_MULTIPLIER = 1;
 export const DEFAULT_TEST_ONE_HIT_KILL_ENABLED = false;

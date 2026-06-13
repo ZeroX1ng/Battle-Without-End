@@ -11,6 +11,8 @@
 - 🐞 Fixed `balanceRandom(100)` division-by-zero edge case with explicit 0/100 handling.
 - 🐞 Hardened battle runtime type contracts to prevent accidental numeric drift.
 - ✅ Added 10 parity guards covering monster panel display, equipment tooltip bounds, DOT effects, battle tempo, numeric coercion, and battle state immutability.
+- 🐞 Fixed auto-forge target semantic error: `getAutoForgeTarget` incorrectly treated AS3's absolute target level (e.g., BS 14+ auto-forges to +7 and stops) as a level gain (`currentLevel + 7`), causing +7 equipment with auto-enhance enabled to chain-forge up to +14 with ~92% cumulative destruction rate. After fix, equipment at +7 and above no longer incorrectly triggers auto-forge, fully restoring AS3 forging behavior.
+- 🛠 Playtest debug controls (speed multiplier / one-hit-kill) are now only visible in dev (`npm run dev`); removed at compile time in release builds via `import.meta.env.PROD`.
 - 📖 Updated parity manifest and playtest follow-up docs, marking multiple items as Verified.
 
 ## 0.2.4 - 2026-06-08

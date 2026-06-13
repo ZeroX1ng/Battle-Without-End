@@ -16,14 +16,18 @@ export function getForgeCost(equipmentValue: number, currentLevel: number): numb
 
 export function getAutoForgeTarget(currentLevel: number, blacksmithLevel: number): number | null {
   if (blacksmithLevel <= 1 || currentLevel >= 15) return null;
-  const levelGain = blacksmithLevel <= 5
+  // AS3 source: ItemWindow.as lines 268-283
+  // _loc1_ is the absolute TARGET level, NOT a level gain.
+  // BS 2-5: target 1, BS 6-9: target 3, BS 10-13: target 5, BS 14+: target 7
+  const target = blacksmithLevel <= 5
     ? 1
     : blacksmithLevel <= 9
       ? 3
       : blacksmithLevel <= 13
         ? 5
         : 7;
-  return Math.min(currentLevel + levelGain, 15);
+  if (currentLevel >= target) return null;
+  return target;
 }
 
 export function resolveForgeFailure(

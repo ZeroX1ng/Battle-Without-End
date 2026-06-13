@@ -298,41 +298,50 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: Ite
   }
 
   return (
-    <div
-      data-bwe-item-info-window
-      data-bwe-item-info-layout={layout}
-      style={{
-        position: 'fixed',
-        left: adjustedX,
-        top: adjustedY,
-        display: 'flex',
-        flexDirection: layout,
-        gap: ITEM_INFO_PANEL_GAP,
-        alignItems: 'flex-start',
-        maxWidth: stageInnerWidth,
-        maxHeight: tooltipMaxHeight,
-        pointerEvents: 'none',
-        zIndex: 10001,
-      }}
-    >
-      <div data-bwe-item-info-panel="candidate" style={panelStyle}>
-        <TextField
-          size={16}
-          color="#c8c8d4"
-          multiline
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      </div>
-      {hasCompare && (
-        <div data-bwe-item-info-panel="current" style={panelStyle}>
+    <>
+      <style>{`
+        [data-bwe-item-info-window] font[size] { font-size: unset; }
+        [data-bwe-item-info-window] font[size="14"] { font-size: 11px; }
+        [data-bwe-item-info-window] font[size="16"] { font-size: 12px; }
+        [data-bwe-item-info-window] font[size="20"] { font-size: 14px; }
+        [data-bwe-item-info-window] font[size="24"] { font-size: 16px; }
+      `}</style>
+      <div
+        data-bwe-item-info-window
+        data-bwe-item-info-layout={layout}
+        style={{
+          position: 'fixed',
+          left: adjustedX,
+          top: adjustedY,
+          display: 'flex',
+          flexDirection: layout,
+          gap: ITEM_INFO_PANEL_GAP,
+          alignItems: 'flex-start',
+          maxWidth: stageInnerWidth,
+          maxHeight: tooltipMaxHeight,
+          pointerEvents: 'none',
+          zIndex: 10001,
+        }}
+      >
+        <div data-bwe-item-info-panel="candidate" style={panelStyle}>
           <TextField
             size={16}
             color="#c8c8d4"
             multiline
-            dangerouslySetInnerHTML={{ __html: compareHtml }}
+            dangerouslySetInnerHTML={{ __html: html }}
           />
         </div>
-      )}
-    </div>
+        {hasCompare && (
+          <div data-bwe-item-info-panel="current" style={panelStyle}>
+            <TextField
+              size={16}
+              color="#c8c8d4"
+              multiline
+              dangerouslySetInnerHTML={{ __html: compareHtml }}
+            />
+          </div>
+        )}
+      </div>
+    </>
   )
 }
