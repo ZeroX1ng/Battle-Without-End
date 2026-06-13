@@ -6,6 +6,7 @@ import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { ScrollPanel } from '../common/ScrollPanel'
 import { useInfoWindow } from '../common/InfoWindow'
+import { SpriteImage } from '../shared/SpriteImage'
 import { getPetSelectionKey, resolveSelectedPet } from './petWindowSelection'
 
 const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
@@ -40,13 +41,15 @@ function getPetSkillDescription(skill: any): string {
   return `<p align='center'>${name}</p>${detail}`
 }
 
-function getPetSkillIconText(skill: any): string {
-  return (skill?.skillData?.name ?? '?')
-    .split(/[ _-]/)
-    .map((part: string) => part[0] ?? '')
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+function getPetSpriteName(pet: any): string {
+  const rawName = String(pet?.mc_name ?? pet?.mc ?? '').trim()
+  if (!rawName) return 'mc_mode'
+  return rawName.startsWith('pet_') ? rawName : `pet_${rawName}`
+}
+
+function getPetSkillSpriteName(skill: any): string {
+  const rawName = String(skill?.skillData?.name ?? '').trim().toLowerCase()
+  return `pSkill_${rawName.replace(/\s+/g, '_')}`
 }
 
 export function PetWindow() {
@@ -150,6 +153,7 @@ interface PetCellProps {
 }
 
 function PetCell({ pet, selected, onSelect, onHover, onLeave, onSetPet, onRemovePet }: PetCellProps) {
+  const petSpriteName = getPetSpriteName(pet)
   const cellStyle: CSSProperties = {
     minHeight: 50,
     border: selected ? '1px solid var(--color-yellow)' : '1px solid rgba(205, 175, 95, 0.58)',
@@ -184,8 +188,9 @@ function PetCell({ pet, selected, onSelect, onHover, onLeave, onSetPet, onRemove
         color: 'var(--color-yellow)',
         fontSize: 11,
         fontWeight: 800,
-      }}>
-        {getPetName(pet).slice(0, 1)}
+        overflow: 'hidden',
+      }} data-bwe-pet-icon={petSpriteName}>
+        <SpriteImage name={petSpriteName} autoPlay={false} style={petIconImageStyle} />
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -272,13 +277,16 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetD
       </div>
 
       <div style={{ display: 'flex', gap: 6, minHeight: 34, alignItems: 'center', flexWrap: 'wrap' }}>
-        {pet.skillList?.length ? pet.skillList.map((skill: any, index: number) => (
-          <button
+        {pet.skillList?.length ? pet.skillList.map((skill: any, index: number) => {
+          const skillSpriteName = getPetSkillSpriteName(skill)
+          return (
+            <button
             key={`${skill.skillData?.name ?? 'pet-skill'}-${index}`}
             onMouseEnter={event => onSkillHover(skill, event)}
             onMouseMove={event => onSkillHover(skill, event)}
             onMouseLeave={onLeave}
             title={getPetSkillName(skill)}
+            data-bwe-pet-skill-icon={skillSpriteName}
             style={{
               width: 34,
               height: 30,
@@ -290,11 +298,14 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetD
               fontSize: 10,
               fontWeight: 800,
               boxShadow: skill.level ? '0 0 8px rgba(255,64,64,0.28)' : 'none',
+              overflow: 'hidden',
+              padding: 0,
             }}
           >
-            {getPetSkillIconText(skill)}
-          </button>
-        )) : <span style={{ color: 'var(--color-text-dim)', fontSize: 12 }}>暂无宠物技能</span>}
+              <SpriteImage name={skillSpriteName} autoPlay={false} style={petSkillIconImageStyle} />
+            </button>
+          )
+        }) : <span style={{ color: 'var(--color-text-dim)', fontSize: 12 }}>暂无宠物技能</span>}
       </div>
     </section>
   )
@@ -310,4 +321,23 @@ const detailPanelStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
+}
+
+const petIconImageStyle: CSSProperties = {
+  width: 30,
+  height: 30,
+  objectFit: 'contain',
+  display: 'block',
+  imageRendering: 'pixelated',
+  pointerEvents: 'none',
+}
+
+const petSkillIconImageStyle: CSSProperties = {
+  width: 28,
+  height: 28,
+  objectFit: 'contain',
+  display: 'block',
+  margin: '0 auto',
+  imageRendering: 'pixelated',
+  pointerEvents: 'none',
 }

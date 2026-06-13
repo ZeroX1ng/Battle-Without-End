@@ -8,6 +8,7 @@ import type { Skill } from '../../core/models/Skill'
 import { useGameContext } from '../../state/GameContext'
 import { ScrollPanel } from '../common/ScrollPanel'
 import { useInfoWindow } from '../common/InfoWindow'
+import { SpriteImage } from '../shared/SpriteImage'
 
 type SkillTabId = 'combat' | 'magic' | 'passive'
 
@@ -54,12 +55,8 @@ function getSkillDescription(skill: Skill): string {
   return skill.getDescription ? skill.getDescription() : skill.skillData.desFunction?.(skill) ?? skill.skillData.realName ?? skill.skillData.name
 }
 
-function getSkillIconText(skill: Skill): string {
-  return skill.skillData.name
-    .split('_')
-    .map(part => part[0] ?? '')
-    .join('')
-    .slice(0, 2)
+function getSkillSpriteName(skill: Skill): string {
+  return `mc_${skill.skillData.name.toLowerCase().replace(/\s+/g, '_')}`
 }
 
 export function SkillWindow() {
@@ -187,6 +184,7 @@ function SkillCell({ skill, ap, equipped, equippable, onHover, onLeave, onToggle
   const canLevel = skill.canLevelup(ap)
   const rank = getRankLabel(skill)
   const name = skill.skillData.realName ?? skill.skillData.name
+  const skillSpriteName = getSkillSpriteName(skill)
 
   const cellStyle: CSSProperties = {
     height: 50,
@@ -223,8 +221,9 @@ function SkillCell({ skill, ap, equipped, equippable, onHover, onLeave, onToggle
         justifyContent: 'center',
         fontSize: 11,
         fontWeight: 800,
-      }}>
-        {getSkillIconText(skill)}
+        overflow: 'hidden',
+      }} data-bwe-skill-icon={skillSpriteName}>
+        <SpriteImage name={skillSpriteName} autoPlay={false} style={skillIconImageStyle} />
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -257,4 +256,13 @@ function SkillCell({ skill, ap, equipped, equippable, onHover, onLeave, onToggle
       </button>
     </div>
   )
+}
+
+const skillIconImageStyle: CSSProperties = {
+  width: 30,
+  height: 30,
+  objectFit: 'contain',
+  display: 'block',
+  imageRendering: 'pixelated',
+  pointerEvents: 'none',
 }

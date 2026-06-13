@@ -1,5 +1,6 @@
 import { useGameContext } from '../../state/GameContext'
 import { MenuButton } from '../common/Common'
+import { SpriteImage } from '../shared/SpriteImage'
 
 type OtherEntryId = 'map' | 'help' | 'shop' | 'specialshop' | 'save' | 'rebirth'
 
@@ -11,6 +12,24 @@ const otherEntries: Array<{ id: OtherEntryId; label: string }> = [
   { id: 'rebirth', label: '转生' },
   { id: 'save', label: '保存' },
 ]
+
+const otherEntryIconKeys: Record<OtherEntryId, string> = {
+  map: 'button_map',
+  help: 'button_help',
+  shop: 'button_shop',
+  specialshop: 'button_shop',
+  rebirth: 'button_rebirth',
+  save: 'button_save',
+}
+
+function renderOtherButtonIcon(iconKey: string, active: boolean) {
+  return (
+    <span style={otherButtonIconStyle} data-bwe-other-button-icon={iconKey}>
+      <SpriteImage name="doubleCircle" autoPlay={false} style={otherButtonCircleStyle(active)} />
+      <SpriteImage name={iconKey} autoPlay={false} style={otherButtonSpriteStyle(active)} />
+    </span>
+  )
+}
 
 export function OtherWindow() {
   const { state, dispatch } = useGameContext()
@@ -37,20 +56,33 @@ export function OtherWindow() {
         {otherEntries.map(({ id, label }) => {
           const selected = state.ui.activeWindow === id
           const disabled = id === 'rebirth' && !canRebirth
+          const iconKey = otherEntryIconKeys[id]
 
           return (
-            <MenuButton
+            <div
               key={id}
-              label={label.slice(0, 2)}
-              info={label}
-              selected={selected}
-              onClick={() => handleEntryClick(id)}
-              disabled={disabled}
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
                 opacity: disabled ? 0.45 : 1,
-                cursor: disabled ? 'not-allowed' : 'pointer',
               }}
-            />
+            >
+              <MenuButton
+                label={label}
+                info={label}
+                aria-label={label}
+                selected={selected}
+                onClick={() => handleEntryClick(id)}
+                disabled={disabled}
+                before={renderOtherButtonIcon(iconKey, false)}
+                after={renderOtherButtonIcon(iconKey, true)}
+                style={{
+                  cursor: disabled ? 'not-allowed' : 'pointer',
+                }}
+              />
+              <span style={{ color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>{label}</span>
+            </div>
           )
         })}
 
@@ -60,4 +92,39 @@ export function OtherWindow() {
       </div>
     </div>
   )
+}
+
+const otherButtonIconStyle: React.CSSProperties = {
+  position: 'relative',
+  width: 40,
+  height: 40,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+function otherButtonCircleStyle(active: boolean): React.CSSProperties {
+  return {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    objectFit: 'contain',
+    display: 'block',
+    opacity: active ? 0.95 : 0.75,
+    imageRendering: 'pixelated',
+    pointerEvents: 'none',
+  }
+}
+
+function otherButtonSpriteStyle(active: boolean): React.CSSProperties {
+  return {
+    position: 'relative',
+    width: 22,
+    height: 22,
+    objectFit: 'contain',
+    display: 'block',
+    filter: active ? 'brightness(1.35)' : undefined,
+    imageRendering: 'pixelated',
+    pointerEvents: 'none',
+  }
 }
