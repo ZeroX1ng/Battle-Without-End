@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 - 2026-06-14
+
+- 🆕 Player info panel redesigned with AS3 three-column layout: race/age/LV/HP/MP/EXP/gold in column 0, primary attributes (STR/DEX/INT/WILL/LUCK/AP/CP) in column 1, combat stats (ATK/BAL/CRIT/CRIT-MUL/DEF/PROT/PROT-IGN) in column 2. All stat labels show AS3 tooltip descriptions on hover; HP/MP/EXP rendered as inline progress bars.
+- 🆕 Map window redesigned with sprite-based markers (`map_icon`) and animated background (`map_mc`), replacing text-only map cards. Hovering a marker shows map name, difficulty tier, average CP, monster count, and modifier via infoWindow popup. Current map highlighted with orange drop-shadow glow.
+- 🆕 Support displaying player title (`titleRealName`) in yellow before the player name in the info panel.
+- 🆕 Overlay close button centralized: all windows (Equip, Help, Item, Map, Pet, Save, Shop, Skill, SpecialShop) now share a single `FlickerButton` rendered in the `MainScene` overlay. Each window's independent close button removed.
+- 🐞 Equipment slot icons and window sprite icons now render via registered `SpriteImage` components instead of placeholder text or missing graphics.
+- 🐞 Electron packaging now limits bundled locales to `zh-CN` and `en-US`, reducing installer size.
+- 🛠 Visual polish: tab icons resized from 40×30 to 30×30; equipment slot icons enlarged from 56×56 to 64×64; removed `overflow: hidden` from icon container styles.
+
 ## 0.2.5 - 2026-06-13
 
 - 🆕 Monster info panel no longer displays the random flickering attack value; instead shows buff icons matching the AS3 original design.
