@@ -69,7 +69,7 @@ function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
       <SpriteImage
         name={selected ? tab.afterKey : tab.beforeKey}
         autoPlay={false}
-        style={{ width: 40, height: 30, imageRendering: 'pixelated' }}
+        style={{ width: 30, height: 30, imageRendering: 'pixelated' }}
       />
       <span style={{
         fontSize: 9,

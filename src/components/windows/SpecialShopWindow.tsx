@@ -33,8 +33,6 @@ export function SpecialShopWindow() {
         <b style={{ color: 'var(--color-text)', fontSize: 15 }}>特殊商店</b>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{ color: 'var(--color-yellow)', fontSize: 12 }}>💰 {p.gold}</span>
-          <button onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
-            style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>✕</button>
         </div>
       </div>
 

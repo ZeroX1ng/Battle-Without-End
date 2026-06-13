@@ -35,12 +35,6 @@ export function ShopWindow() {
           <span style={{ color: 'var(--color-yellow)', fontSize: 12 }}>
             ${p.gold}
           </span>
-          <button
-            onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
-            style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}
-          >
-            x
-          </button>
         </div>
       </div>
 

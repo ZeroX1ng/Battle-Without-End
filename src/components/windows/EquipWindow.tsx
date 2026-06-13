@@ -8,7 +8,6 @@ import { useInfoWindow } from '../common/InfoWindow'
 import { SpriteImage } from '../shared/SpriteImage'
 import { statTranslate } from '../../core/constants'
 import { useGameContext } from '../../state/GameContext'
-
 type EquipSlotKey = 'head' | 'feet' | 'body' | 'necklace' | 'ring' | 'leftHand' | 'rightHand'
 
 interface EquipSlotConfig {
@@ -83,15 +82,14 @@ function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
-    boxShadow: active ? '0 0 13px rgba(77,60,35,0.66)' : glow === 'none' ? undefined : glow,
     flexShrink: 0,
+    boxShadow: active ? '0 0 13px rgba(77,60,35,0.66)' : glow === 'none' ? undefined : glow,
   }
 }
 
 const slotIconImageStyle: CSSProperties = {
-  width: 56,
-  height: 56,
+  width: 64,
+  height: 64,
   objectFit: 'contain',
   display: 'block',
   pointerEvents: 'none',
@@ -145,12 +143,6 @@ export function EquipWindow() {
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <b style={{ color: 'var(--color-text)' }}>装备栏</b>
-        <button
-          onClick={() => { hideItemInfo(); dispatch({ type: 'UI_CLOSE_WINDOW' }) }}
-          style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          x
-        </button>
       </div>
 
       <div

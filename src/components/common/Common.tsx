@@ -513,7 +513,6 @@ function iconStyle(active: boolean, highLevelGlow?: string): CSSProperties {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: active ? GLOW : highLevelGlow,
-    overflow: 'hidden',
     flexShrink: 0,
   }
 }

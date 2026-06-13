@@ -1,56 +1,72 @@
 // ═══ 地图窗口 ═══
 // AS3 原始: iPanel.iScene.iPanel.iWindow.iSystem.iMap.MapPanel.as + MapCell.as
 // 16张地图自由切换，切换时重置战利品面板+重新初始化战斗
-// 地图按 MapData.x/y 坐标排列在网格中，当前所在地图高亮显示
+// 地图按 MapData.x/y 坐标排列在网格中，以 map_icon 点状图标表示，
+// 鼠标悬停时通过 infoWindow 显示详细信息（名称、难度、CP、怪物种类、倍率），点击切换地图
 
+import { useMemo } from 'react'
 import { useGameContext } from '../../state/GameContext'
-import { Map } from '../../core/models/Map'
+import { Map as GameMap } from '../../core/models/Map'
 import { MapList } from '../../core/data/mapData'
+import { SpriteImage } from '../shared/SpriteImage'
+import { useInfoWindow } from '../common/InfoWindow'
 
 const MAP_WIDTH = 800;
 const MAP_HEIGHT = 560;
 
+interface MapInfo {
+  cp: number;
+  label: string;
+  text: string;
+  bg: string;
+}
+
+function getDifficultyInfo(cp: number): Omit<MapInfo, 'cp'> {
+  if (cp <= 100) return { label: '简单', text: 'var(--color-green)', bg: 'rgba(75, 184, 20, 0.15)' };
+  if (cp <= 400) return { label: '普通', text: 'var(--color-teal)', bg: 'rgba(33, 196, 175, 0.15)' };
+  if (cp <= 800) return { label: '困难', text: 'var(--color-yellow)', bg: 'rgba(255, 166, 64, 0.15)' };
+  if (cp <= 2000) return { label: '噩梦', text: 'var(--color-orange)', bg: 'rgba(255, 113, 0, 0.15)' };
+  return { label: '地狱', text: 'var(--color-red)', bg: 'rgba(255, 64, 64, 0.15)' };
+}
+
+function computeMapInfo(mapData: typeof MapList[number]): MapInfo {
+  const map = new GameMap(mapData);
+  const cp = Math.floor(map.averageCp);
+  return { cp, ...getDifficultyInfo(cp) };
+}
+
 export function MapWindow() {
   const { state, dispatch } = useGameContext();
+  const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow();
   const currentMapName = (state.battle as any)?.map?.mapData?.name ?? MapList[0].name;
 
+  const mapInfoCache = useMemo(() => {
+    const cache = new Map<typeof MapList[number], MapInfo>();
+    for (const mapData of MapList) {
+      cache.set(mapData, computeMapInfo(mapData));
+    }
+    return cache;
+  }, []);
+
   const handleSwitch = (mapData: typeof MapList[number]) => {
-    const newMap = new Map(mapData);
+    const newMap = new GameMap(mapData);
     dispatch({ type: 'MAP_SWITCH', map: newMap });
   };
 
-  // 按坐标分组，计算网格范围
-  // 辅助：获取地图难度颜色
-  const getDifficultyColor = (cp: number) => {
-    if (cp <= 100) return { text: 'var(--color-green)', bg: 'rgba(75, 184, 20, 0.15)' };
-    if (cp <= 400) return { text: 'var(--color-teal)', bg: 'rgba(33, 196, 175, 0.15)' };
-    if (cp <= 800) return { text: 'var(--color-yellow)', bg: 'rgba(255, 166, 64, 0.15)' };
-    if (cp <= 2000) return { text: 'var(--color-orange)', bg: 'rgba(255, 113, 0, 0.15)' };
-    return { text: 'var(--color-red)', bg: 'rgba(255, 64, 64, 0.15)' };
-  };
-
-  // 辅助：获取地图难度标签
-  const getDifficultyLabel = (cp: number) => {
-    if (cp <= 100) return '简单';
-    if (cp <= 400) return '普通';
-    if (cp <= 800) return '困难';
-    if (cp <= 2000) return '噩梦';
-    return '地狱';
-  };
+  function buildInfoHtml(mapData: typeof MapList[number]): string {
+    const info = mapInfoCache.get(mapData)!;
+    const monsterCount = mapData.monsterList.length;
+    return [
+      `<p align='center'><font color='${info.text}'><b>${mapData.realName}</b></font></p>`,
+      `<p align='center'>${info.label} · CP ${info.cp}</p>`,
+      `<p align='center'>${monsterCount}种怪物 · ×${mapData.modifier}倍收益</p>`,
+    ].join('');
+  }
 
   return (
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <b style={{ color: 'var(--color-text)', fontSize: 15 }}>世界地图</b>
-        <button
-          onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
-          style={{
-            color: 'var(--color-text-dim)', background: 'none',
-            border: 'none', cursor: 'pointer', fontSize: 14
-          }}
-        >
-          返回
-        </button>
       </div>
 
       <div style={{
@@ -67,80 +83,58 @@ export function MapWindow() {
           border: '1px solid var(--color-border)',
           background: 'var(--color-bg-dark)',
         }}>
+          <SpriteImage
+            name="map_mc"
+            autoPlay={true}
+            loop={true}
+            fps={8}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              pointerEvents: 'none',
+            }}
+          />
         {MapList.map((mapData) => {
-          const map = new Map(mapData);
-          const cp = Math.floor(map.averageCp);
           const isCurrent = mapData.name === currentMapName;
-          const monsterCount = mapData.monsterList.length;
-          const diffColor = getDifficultyColor(cp);
-          const diffLabel = getDifficultyLabel(cp);
 
           return (
             <div
               key={mapData.name}
               onClick={() => !isCurrent && handleSwitch(mapData)}
-              title={isCurrent ? '当前所在地图' : `点击前往 ${mapData.realName}\n平均战力: ${cp}\n怪物种类: ${monsterCount}`}
+              onMouseEnter={(e: React.MouseEvent) => {
+                showItemInfo(buildInfoHtml(mapData));
+                updateMouse(e.clientX, e.clientY);
+              }}
+              onMouseMove={(e: React.MouseEvent) => {
+                updateMouse(e.clientX, e.clientY);
+              }}
+              onMouseLeave={hideItemInfo}
               style={{
                 position: 'absolute',
                 left: `${(mapData.x / MAP_WIDTH) * 100}%`,
                 top: `${(mapData.y / MAP_HEIGHT) * 100}%`,
                 transform: 'translate(-50%, -50%)',
-                width: 96,
-                padding: '5px 7px',
+                width: 32,
+                height: 32,
                 cursor: isCurrent ? 'default' : 'pointer',
-                borderRadius: 'var(--radius-md)',
-                border: isCurrent
-                  ? '2px solid var(--color-yellow)'
-                  : '1px solid var(--color-border)',
-                background: isCurrent
-                  ? 'rgba(255, 166, 64, 0.15)'
-                  : 'var(--color-bg-panel)',
-                opacity: isCurrent ? 1 : 0.85,
-                transition: 'background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                boxSizing: 'border-box',
-                boxShadow: isCurrent ? '0 0 0 2px rgba(255, 166, 64, 0.18)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                 if (!isCurrent) {
-                   (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-dark)';
-                   (e.currentTarget as HTMLElement).style.borderColor = diffColor.text;
-                   (e.currentTarget as HTMLElement).style.opacity = '1';
-                 }
-               }}
-              onMouseLeave={(e) => {
-                if (!isCurrent) {
-                  (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-panel)';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)';
-                  (e.currentTarget as HTMLElement).style.opacity = '0.85';
-                }
               }}
             >
-              <div style={{
-                fontSize: 12, fontWeight: 'bold',
-                color: isCurrent ? 'var(--color-yellow)' : 'var(--color-text-bright)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {isCurrent && '📍 '}{mapData.realName}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                 <span style={{
-                   fontSize: 10, fontWeight: 'bold',
-                   color: diffColor.text,
-                   background: diffColor.bg,
-                   padding: '1px 5px', borderRadius: 3,
-                 }}>
-                   {diffLabel}
-                 </span>
-                <span style={{ fontSize: 10, color: 'var(--color-text-dim)' }}>
-                  CP {cp}
-                </span>
-              </div>
-              <div style={{ fontSize: 9, color: 'var(--color-text-dim)' }}>
-                {monsterCount}种怪物 · ×{mapData.modifier}倍收益
-              </div>
+              <SpriteImage
+                name="map_icon"
+                autoPlay={false}
+                style={{
+                  width: 32,
+                  height: 32,
+                  filter: isCurrent
+                    ? 'drop-shadow(0 0 6px rgba(255, 166, 64, 0.9)) brightness(1.3)'
+                    : undefined,
+                  opacity: isCurrent ? 1 : 0.7,
+                  transition: 'opacity 0.15s ease, filter 0.15s ease',
+                }}
+              />
             </div>
           );
         })}

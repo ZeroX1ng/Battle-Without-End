@@ -54,5 +54,6 @@ export function selectPlayerStats(player: PlayerState) {
     maxXp: getLevelExp(player),
     playerName: player.playerName,
     raceName: player.race?.name ?? '',
+    titleRealName: player.title?.realName ?? null,
   };
 }

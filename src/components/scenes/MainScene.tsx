@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameContext } from '../../state/GameContext'
 import { useGameLoop } from '../../hooks/useGameLoop'
 import { gameTick } from '../../core/systems/GameLoop'
+import { FlickerButton } from '../common/Common'
 import {
   DEFAULT_TEST_ONE_HIT_KILL_ENABLED,
   DEFAULT_TEST_SPEED_MULTIPLIER,
@@ -105,14 +106,15 @@ export function MainScene() {
       {overlay && (
         <div className="main-scene__overlay">
           <div className="main-scene__overlay-panel">
-            <button
-              className="main-scene__overlay-close"
-              type="button"
+            <FlickerButton
               onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
+              size="sm"
+              glowColor="rgba(255, 120, 100, 0.55)"
               aria-label="Close overlay"
+              style={{ position: 'absolute', top: 6, right: 8, zIndex: 1 }}
             >
-              x
-            </button>
+              退出
+            </FlickerButton>
             {overlay}
           </div>
         </div>

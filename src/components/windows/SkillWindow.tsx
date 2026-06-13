@@ -127,12 +127,6 @@ export function SkillWindow() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ color: 'var(--color-yellow)', fontSize: 12, fontWeight: 700 }}>AP {state.player.ap}</span>
-          <button
-            onClick={() => { hideItemInfo(); dispatch({ type: 'UI_CLOSE_WINDOW' }) }}
-            style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            x
-          </button>
         </div>
       </div>
 

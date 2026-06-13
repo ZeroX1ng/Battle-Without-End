@@ -4,7 +4,6 @@
 
 import { useGameContext } from '../../state/GameContext'
 import { QualityColor, QualityName } from '../../core/constants'
-import { FlickerButton } from '../common/Common'
 
 export function HelpWindow() {
   const { dispatch } = useGameContext();
@@ -41,13 +40,6 @@ export function HelpWindow() {
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <b style={{ color: 'var(--color-text)', fontSize: 15 }}>帮助</b>
-        <FlickerButton
-          onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
-          size="sm"
-          glowColor="rgba(255, 120, 100, 0.55)"
-        >
-          退出
-        </FlickerButton>
       </div>
       <div style={{
         flex: 1, overflowY: 'auto', fontSize: 12, lineHeight: '22px',

@@ -12,8 +12,6 @@ export function SaveWindow() {
     <div style={{ padding: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
         <b style={{ color: 'var(--color-text)' }}>存档</b>
-        <button onClick={() => dispatch({ type: 'UI_CLOSE_WINDOW' })}
-          style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {slots.map(slot => (

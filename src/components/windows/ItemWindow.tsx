@@ -129,12 +129,6 @@ export function ItemWindow() {
             类型
           </button>
         </div>
-        <button
-          onClick={closeWindow}
-          style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}
-        >
-          x
-        </button>
       </div>
 
       <div style={itemBodyStyle}>

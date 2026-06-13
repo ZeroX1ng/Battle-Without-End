@@ -100,12 +100,6 @@ export function PetWindow() {
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <b style={{ color: 'var(--color-text)' }}>宠物 ({petList.length}/{state.player.PETMAX})</b>
-        <button
-          onClick={() => { hideItemInfo(); dispatch({ type: 'UI_CLOSE_WINDOW' }) }}
-          style={{ color: 'var(--color-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          x
-        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '200px minmax(0, 1fr)', gap: 8, flex: 1, minHeight: 0 }}>
