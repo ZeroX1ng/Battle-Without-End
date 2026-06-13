@@ -1,11 +1,25 @@
 import React, { useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useInfoWindow } from './InfoWindow'
+import { SpriteImage } from '../shared/SpriteImage'
 
 const BASIC_BG = 'rgba(255,255,255,0.95)'
 const BASIC_BORDER = 'rgba(205,175,95,0.8)'
 const AFTER_BG = 'rgba(227,175,138,0.95)'
 const GLOW = '0 0 13px rgba(77,60,35,0.66)'
+const WEAPON_ICON_TYPES = new Set(['sword', 'axe', 'bow', 'crossbow', 'staff', 'sceptre', 'dagger', 'shield', 'tome'])
+const WEAPON_POSITIONS = new Set(['onehand', 'twohand', 'offhand'])
+
+export function getEquipmentSpriteName(equip: any | null | undefined): string {
+  if (!equip) return 'mc_mode'
+  const type = String(equip.type ?? '').trim()
+  const position = String(equip.position ?? '').trim()
+  if (!type) return 'mc_mode'
+  if (equip.category || WEAPON_ICON_TYPES.has(type) || WEAPON_POSITIONS.has(position)) {
+    return `mc_${type}`
+  }
+  return position ? `mc_${position}_${type}` : `mc_${type}`
+}
 
 interface BarProps {
   value: number
@@ -376,7 +390,7 @@ export function EquipmentCell({
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const [hovered, setHovered] = useState(false)
   const highLevelGlow = equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255,0,0,0.66)` : undefined
-  const iconText = String(equip.type ?? equip.position ?? '?').slice(0, 2)
+  const equipmentSpriteName = getEquipmentSpriteName(equip)
   const active = selected || hovered
 
   const handleHover = (event: ReactMouseEvent) => {
@@ -435,7 +449,9 @@ export function EquipmentCell({
       style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1 }}
     >
       <BasicCell width="100%" height={50} bordered style={equipmentFaceStyle(active, active, highLevelGlow, style)}>
-        <span style={iconStyle(active, highLevelGlow)}>{iconText}</span>
+        <span style={iconStyle(active, highLevelGlow)} data-bwe-equipment-icon={equipmentSpriteName}>
+          <SpriteImage name={equipmentSpriteName} autoPlay={false} style={equipmentIconImageStyle} />
+        </span>
         <span style={nameStyle(active)} dangerouslySetInnerHTML={{ __html: getEquipHtml(equip) }} />
         <span style={actionsStyle}>
           {showEquipAction && actionButton('equip', 'E', onEquip)}
@@ -477,6 +493,14 @@ function equipmentFaceStyle(active: boolean, selected?: boolean, highLevelGlow?:
   }
 }
 
+const equipmentIconImageStyle: CSSProperties = {
+  width: 30,
+  height: 30,
+  objectFit: 'contain',
+  display: 'block',
+  pointerEvents: 'none',
+}
+
 function iconStyle(active: boolean, highLevelGlow?: string): CSSProperties {
   return {
     width: 30,
@@ -488,10 +512,9 @@ function iconStyle(active: boolean, highLevelGlow?: string): CSSProperties {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 11,
-    fontWeight: 800,
     boxShadow: active ? GLOW : highLevelGlow,
-    textTransform: 'uppercase',
+    overflow: 'hidden',
+    flexShrink: 0,
   }
 }
 

@@ -25,6 +25,7 @@ function assertNotIncludes(source, needle, message) {
 }
 
 const equipWindow = read('src/components/windows/EquipWindow.tsx');
+const as3EquipCell = read('reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as');
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
 const common = read('src/components/common/Common.tsx');
 const equipment = read('src/core/models/Equipment.ts');
@@ -45,6 +46,16 @@ assertIncludes(equipWindow, 'PET_STATS', 'EquipWindow must render the original p
 assertIncludes(equipWindow, 'player.pet?.skillList', 'EquipWindow must render the equipped pet skill cells');
 assertIncludes(equipWindow, 'getPetSkillDescription', 'EquipWindow must show pet skill details on hover');
 assertIncludes(equipWindow, 'handlePetSkillHover', 'EquipWindow must wire pet skill hover behavior to the info window');
+assertIncludes(as3EquipCell, '_loc4_ = new mc_mode();', 'AS3 EquipCell must render mc_mode for empty equipment slots.');
+assertIncludes(as3EquipCell, 'getDefinitionByName("mc_" + this.equip.type)', 'AS3 EquipCell must render weapon slot icons from mc_<type>.');
+assertIncludes(as3EquipCell, 'getDefinitionByName("mc_" + this.equip.position + "_" + this.equip.type)', 'AS3 EquipCell must render armor/accessory slot icons from mc_<position>_<type>.');
+assertIncludes(equipWindow, "import { SpriteImage } from '../shared/SpriteImage'", 'EquipWindow slots must render registered sprites instead of text labels.');
+assertIncludes(equipWindow, 'getEquipmentSpriteName', 'EquipWindow slots must reuse the AS3 equipment sprite key resolver.');
+assertIncludes(equipWindow, 'getEquipmentSpriteName(equip)', 'Occupied EquipWindow slots must resolve their icon from the equipped item.');
+assertIncludes(equipWindow, 'data-bwe-equip-slot-icon={slotSpriteName}', 'EquipWindow slots must expose the resolved slot sprite key for UI smoke.');
+assertIncludes(equipWindow, '<SpriteImage', 'EquipWindow slots must render equipment icons through SpriteImage.');
+assertNotIncludes(equipWindow, '{shortLabel}', 'EquipWindow slots must not render one-character text placeholders.');
+assertNotIncludes(equipWindow, "{equip ? equip.type : '", 'EquipWindow slots must not render equipment type text in the icon cell.');
 
 assertIncludes(equipment, 'getDescription()', 'Equipment must expose the original item detail description HTML');
 assertIncludes(equipment, 'getPositionLabel()', 'Equipment descriptions must include a translated equipment position');

@@ -3,8 +3,10 @@
 
 import { useMemo, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
+import { getEquipmentSpriteName } from '../common/Common'
 import { useInfoWindow } from '../common/InfoWindow'
-import { QualityColor, statTranslate } from '../../core/constants'
+import { SpriteImage } from '../shared/SpriteImage'
+import { statTranslate } from '../../core/constants'
 import { useGameContext } from '../../state/GameContext'
 
 type EquipSlotKey = 'head' | 'feet' | 'body' | 'necklace' | 'ring' | 'leftHand' | 'rightHand'
@@ -12,17 +14,16 @@ type EquipSlotKey = 'head' | 'feet' | 'body' | 'necklace' | 'ring' | 'leftHand' 
 interface EquipSlotConfig {
   slot: EquipSlotKey
   label: string
-  shortLabel: string
 }
 
 const EQUIP_SLOTS: EquipSlotConfig[] = [
-  { slot: 'head', label: '头部', shortLabel: '头' },
-  { slot: 'feet', label: '脚部', shortLabel: '脚' },
-  { slot: 'body', label: '身体', shortLabel: '身' },
-  { slot: 'necklace', label: '项链', shortLabel: '链' },
-  { slot: 'ring', label: '戒指', shortLabel: '戒' },
-  { slot: 'leftHand', label: '主手', shortLabel: '主' },
-  { slot: 'rightHand', label: '副手', shortLabel: '副' },
+  { slot: 'head', label: '头部' },
+  { slot: 'feet', label: '脚部' },
+  { slot: 'body', label: '身体' },
+  { slot: 'necklace', label: '项链' },
+  { slot: 'ring', label: '戒指' },
+  { slot: 'leftHand', label: '主手' },
+  { slot: 'rightHand', label: '副手' },
 ]
 
 const SLOT_POSITIONS: Record<EquipSlotKey, CSSProperties> = {
@@ -71,6 +72,29 @@ function formatValue(value: number): string {
   const rounded = Math.abs(delta) >= 10 ? Math.floor(Math.abs(delta)) : Math.round(Math.abs(delta) * 10) / 10
   if (rounded === 0) return '0'
   return delta > 0 ? `+${rounded}` : `-${rounded}`
+}
+
+function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
+  return {
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.88)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    boxShadow: active ? '0 0 13px rgba(77,60,35,0.66)' : glow === 'none' ? undefined : glow,
+    flexShrink: 0,
+  }
+}
+
+const slotIconImageStyle: CSSProperties = {
+  width: 56,
+  height: 56,
+  objectFit: 'contain',
+  display: 'block',
+  pointerEvents: 'none',
 }
 
 function getItemName(equip: any): string {
@@ -163,11 +187,11 @@ export function EquipWindow() {
                 boxShadow: 'inset 0 0 28px rgba(205, 175, 95, 0.08)',
               }} />
 
-            {EQUIP_SLOTS.map(({ slot, label, shortLabel }) => {
+            {EQUIP_SLOTS.map(({ slot, label }) => {
               const equip = player[slot]
               const active = selectedSlot === slot
-              const color = equip ? QualityColor[equip.quality] ?? 'var(--color-text-bright)' : 'var(--color-text-dim)'
               const glow = equip && equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255, 64, 64, 0.7)` : 'none'
+              const slotSpriteName = getEquipmentSpriteName(equip)
               return (
                 <button
                   key={slot}
@@ -185,7 +209,6 @@ export function EquipWindow() {
                     borderRadius: '50%',
                     border: active ? '2px solid var(--color-yellow)' : '1px solid rgba(205, 175, 95, 0.58)',
                     background: equip ? 'rgba(20, 18, 32, 0.96)' : 'rgba(255,255,255,0.035)',
-                    color,
                     cursor: 'pointer',
                     boxShadow: active ? `0 0 0 2px rgba(255, 215, 0, 0.12), ${glow}` : glow,
                     display: 'flex',
@@ -196,11 +219,9 @@ export function EquipWindow() {
                     padding: 4,
                   }}
                 >
-                  <span style={{ fontSize: 16, fontWeight: 700 }}>{shortLabel}</span>
-                  <span style={{ fontSize: 10, color: equip ? color : 'var(--color-text-dim)', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {equip ? equip.type : '空'}
+                  <span style={slotIconFrameStyle(active, glow)} data-bwe-equip-slot-icon={slotSpriteName}>
+                    <SpriteImage name={slotSpriteName} autoPlay={false} style={slotIconImageStyle} />
                   </span>
-                  {equip && equip.level > 0 && <span style={{ fontSize: 10, color: '#FFD700' }}>+{equip.level}</span>}
                 </button>
               )
             })}

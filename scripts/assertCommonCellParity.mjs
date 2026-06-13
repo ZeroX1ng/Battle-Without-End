@@ -18,7 +18,14 @@ function assertIncludes(source, needle, message) {
   }
 }
 
+function assertNotIncludes(source, needle, message) {
+  if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
 const common = read('src/components/common/Common.tsx');
+const as3EquipmentCell = read('reference/as3/BOE-O/scripts/iPanel/iCell/EquipmentCell.as');
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
 const otherPanel = read('src/components/panels/OtherPanel.tsx');
 const otherWindow = read('src/components/windows/OtherWindow.tsx');
@@ -41,6 +48,13 @@ assertIncludes(common, 'equip', 'EquipmentCell must include the original equip b
 assertIncludes(common, 'equip.level >= 7', 'EquipmentCell must preserve the original high-level glow behavior');
 assertIncludes(common, 'getNameHTML()', 'EquipmentCell must render original equipment HTML names');
 assertIncludes(common, 'getDescription()', 'EquipmentCell must render original item descriptions');
+assertIncludes(as3EquipmentCell, 'getDefinitionByName("mc_" + this.equip.type)', 'AS3 EquipmentCell must load weapon sprites from mc_<type>.');
+assertIncludes(as3EquipmentCell, 'getDefinitionByName("mc_" + this.equip.position + "_" + this.equip.type)', 'AS3 EquipmentCell must load armor/accessory sprites from mc_<position>_<type>.');
+assertIncludes(common, "import { SpriteImage } from '../shared/SpriteImage'", 'EquipmentCell must render registered sprites instead of text placeholders.');
+assertIncludes(common, 'function getEquipmentSpriteName', 'EquipmentCell must centralize AS3 equipment sprite key selection.');
+assertIncludes(common, 'data-bwe-equipment-icon={equipmentSpriteName}', 'EquipmentCell must expose the resolved equipment sprite key for UI smoke.');
+assertIncludes(common, '<SpriteImage', 'EquipmentCell must render the equipment icon through SpriteImage.');
+assertNotIncludes(common, 'iconText', 'EquipmentCell must not fall back to type/position text abbreviations for its icon.');
 
 assertIncludes(itemWindow, 'EquipmentCell', 'ItemWindow must render inventory rows through EquipmentCell');
 assertIncludes(itemWindow, "dispatch({ type: 'ITEM_SELL'", 'ItemWindow must wire EquipmentCell sell behavior');
