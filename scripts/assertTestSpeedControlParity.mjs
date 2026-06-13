@@ -61,8 +61,8 @@ if (packageJson.scripts?.['assert:test-speed-control'] !== 'node scripts/assertT
   throw new Error('package.json must expose assert:test-speed-control');
 }
 
-assertIncludes(testSpeed, 'export const TEST_SPEED_CONTROL_ENABLED = true', 'Speed control must be removable through one feature flag.');
-assertIncludes(testSpeed, 'Remove TEST_SPEED_CONTROL_ENABLED, TestSpeedControl, and BattleDebugOptions before a production release.', 'Temporary test controls must carry a production-removal note.');
+assertIncludes(testSpeed, 'export const TEST_SPEED_CONTROL_ENABLED = !import.meta.env.PROD', 'Speed control must be gated by import.meta.env.PROD so it is visible in dev and hidden in release.');
+assertIncludes(testSpeed, 'Controlled by import.meta.env.PROD: visible in dev (npm run dev), hidden in release (npm run build).', 'Temporary test controls must document the Vite PROD gating mechanism.');
 assertIncludes(testSpeed, 'export const TEST_SPEED_MULTIPLIERS = [1, 10, 25, 50] as const', 'Speed control must expose exactly 1x/10x/25x/50x for the pet-exp test build.');
 assertIncludes(testSpeed, 'export const DEFAULT_TEST_SPEED_MULTIPLIER = 1', 'Speed control default must stay 1x for normal launch.');
 assertIncludes(testSpeed, 'export const DEFAULT_TEST_ONE_HIT_KILL_ENABLED = false', 'One-hit kill must default off for normal launch.');
