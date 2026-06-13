@@ -122,6 +122,10 @@
         "portable"
       ],
       "artifactName": "${productName}-${version}.${ext}"
-    }
+    },
+    "electronLanguages": [
+      "zh-CN",
+      "en-US"
+    ]
   }
 }
