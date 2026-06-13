@@ -1,6 +1,6 @@
 # BWE Playtest Follow-up Parity Queue - 2026-06-08
 
-Last updated: 2026-06-08
+Last updated: 2026-06-13
 
 ## 中文
 
@@ -13,9 +13,9 @@ Last updated: 2026-06-08
 | ID | 优先级 | Parity 类型 | 问题简述 | 状态 | 建议 guard |
 | --- | --- | --- | --- | --- | --- |
 | `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | 正常速度下攻击回合明显快于 AS3 原版 | Verified | `assert:battle-tempo-cadence` |
-| `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | 战斗中敌人攻击力数值快速反复变动 | Needs repair | `assert:monster-info-display-parity` |
+| `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | 战斗中敌人攻击力数值快速反复变动 | Verified | `assert:monster-info-display-parity` |
 | `P1-COMBAT-POWER-EQUIPLESS-READOUT` | P1 | Product decision candidate | 显示战斗力不反映装备后真实压制力，300 CP 可轻松打 900+ 地图 | Needs product decision | `assert:combat-power-readout-parity` |
-| `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | 背包装备浮窗过大、遮挡严重、可越出游戏边框 | Needs repair | `assert:item-info-window-bounds` |
+| `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | 背包装备浮窗过大、遮挡严重、可越出游戏边框 | Verified | `assert:item-info-window-bounds` |
 
 ---
 
@@ -68,6 +68,8 @@ Last updated: 2026-06-08
 
 **Scope:** 战斗中怪物信息面板的“攻击”数值快速变化，造成视觉困扰。
 
+**Status:** Verified 2026-06-13. `assert:monster-info-display-parity` first failed on the React render-path `mon.attack` read, then passed after `MonsterInfoPanel.tsx` stopped rendering the AS3-absent attack/defence/protection/crit extension rows and restored AS3-visible monster buff icons. Browser smoke sampled the monster info panel for 10 seconds in battle; monster HP changed, while the monster info area never displayed an attack single value.
+
 **Observed Symptom:** 敌人攻击力显示在战斗过程中不断跳动，像是怪物属性在反复变化。
 
 **AS3 Source of Truth:**
@@ -78,8 +80,9 @@ Last updated: 2026-06-08
 
 **React Targets:**
 
-- `src/components/panels/MonsterInfoPanel.tsx` (L52-L57): React 额外渲染 `攻击/防御/护甲/暴击` 四项，其中攻击读取 `Math.floor(mon.attack)`。
+- `src/components/panels/MonsterInfoPanel.tsx`: React previously rendered AS3-absent `攻击/防御/护甲/暴击` rows and read `Math.floor(mon.attack)`; it now keeps the AS3-visible monster name, CP, title hover, HP, and buff icons without reading `mon.attack`.
 - `src/core/models/Monster.ts` (L203-L209): `get attack()` 每次读取都会执行 `balanceRandom(this.balance)`。
+- `scripts/assertMonsterInfoDisplayParity.mjs`: Guards the AS3 display contract, preserves random `Monster.attack` battle semantics, and blocks future render-path `mon.attack` reads.
 - `docs/parity/p1-battle-monster-attack-getter-20260604.md`: 记录 getter 随机行为本身是 AS3 原作设计。
 
 **Root Cause Analysis:**
@@ -151,6 +154,8 @@ Last updated: 2026-06-08
 
 **Scope:** 背包或商店 hover 装备时，装备详情浮窗过宽过大，遮挡大部分游戏区域，且可能超出游戏边框导致显示不完整。
 
+**Status:** Verified 2026-06-13. `assert:item-info-window-bounds` first failed on the old 300px browser-window-clamped tooltip path, then passed after `ItemInfoWindow` adopted AS3-adjacent 130-180px panes, game-shell/main-scene stage clamping, compact compare layout, height caps, and internal scrolling. Browser smoke covered inventory ordinary equipment, long-description equipment, same-slot compare panes, right/bottom edge hovers, shop sell equipment hover, and mouse-leave hiding.
+
 **Observed Symptom:** 新出现的装备浮窗字体大、窗口大、遮挡严重；比较浮窗没有按游戏容器边界收纳，靠近边缘时可能越界。
 
 **AS3 Source of Truth:**
@@ -162,15 +167,15 @@ Last updated: 2026-06-08
 
 **React Targets:**
 
-- `src/components/common/InfoWindow.tsx` (L175-L229): `ItemInfoWindow` 使用 `panelWidth = 300`，比较模式总宽 `300 * 2 + 10`。
-- `src/components/common/InfoWindow.tsx` (L184-L187): 只按 `window.innerWidth` 防右侧越界，未按游戏容器或舞台边界处理。
-- `src/components/common/InfoWindow.tsx` (L188-L195): 面板有边框和阴影，但尺寸过大时视觉上会吞掉页面。
+- `src/components/common/InfoWindow.tsx`: `ItemInfoWindow` now uses an AS3-adjacent controlled 130-180px panel width and clamps against `.game-shell` / `.main-scene`.
+- `src/components/common/InfoWindow.tsx`: compare mode keeps candidate/current dual panes, with a compact 344px desktop total width and column fallback when the stage is tight.
+- `src/components/common/InfoWindow.tsx`: the AS3-style gold border/glow remains visible, while long descriptions use `maxHeight` plus `overflowY: auto`.
 - `src/components/common/Common.tsx` (L382-L387): `EquipmentCell` hover 同时传 candidate 和 current equipped HTML，触发双面板。
 - `scripts/assertEquipmentCompareTooltipParity.mjs`: 目前只保护双面板数据路径，不保护尺寸和边界。
 
 **Root Cause Analysis:**
 
-React 的共享装备浮窗为了可读性把 AS3 130px 宽度扩到了 300px；比较模式又并排渲染两个 300px 面板，实际占用 610px。它使用 `position: fixed` 并以浏览器窗口为边界，而不是 AS3 的 `Global.stage` / 当前游戏容器边界。因此在背包内部 hover 时，浮窗可能横跨大半页面、遮挡主 UI，靠近游戏边缘时还会被容器或窗口裁掉。
+修复前 React 的共享装备浮窗为了可读性把 AS3 130px 宽度扩到了 300px；比较模式又并排渲染两个 300px 面板，实际占用 610px。它使用 `position: fixed` 并以浏览器窗口为边界，而不是 AS3 的 `Global.stage` / 当前游戏容器边界。因此在背包内部 hover 时，浮窗可能横跨大半页面、遮挡主 UI，靠近游戏边缘时还会被容器或窗口裁掉。
 
 **Expected Behavior:** 装备浮窗应有 AS3 风格的明确边框、紧凑宽度和舞台边界约束；双面板比较可以保留，但必须在游戏容器内选择左/右/上下布局，必要时限制高度并内部滚动，不能遮挡大部分可操作区。
 
@@ -205,13 +210,13 @@ This file turns the 2026-06-08 playtest findings into focused parity/product-bou
 | ID | Priority | Type | Issue | Status | Suggested Guard |
 | --- | --- | --- | --- | --- | --- |
 | `P0-BATTLE-TEMPO-CADENCE` | P0 | AS3 parity + visible cadence | At normal speed, visible attack turns feel faster than AS3 | Verified | `assert:battle-tempo-cadence` |
-| `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | Enemy attack value flickers rapidly during battle | Needs repair | `assert:monster-info-display-parity` |
+| `P1-MONSTER-INFO-ATTACK-FLICKER` | P1 | AS3 UI parity | Enemy attack value flickers rapidly during battle | Verified | `assert:monster-info-display-parity` |
 | `P1-COMBAT-POWER-EQUIPLESS-READOUT` | P1 | Product decision candidate | Displayed CP is base-only and does not reflect equipped combat strength | Needs product decision | `assert:combat-power-readout-parity` |
-| `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | Equipment hover tooltip is too large and can escape the game frame | Needs repair | `assert:item-info-window-bounds` |
+| `P1-EQUIP-TOOLTIP-BOUNDS` | P1 | AS3 UI parity | Equipment hover tooltip is too large and can escape the game frame | Verified | `assert:item-info-window-bounds` |
 
 ### Implementation Notes
 
 - `P0-BATTLE-TEMPO-CADENCE`: AS3 uses a `Timer(500)` and one `fight()` per timer event. React still defaults to 500ms, and `useGameLoop` now routes elapsed scheduling through `planGameLoopSchedule`, which preserves elapsed-debt measurement while clamping 1x foreground execution to at most one visible battle tick per scheduler pass. Browser smoke passed on 2026-06-08 with 1x pressed, one-hit disabled, and no sampled multi-attack burst.
-- `P1-MONSTER-INFO-ATTACK-FLICKER`: AS3 `MonsterInfoPanel` does not display monster attack. React displays `Math.floor(mon.attack)`, but `Monster.attack` is a random getter, so the UI exposes a combat-only side effect.
+- `P1-MONSTER-INFO-ATTACK-FLICKER`: Verified 2026-06-13. AS3 `MonsterInfoPanel` displays monster name, title, HP, combat power, and buffs, but not monster attack. React no longer reads `mon.attack` during monster-info render, no longer shows the AS3-absent attack/defence/protection/crit extension rows, and `assert:monster-info-display-parity` plus a 10-second browser smoke passed.
 - `P1-COMBAT-POWER-EQUIPLESS-READOUT`: AS3 and React both calculate CP without equipment. Treat any equipment-inclusive power display as a separate product override, not a replacement for AS3 `combatPower`.
-- `P1-EQUIP-TOOLTIP-BOUNDS`: AS3 `ItemInfoWindow` is 130px wide with a drawn border and stage-edge adjustment. React currently uses 300px panes and browser-window bounds, so dual equipment comparison can occupy 610px and escape the game frame.
+- `P1-EQUIP-TOOLTIP-BOUNDS`: Verified 2026-06-13. AS3 `ItemInfoWindow` is 130px wide with a drawn border and stage-edge adjustment. React now uses AS3-adjacent 130-180px panes, clamps against `.game-shell` / `.main-scene`, keeps dual compare panes inside the stage, caps height with internal scrolling for long descriptions, and passed inventory/shop browser bounds smoke.

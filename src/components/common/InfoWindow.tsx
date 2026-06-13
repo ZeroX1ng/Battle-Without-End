@@ -129,6 +129,55 @@ interface StringInfoWindowProps {
 const GOLD_BORDER = 'rgba(205, 175, 95, 0.8)'
 const GLOW_COLOR = 'rgba(77, 60, 35, 0.66)'
 const INFO_BG = 'rgba(10, 8, 20, 0.92)'
+const ITEM_INFO_PANEL_MIN_WIDTH = 130
+const ITEM_INFO_PANEL_MAX_WIDTH = 180
+const ITEM_INFO_PANEL_PREFERRED_WIDTH = 168
+const ITEM_INFO_PANEL_GAP = 8
+const ITEM_INFO_PANEL_MARGIN = 8
+const ITEM_INFO_PANEL_OFFSET_X = 16
+const ITEM_INFO_PANEL_OFFSET_Y = -10
+const ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT = 140
+const ITEM_INFO_PANEL_MAX_HEIGHT = 360
+const ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO = 0.52
+
+type TooltipStageRect = Pick<DOMRect, 'left' | 'top' | 'right' | 'bottom' | 'width' | 'height'>
+type ItemInfoLayout = 'row' | 'column'
+
+function getTooltipStageRect(): TooltipStageRect {
+  if (typeof document !== 'undefined') {
+    const stageElement =
+      document.querySelector<HTMLElement>('.game-shell') ??
+      document.querySelector<HTMLElement>('.main-scene')
+    if (stageElement) {
+      return stageElement.getBoundingClientRect()
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    return {
+      left: 0,
+      top: 0,
+      right: window.innerWidth,
+      bottom: window.innerHeight,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }
+  }
+
+  return {
+    left: 0,
+    top: 0,
+    right: 800,
+    bottom: 600,
+    width: 800,
+    height: 600,
+  }
+}
+
+function clampToStage(value: number, min: number, max: number): number {
+  if (max < min) return min
+  return Math.min(Math.max(value, min), max)
+}
 
 function StringInfoWindow({ text, visible, mouseX, mouseY }: StringInfoWindowProps) {
   if (!visible || !text) return null
@@ -175,39 +224,98 @@ interface ItemInfoWindowProps {
 function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: ItemInfoWindowProps) {
   if (!visible || !html) return null
 
-  const offsetX = 16
-  const offsetY = -10
-  const panelWidth = 300
-  const gap = 10
   const hasCompare = !!compareHtml
+  const stageRect = getTooltipStageRect()
+  const stageInnerWidth = Math.max(
+    ITEM_INFO_PANEL_MIN_WIDTH,
+    stageRect.width - ITEM_INFO_PANEL_MARGIN * 2,
+  )
+  const canFitCompareRow =
+    hasCompare && stageInnerWidth >= ITEM_INFO_PANEL_MIN_WIDTH * 2 + ITEM_INFO_PANEL_GAP
+  const layout: ItemInfoLayout = hasCompare && !canFitCompareRow ? 'column' : 'row'
+  const paneCount = hasCompare && layout === 'row' ? 2 : 1
+  const rowGap = paneCount === 2 ? ITEM_INFO_PANEL_GAP : 0
+  const panelWidth = clampToStage(
+    Math.floor((stageInnerWidth - rowGap) / paneCount),
+    ITEM_INFO_PANEL_MIN_WIDTH,
+    ITEM_INFO_PANEL_PREFERRED_WIDTH,
+  )
+  const cappedPanelWidth = Math.min(panelWidth, ITEM_INFO_PANEL_MAX_WIDTH)
 
-  // 防止面板超出屏幕右侧
-  const totalWidth = hasCompare ? panelWidth * 2 + gap : panelWidth
-  const adjustedX = Math.min(mouseX + offsetX, window.innerWidth - totalWidth - 10)
-  const adjustedY = Math.max(10, mouseY + offsetY)
+  // Clamp against the AS3-like stage/game shell, not the browser viewport.
+  const totalWidth = hasCompare && layout === 'row'
+    ? cappedPanelWidth * 2 + ITEM_INFO_PANEL_GAP
+    : cappedPanelWidth
+  const preferredX = mouseX + ITEM_INFO_PANEL_OFFSET_X
+  const flippedX = mouseX - totalWidth - ITEM_INFO_PANEL_OFFSET_X
+  const rawX = preferredX + totalWidth <= stageRect.right - ITEM_INFO_PANEL_MARGIN
+    ? preferredX
+    : flippedX
+  const adjustedX = clampToStage(
+    rawX,
+    stageRect.left + ITEM_INFO_PANEL_MARGIN,
+    stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
+  )
+  const stageInnerHeight = Math.max(
+    ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
+    Math.min(
+      stageRect.height - ITEM_INFO_PANEL_MARGIN * 2,
+      Math.floor(stageRect.height * ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO),
+      ITEM_INFO_PANEL_MAX_HEIGHT,
+    ),
+  )
+  const minVisibleHeight = Math.min(ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT, stageInnerHeight)
+  const preferredY = mouseY + ITEM_INFO_PANEL_OFFSET_Y
+  const rawY = preferredY + minVisibleHeight <= stageRect.bottom - ITEM_INFO_PANEL_MARGIN
+    ? preferredY
+    : mouseY - minVisibleHeight - ITEM_INFO_PANEL_MARGIN
+  const adjustedY = clampToStage(
+    rawY,
+    stageRect.top + ITEM_INFO_PANEL_MARGIN,
+    stageRect.bottom - ITEM_INFO_PANEL_MARGIN - minVisibleHeight,
+  )
+  const tooltipMaxHeight = Math.min(
+    stageInnerHeight,
+    Math.max(
+      minVisibleHeight,
+      stageRect.bottom - adjustedY - ITEM_INFO_PANEL_MARGIN,
+    ),
+  )
+  const panelMaxHeight = hasCompare && layout === 'column'
+    ? Math.max(80, Math.floor((tooltipMaxHeight - ITEM_INFO_PANEL_GAP) / 2))
+    : tooltipMaxHeight
   const panelStyle: React.CSSProperties = {
-    width: panelWidth,
-    padding: '8px 10px',
+    width: cappedPanelWidth,
+    maxHeight: panelMaxHeight,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    padding: '6px 8px',
     background: INFO_BG,
     border: `1px solid ${GOLD_BORDER}`,
     borderRadius: 4,
     boxShadow: `0 0 13px ${GLOW_COLOR}, 0 0 3px ${GOLD_BORDER}`,
+    overflowWrap: 'break-word',
   }
 
   return (
     <div
+      data-bwe-item-info-window
+      data-bwe-item-info-layout={layout}
       style={{
         position: 'fixed',
         left: adjustedX,
         top: adjustedY,
         display: 'flex',
-        gap,
+        flexDirection: layout,
+        gap: ITEM_INFO_PANEL_GAP,
         alignItems: 'flex-start',
+        maxWidth: stageInnerWidth,
+        maxHeight: tooltipMaxHeight,
         pointerEvents: 'none',
         zIndex: 10001,
       }}
     >
-      <div style={panelStyle}>
+      <div data-bwe-item-info-panel="candidate" style={panelStyle}>
         <TextField
           size={16}
           color="#c8c8d4"
@@ -216,7 +324,7 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: Ite
         />
       </div>
       {hasCompare && (
-        <div style={panelStyle}>
+        <div data-bwe-item-info-panel="current" style={panelStyle}>
           <TextField
             size={16}
             color="#c8c8d4"
