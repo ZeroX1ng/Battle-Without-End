@@ -30,7 +30,7 @@ function getItemName(item: any): string {
 
 export function ItemWindow() {
   const { state, dispatch } = useGameContext()
-  const { showStringInfo, hideStringInfo, showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
+  const { showStringInfo, hideStringInfo, showItemInfo, hideItemInfo, updateMouse, hidePinnedItemInfo } = useInfoWindow()
   const items = state.player.itemList
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [autoEnhance, setAutoEnhance] = useState(false)
@@ -42,8 +42,9 @@ export function ItemWindow() {
     if (selectedIndex !== null && selectedIndex >= items.length) {
       setSelectedIndex(null)
       hideItemInfo()
+      hidePinnedItemInfo()
     }
-  }, [hideItemInfo, items.length, selectedIndex])
+  }, [hideItemInfo, hidePinnedItemInfo, items.length, selectedIndex])
 
   const blacksmithLevel = useMemo(() => {
     const bs = state.player.skillList.find((s: any) => s.skillData.name === 'BLACKSMITHING')
@@ -95,6 +96,7 @@ export function ItemWindow() {
   const closeWindow = () => {
     hideStringInfo()
     hideItemInfo()
+    hidePinnedItemInfo()
     dispatch({ type: 'UI_CLOSE_WINDOW' })
     setSelectedIndex(null)
   }

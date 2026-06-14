@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useInfoWindow } from './InfoWindow'
 import { SpriteImage } from '../shared/SpriteImage'
@@ -95,6 +95,11 @@ export function ButtonCell({
 }: ButtonCellProps) {
   const [hovered, setHovered] = useState(false)
   const [internalDown, setInternalDown] = useState(false)
+
+  useEffect(() => {
+    if (!selected) setInternalDown(false)
+  }, [selected])
+
   const buttonDown = selected || internalDown
   const afterVisible = !disabled && (hovered || buttonDown)
 
@@ -387,17 +392,21 @@ export function EquipmentCell({
   onSell,
   style,
 }: EquipmentCellProps) {
-  const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
+  const { showItemInfo, hideItemInfo, updateMouse, showPinnedItemInfo, hidePinnedItemInfo } = useInfoWindow()
   const [hovered, setHovered] = useState(false)
   const highLevelGlow = equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255,0,0,0.66)` : undefined
   const equipmentSpriteName = getEquipmentSpriteName(equip)
   const active = selected || hovered
 
+  const getCandidateHtml = () =>
+    getDescription ? getDescription(equip) : equip?.getDescription ? equip.getDescription() : undefined
+  const getCompareHtml = () =>
+    currentEquip && currentEquip !== equip ? currentEquip.getDescription?.() : undefined
+
   const handleHover = (event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
-    const candidateHtml = getDescription ? getDescription(equip) : equip?.getDescription ? equip.getDescription() : undefined
-    const compareHtml = currentEquip && currentEquip !== equip ? currentEquip.getDescription?.() : undefined
-    if (candidateHtml) showItemInfo(candidateHtml, compareHtml)
+    const candidateHtml = getCandidateHtml()
+    if (candidateHtml) showItemInfo(candidateHtml, getCompareHtml())
   }
 
   const actionButton = (kind: 'equip' | 'sell', label: string, handler?: (equip: any, event: ReactMouseEvent) => void) => (
@@ -429,7 +438,24 @@ export function EquipmentCell({
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
       onClick={event => {
-        if (!disabled) onSelect?.(equip, event)
+        if (!disabled) {
+          onSelect?.(equip, event)
+          if (!selected) {
+            setHovered(true)
+            const candidateHtml = getCandidateHtml()
+            const compareHtml = getCompareHtml()
+            if (candidateHtml) {
+              // Pinned panel: position to the LEFT of the cell when possible
+              const rect = event.currentTarget.getBoundingClientRect()
+              const totalWidth = compareHtml ? 344 : 168 // approximate panel widths
+              const x = rect.left - totalWidth - 8
+              showPinnedItemInfo(candidateHtml, compareHtml, x, rect.top)
+            }
+          } else {
+            setHovered(false)
+            hidePinnedItemInfo()
+          }
+        }
       }}
       onKeyDown={event => {
         if (!disabled && (event.key === 'Enter' || event.key === ' ')) {

@@ -12,7 +12,7 @@ export function HelpWindow() {
   const qColor = (q: number) => QualityColor[q] || '#c8c8d4';
 
   const helpHtml = [
-    `<font size="14">你们好，这里主要用来放置一下帮助和版本信息</font><br/>`,
+    `<font style="font-size:20px;font-weight:bold;">你们好，这里主要用来放置一下帮助和版本信息</font><br/>`,
     `<br/>`,
     `<b>战斗力：</b>显示值表示的是没有任何装备的情况下的基础战斗力，所以装备不影响<br/>`,
     `<br/>`,

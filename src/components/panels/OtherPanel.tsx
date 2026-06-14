@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ButtonCell, MenuButton } from '../common/Common'
 import { SpriteImage } from '../shared/SpriteImage'
+import { useInfoWindow } from '../common/InfoWindow'
 import { TitleWindow } from './TitleWindow'
 import { SystemWindow } from './SystemWindow'
 import {
@@ -86,6 +87,7 @@ function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
 export function OtherPanel() {
   const [activeTab, setActiveTab] = useState<OtherPanelTabId>('item')
   const [scrollOffset, setScrollOffset] = useState(0)
+  const { hidePinnedItemInfo } = useInfoWindow()
 
   const minOffset = 0
   const maxOffset = tabDefs.length - VISIBLE_COUNT
@@ -95,7 +97,8 @@ export function OtherPanel() {
 
   const handleTabClick = useCallback((id: OtherPanelTabId) => {
     setActiveTab(id)
-  }, [])
+    hidePinnedItemInfo()
+  }, [hidePinnedItemInfo])
 
   const scrollLeft = useCallback(() => {
     const next = Math.max(scrollOffset - 1, minOffset)

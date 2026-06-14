@@ -20,6 +20,11 @@ interface InfoWindowState {
   itemVisible: boolean
   mouseX: number
   mouseY: number
+  pinnedItemHtml: string
+  pinnedCompareHtml: string
+  pinnedVisible: boolean
+  pinnedX: number
+  pinnedY: number
 }
 
 interface InfoWindowContextType {
@@ -28,6 +33,8 @@ interface InfoWindowContextType {
   showItemInfo: (html: string, compareHtml?: string) => void
   hideItemInfo: () => void
   updateMouse: (x: number, y: number) => void
+  showPinnedItemInfo: (html: string, compareHtml: string, x: number, y: number) => void
+  hidePinnedItemInfo: () => void
 }
 
 const InfoWindowContext = createContext<InfoWindowContextType | null>(null)
@@ -43,6 +50,11 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
     itemVisible: false,
     mouseX: 0,
     mouseY: 0,
+    pinnedItemHtml: '',
+    pinnedCompareHtml: '',
+    pinnedVisible: false,
+    pinnedX: 0,
+    pinnedY: 0,
   })
 
   const showStringInfo = useCallback((text: string) => {
@@ -65,12 +77,22 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
     setState(s => ({ ...s, mouseX: x, mouseY: y }))
   }, [])
 
+  const showPinnedItemInfo = useCallback((html: string, compareHtml: string, x: number, y: number) => {
+    setState(s => ({ ...s, pinnedItemHtml: html, pinnedCompareHtml: compareHtml, pinnedVisible: true, pinnedX: x, pinnedY: y }))
+  }, [])
+
+  const hidePinnedItemInfo = useCallback(() => {
+    setState(s => ({ ...s, pinnedVisible: false, pinnedCompareHtml: '' }))
+  }, [])
+
   const value: InfoWindowContextType = {
     showStringInfo,
     hideStringInfo,
     showItemInfo,
     hideItemInfo,
     updateMouse,
+    showPinnedItemInfo,
+    hidePinnedItemInfo,
   }
 
   return (
@@ -88,6 +110,14 @@ export function InfoWindowProvider({ children }: { children: React.ReactNode }) 
         visible={state.itemVisible}
         mouseX={state.mouseX}
         mouseY={state.mouseY}
+      />
+      <ItemInfoWindow
+        html={state.pinnedItemHtml}
+        compareHtml={state.pinnedCompareHtml}
+        visible={state.pinnedVisible}
+        mouseX={state.pinnedX}
+        mouseY={state.pinnedY}
+        pinned
       />
     </InfoWindowContext.Provider>
   )
@@ -219,9 +249,10 @@ interface ItemInfoWindowProps {
   visible: boolean
   mouseX: number
   mouseY: number
+  pinned?: boolean
 }
 
-function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: ItemInfoWindowProps) {
+function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY, pinned = false }: ItemInfoWindowProps) {
   if (!visible || !html) return null
 
   const hasCompare = !!compareHtml
@@ -242,45 +273,67 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: Ite
   )
   const cappedPanelWidth = Math.min(panelWidth, ITEM_INFO_PANEL_MAX_WIDTH)
 
-  // Clamp against the AS3-like stage/game shell, not the browser viewport.
+  // For pinned panels, position directly at the provided coordinates without mouse-relative clamping.
   const totalWidth = hasCompare && layout === 'row'
     ? cappedPanelWidth * 2 + ITEM_INFO_PANEL_GAP
     : cappedPanelWidth
-  const preferredX = mouseX + ITEM_INFO_PANEL_OFFSET_X
-  const flippedX = mouseX - totalWidth - ITEM_INFO_PANEL_OFFSET_X
-  const rawX = preferredX + totalWidth <= stageRect.right - ITEM_INFO_PANEL_MARGIN
-    ? preferredX
-    : flippedX
-  const adjustedX = clampToStage(
-    rawX,
-    stageRect.left + ITEM_INFO_PANEL_MARGIN,
-    stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
-  )
-  const stageInnerHeight = Math.max(
-    ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
-    Math.min(
-      stageRect.height - ITEM_INFO_PANEL_MARGIN * 2,
-      Math.floor(stageRect.height * ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO),
+
+  let adjustedX: number
+  let adjustedY: number
+  let tooltipMaxHeight: number
+
+  if (pinned) {
+    adjustedX = clampToStage(
+      mouseX,
+      stageRect.left + ITEM_INFO_PANEL_MARGIN,
+      stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
+    )
+    adjustedY = clampToStage(
+      mouseY,
+      stageRect.top + ITEM_INFO_PANEL_MARGIN,
+      stageRect.bottom - ITEM_INFO_PANEL_MARGIN - ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
+    )
+    tooltipMaxHeight = Math.min(
       ITEM_INFO_PANEL_MAX_HEIGHT,
-    ),
-  )
-  const minVisibleHeight = Math.min(ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT, stageInnerHeight)
-  const preferredY = mouseY + ITEM_INFO_PANEL_OFFSET_Y
-  const rawY = preferredY + minVisibleHeight <= stageRect.bottom - ITEM_INFO_PANEL_MARGIN
-    ? preferredY
-    : mouseY - minVisibleHeight - ITEM_INFO_PANEL_MARGIN
-  const adjustedY = clampToStage(
-    rawY,
-    stageRect.top + ITEM_INFO_PANEL_MARGIN,
-    stageRect.bottom - ITEM_INFO_PANEL_MARGIN - minVisibleHeight,
-  )
-  const tooltipMaxHeight = Math.min(
-    stageInnerHeight,
-    Math.max(
-      minVisibleHeight,
       stageRect.bottom - adjustedY - ITEM_INFO_PANEL_MARGIN,
-    ),
-  )
+    )
+  } else {
+    const preferredX = mouseX + ITEM_INFO_PANEL_OFFSET_X
+    const flippedX = mouseX - totalWidth - ITEM_INFO_PANEL_OFFSET_X
+    const rawX = preferredX + totalWidth <= stageRect.right - ITEM_INFO_PANEL_MARGIN
+      ? preferredX
+      : flippedX
+    adjustedX = clampToStage(
+      rawX,
+      stageRect.left + ITEM_INFO_PANEL_MARGIN,
+      stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
+    )
+    const stageInnerHeight = Math.max(
+      ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
+      Math.min(
+        stageRect.height - ITEM_INFO_PANEL_MARGIN * 2,
+        Math.floor(stageRect.height * ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO),
+        ITEM_INFO_PANEL_MAX_HEIGHT,
+      ),
+    )
+    const minVisibleHeight = Math.min(ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT, stageInnerHeight)
+    const preferredY = mouseY + ITEM_INFO_PANEL_OFFSET_Y
+    const rawY = preferredY + minVisibleHeight <= stageRect.bottom - ITEM_INFO_PANEL_MARGIN
+      ? preferredY
+      : mouseY - minVisibleHeight - ITEM_INFO_PANEL_MARGIN
+    adjustedY = clampToStage(
+      rawY,
+      stageRect.top + ITEM_INFO_PANEL_MARGIN,
+      stageRect.bottom - ITEM_INFO_PANEL_MARGIN - minVisibleHeight,
+    )
+    tooltipMaxHeight = Math.min(
+      stageInnerHeight,
+      Math.max(
+        minVisibleHeight,
+        stageRect.bottom - adjustedY - ITEM_INFO_PANEL_MARGIN,
+      ),
+    )
+  }
   const panelMaxHeight = hasCompare && layout === 'column'
     ? Math.max(80, Math.floor((tooltipMaxHeight - ITEM_INFO_PANEL_GAP) / 2))
     : tooltipMaxHeight
@@ -308,6 +361,7 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: Ite
       `}</style>
       <div
         data-bwe-item-info-window
+        data-bwe-item-info-pinned={pinned ? '' : undefined}
         data-bwe-item-info-layout={layout}
         style={{
           position: 'fixed',
@@ -320,7 +374,7 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY }: Ite
           maxWidth: stageInnerWidth,
           maxHeight: tooltipMaxHeight,
           pointerEvents: 'none',
-          zIndex: 10001,
+          zIndex: pinned ? 10000 : 10001,
         }}
       >
         <div data-bwe-item-info-panel="candidate" style={panelStyle}>
