@@ -9,6 +9,7 @@ import { useGameContext } from '../../state/GameContext'
 import { Map as GameMap } from '../../core/models/Map'
 import { MapList } from '../../core/data/mapData'
 import { SpriteImage } from '../shared/SpriteImage'
+import { MapBackground } from '../shared/MapBackground'
 import { useInfoWindow } from '../common/InfoWindow'
 
 const MAP_WIDTH = 800;
@@ -83,20 +84,7 @@ export function MapWindow() {
           border: '1px solid var(--color-border)',
           background: 'var(--color-bg-dark)',
         }}>
-          <SpriteImage
-            name="map_mc"
-            autoPlay={true}
-            loop={true}
-            fps={8}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              pointerEvents: 'none',
-            }}
-          />
+          <MapBackground />
         {MapList.map((mapData) => {
           const isCurrent = mapData.name === currentMapName;
 

@@ -23,6 +23,7 @@ export function SpriteImage({
   const entry = spriteRegistry[name]
   const dir = entry?.dir
   const frames = entry?.frames ?? 1
+  const ext = entry?.ext ?? 'png'
 
   const [currentFrame, setCurrentFrame] = useState(1)
   const intervalRef = useRef<number>(0)
@@ -70,7 +71,7 @@ export function SpriteImage({
         intervalRef.current = 0
       }
     }
-  }, [name, dir, frames, fps, autoPlay, loop])
+  }, [name, dir, frames, ext, fps, autoPlay, loop])
 
   if (!entry) {
     return null
@@ -80,7 +81,7 @@ export function SpriteImage({
 
   return (
     <img
-      src={`/sprites/${dir}/${frameIndex}.png`}
+      src={`/sprites/${dir}/${frameIndex}.${ext}`}
       className={className}
       style={style}
       alt={name}

@@ -27,7 +27,7 @@ for (const [name, command] of Object.entries(packageScripts)) {
 const groups = {
   baseline: ['assert:preflight', 'assert:source-encoding', 'assert:text-resources'],
   architecture: ['assert:architecture', 'assert:module-boundary-decomposition'],
-  assets: ['assert:asset-modules', 'assert:source-encoding'],
+  assets: ['assert:asset-modules', 'assert:packaged-assets', 'assert:source-encoding'],
   battle: [
     'assert:battle-player-state',
     'assert:monster-reward',

@@ -7,7 +7,9 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite --config vite.config.mjs --configLoader native",
-    "build": "tsc -b && vite build --config vite.config.mjs --configLoader native",
+    "assets:map-webp": "node scripts/generateMapWebpSprites.mjs",
+    "assets:package": "node scripts/generatePackagedPublicAssets.mjs",
+    "build": "npm run assets:package && tsc -b && vite build --config vite.config.mjs --configLoader native",
     "test": "npm run assert:gate:changed",
     "pack:exe": "npm run build && electron-builder --win portable --x64",
     "assert:gate:baseline": "node scripts/runGuardGate.mjs baseline",
@@ -88,9 +90,10 @@
     "assert:common-cell": "node scripts/assertCommonCellParity.mjs",
     "assert:effects": "node scripts/assertEffectParity.mjs",
     "assert:asset-modules": "node scripts/assertAssetModuleParity.mjs",
+    "assert:packaged-assets": "node scripts/assertPackagedPublicAssets.mjs",
     "assert:responsive-layout": "node scripts/assertResponsiveMainLayoutParity.mjs",
     "smoke:responsive-layout": "node scripts/smokeResponsiveLayout.mjs",
-    "preview": "vite preview --config vite.config.mjs --configLoader native"
+    "preview": "npm run assets:package && vite preview --config vite.config.mjs --configLoader native"
   },
   "dependencies": {
     "react": "^18.3.1",
