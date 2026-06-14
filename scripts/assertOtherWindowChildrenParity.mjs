@@ -66,7 +66,7 @@ assertIncludes(mainScene, 'main-scene__overlay', 'MainScene must expose the stag
 assertIncludes(mainScene, 'UI_CLOSE_WINDOW', 'MainScene must provide an overlay close action');
 
 assertIncludes(mapWindow, "dispatch({ type: 'MAP_SWITCH', map: newMap })", 'MapWindow must switch maps through MAP_SWITCH');
-assertIncludes(mapWindow, 'new Map(mapData)', 'MapWindow must initialize the runtime map from selected MapData');
+assertIncludes(mapWindow, 'new GameMap(mapData)', 'MapWindow must initialize the runtime map from selected MapData');
 assertIncludes(mapWindow, 'MapList.map', 'MapWindow must render every AS3 MapList entry');
 assertIncludes(mapWindow, 'position: \'absolute\'', 'MapWindow must render AS3 map cells as visible positioned markers');
 assertIncludes(mapWindow, 'left: `${(mapData.x / MAP_WIDTH) * 100}%`', 'MapWindow must scale AS3 x coordinates into the visible map surface');
