@@ -24,6 +24,12 @@ function assertNotIncludes(source, needle, message) {
   }
 }
 
+function assertMatches(source, pattern, message) {
+  if (!pattern.test(source)) {
+    throw new Error(message);
+  }
+}
+
 const equipWindow = read('src/components/windows/EquipWindow.tsx');
 const as3EquipCell = read('reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as');
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
@@ -69,7 +75,11 @@ assertNotIncludes(gameContext, "case 'UNEQUIP_ITEM':\n      return state;", 'UNE
 
 assertIncludes(common, "actionButton('equip', 'E', onEquip)", 'Inventory equipment rows must keep the AS3 inline equip button');
 assertIncludes(common, "actionButton('sell', sellLabel, onSell)", 'Inventory equipment rows must keep the AS3 inline sell/money button');
-assertIncludes(common, 'showItemInfo(candidateHtml, compareHtml)', 'Inventory equipment rows must keep AS3 hover comparison details');
+assertMatches(
+  common,
+  /showItemInfo\(candidateHtml,\s*(?:compareHtml|getCompareHtml\(\))\)/,
+  'Inventory equipment rows must keep AS3 hover comparison details'
+);
 assertIncludes(itemWindow, 'currentEquip={getEquipmentComparisonSlot(item, state.player)}', 'ItemWindow must pass current same-slot equipment into bag rows');
 assertIncludes(itemWindow, "dispatch({ type: 'EQUIP_ITEM', item })", 'ItemWindow bag rows must equip through their inline EquipmentCell action');
 

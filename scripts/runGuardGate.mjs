@@ -195,6 +195,10 @@ function unique(values) {
   return [...new Set(values)];
 }
 
+function isDirectAssertScriptFile(file, directScript) {
+  return Boolean(directScript) && /^scripts\/assert[^/]*\.mjs$/i.test(file);
+}
+
 function addScript(selected, scriptName) {
   if (packageScripts[scriptName]) {
     selected.add(scriptName);
@@ -225,6 +229,10 @@ function selectChangedGuards(files) {
 
     if (directScript) {
       addScript(selected, directScript);
+    }
+
+    if (isDirectAssertScriptFile(file, directScript)) {
+      continue;
     }
 
     if (

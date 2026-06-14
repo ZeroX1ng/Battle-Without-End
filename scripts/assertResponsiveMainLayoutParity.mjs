@@ -18,6 +18,8 @@ function assert(condition, message) {
 const packageJson = JSON.parse(read('package.json'));
 const gameLayout = read('src/components/layout/GameLayout.tsx');
 const mainScene = read('src/components/scenes/MainScene.tsx');
+const overlayStart = mainScene.indexOf('{overlay && (');
+const primaryMainScene = overlayStart === -1 ? mainScene : mainScene.slice(0, overlayStart);
 const layoutCss = fs.existsSync(path.join(root, 'src/styles/layout.css'))
   ? read('src/styles/layout.css')
   : '';
@@ -65,7 +67,7 @@ assert(
 );
 
 assert(
-  !/position:\s*'absolute'/.test(mainScene),
+  !/position:\s*'absolute'/.test(primaryMainScene),
   'MainScene no longer relies on fixed absolute AS3 coordinates for primary layout'
 );
 

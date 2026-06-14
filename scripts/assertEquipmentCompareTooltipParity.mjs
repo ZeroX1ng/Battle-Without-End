@@ -24,6 +24,12 @@ function assertNotIncludes(source, needle, message) {
   }
 }
 
+function assertMatches(source, pattern, message) {
+  if (!pattern.test(source)) {
+    throw new Error(message);
+  }
+}
+
 const infoWindow = read('src/components/common/InfoWindow.tsx');
 const common = read('src/components/common/Common.tsx');
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
@@ -46,9 +52,9 @@ assertIncludes(
   'currentEquip?: any',
   'EquipmentCell must accept the current equipped item for the candidate slot',
 );
-assertIncludes(
+assertMatches(
   common,
-  'showItemInfo(candidateHtml, compareHtml)',
+  /showItemInfo\(candidateHtml,\s*(?:compareHtml|getCompareHtml\(\))\)/,
   'EquipmentCell hover must pass candidate and current-slot equipment descriptions together',
 );
 assertIncludes(

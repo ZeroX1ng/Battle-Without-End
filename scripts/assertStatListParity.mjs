@@ -85,7 +85,8 @@ try {
 
   assertIncludes(reactPlayerInfoPanel, 'formatAttackRange(s.attmin, s.attmax)', 'PlayerInfoPanel must render attack as the AS3 min~max range.');
   assertIncludes(reactPlayerInfoPanel, 'formatCritMultiplier(s.crit_mul)', 'PlayerInfoPanel must render crit_mul as an AS3 percent string.');
-  assertIncludes(reactPlayerInfoPanel, 'PrimaryAttributeLine', 'PlayerInfoPanel must render primary attributes with AS3 basic-value comparison.');
+  assertIncludes(reactPlayerInfoPanel, 'PrimaryRow', 'PlayerInfoPanel must render primary attributes with AS3 basic-value comparison.');
+  assertIncludes(reactPlayerInfoPanel, 'formatPrimaryAttribute(value, basic)', 'PrimaryRow must compare effective values against AS3 basic values.');
 
   const {
     PLAYER_INFO_BUFF_COLOR,
