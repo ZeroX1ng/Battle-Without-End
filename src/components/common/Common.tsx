@@ -379,6 +379,17 @@ function getEquipHtml(equip: any): string {
   return `${name}${level}`
 }
 
+function getStageVisualScale(): number {
+  if (typeof document === 'undefined') return 1
+
+  const layoutElement = document.querySelector<HTMLElement>('.game-layout')
+  if (!layoutElement) return 1
+
+  const value = getComputedStyle(layoutElement).getPropertyValue('--bwe-stage-scale')
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
+}
+
 export function EquipmentCell({
   equip,
   currentEquip,
@@ -406,7 +417,8 @@ export function EquipmentCell({
   const handleHover = (event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
     const candidateHtml = getCandidateHtml()
-    if (candidateHtml) showItemInfo(candidateHtml, getCompareHtml())
+    const compareHtml = getCompareHtml()
+    if (candidateHtml) showItemInfo(candidateHtml, compareHtml)
   }
 
   const actionButton = (kind: 'equip' | 'sell', label: string, handler?: (equip: any, event: ReactMouseEvent) => void) => (
@@ -448,7 +460,8 @@ export function EquipmentCell({
               // Pinned panel: position to the LEFT of the cell when possible
               const rect = event.currentTarget.getBoundingClientRect()
               const totalWidth = compareHtml ? 344 : 168 // approximate panel widths
-              const x = rect.left - totalWidth - 8
+              const stageScale = getStageVisualScale()
+              const x = rect.left - totalWidth * stageScale - 8 * stageScale
               showPinnedItemInfo(candidateHtml, compareHtml, x, rect.top)
             }
           } else {

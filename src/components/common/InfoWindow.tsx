@@ -204,6 +204,19 @@ function getTooltipStageRect(): TooltipStageRect {
   }
 }
 
+function getTooltipStageScale(): number {
+  if (typeof document !== 'undefined') {
+    const layoutElement = document.querySelector<HTMLElement>('.game-layout')
+    if (layoutElement) {
+      const value = getComputedStyle(layoutElement).getPropertyValue('--bwe-stage-scale')
+      const parsed = Number.parseFloat(value)
+      if (Number.isFinite(parsed) && parsed > 0) return parsed
+    }
+  }
+
+  return 1
+}
+
 function clampToStage(value: number, min: number, max: number): number {
   if (max < min) return min
   return Math.min(Math.max(value, min), max)
@@ -212,8 +225,9 @@ function clampToStage(value: number, min: number, max: number): number {
 function StringInfoWindow({ text, visible, mouseX, mouseY }: StringInfoWindowProps) {
   if (!visible || !text) return null
 
-  const offsetX = 16
-  const offsetY = 16
+  const visualScale = getTooltipStageScale()
+  const offsetX = 16 * visualScale
+  const offsetY = 16 * visualScale
 
   return (
     <div
@@ -230,6 +244,8 @@ function StringInfoWindow({ text, visible, mouseX, mouseY }: StringInfoWindowPro
         pointerEvents: 'none',
         zIndex: 10000,
         lineHeight: 1.4,
+        transform: `scale(${visualScale})`,
+        transformOrigin: 'top left',
       }}
     >
       <TextField size={20} color="#c8c8d4" multiline style={{ whiteSpace: 'pre-line' }}>
@@ -257,9 +273,12 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY, pinne
 
   const hasCompare = !!compareHtml
   const stageRect = getTooltipStageRect()
+  const visualScale = getTooltipStageScale()
+  const stageMargin = ITEM_INFO_PANEL_MARGIN * visualScale
+  const toVisual = (value: number) => value * visualScale
   const stageInnerWidth = Math.max(
     ITEM_INFO_PANEL_MIN_WIDTH,
-    stageRect.width - ITEM_INFO_PANEL_MARGIN * 2,
+    (stageRect.width - stageMargin * 2) / visualScale,
   )
   const canFitCompareRow =
     hasCompare && stageInnerWidth >= ITEM_INFO_PANEL_MIN_WIDTH * 2 + ITEM_INFO_PANEL_GAP
@@ -277,6 +296,7 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY, pinne
   const totalWidth = hasCompare && layout === 'row'
     ? cappedPanelWidth * 2 + ITEM_INFO_PANEL_GAP
     : cappedPanelWidth
+  const visualTotalWidth = toVisual(totalWidth)
 
   let adjustedX: number
   let adjustedY: number
@@ -285,52 +305,52 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY, pinne
   if (pinned) {
     adjustedX = clampToStage(
       mouseX,
-      stageRect.left + ITEM_INFO_PANEL_MARGIN,
-      stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
+      stageRect.left + stageMargin,
+      stageRect.right - stageMargin - visualTotalWidth,
     )
     adjustedY = clampToStage(
       mouseY,
-      stageRect.top + ITEM_INFO_PANEL_MARGIN,
-      stageRect.bottom - ITEM_INFO_PANEL_MARGIN - ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
+      stageRect.top + stageMargin,
+      stageRect.bottom - stageMargin - toVisual(ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT),
     )
     tooltipMaxHeight = Math.min(
       ITEM_INFO_PANEL_MAX_HEIGHT,
-      stageRect.bottom - adjustedY - ITEM_INFO_PANEL_MARGIN,
+      (stageRect.bottom - adjustedY - stageMargin) / visualScale,
     )
   } else {
-    const preferredX = mouseX + ITEM_INFO_PANEL_OFFSET_X
-    const flippedX = mouseX - totalWidth - ITEM_INFO_PANEL_OFFSET_X
-    const rawX = preferredX + totalWidth <= stageRect.right - ITEM_INFO_PANEL_MARGIN
+    const preferredX = mouseX + toVisual(ITEM_INFO_PANEL_OFFSET_X)
+    const flippedX = mouseX - visualTotalWidth - toVisual(ITEM_INFO_PANEL_OFFSET_X)
+    const rawX = preferredX + visualTotalWidth <= stageRect.right - stageMargin
       ? preferredX
       : flippedX
     adjustedX = clampToStage(
       rawX,
-      stageRect.left + ITEM_INFO_PANEL_MARGIN,
-      stageRect.right - ITEM_INFO_PANEL_MARGIN - totalWidth,
+      stageRect.left + stageMargin,
+      stageRect.right - stageMargin - visualTotalWidth,
     )
     const stageInnerHeight = Math.max(
       ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT,
       Math.min(
-        stageRect.height - ITEM_INFO_PANEL_MARGIN * 2,
-        Math.floor(stageRect.height * ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO),
+        (stageRect.height - stageMargin * 2) / visualScale,
+        Math.floor((stageRect.height / visualScale) * ITEM_INFO_PANEL_MAX_STAGE_HEIGHT_RATIO),
         ITEM_INFO_PANEL_MAX_HEIGHT,
       ),
     )
     const minVisibleHeight = Math.min(ITEM_INFO_PANEL_MIN_VISIBLE_HEIGHT, stageInnerHeight)
-    const preferredY = mouseY + ITEM_INFO_PANEL_OFFSET_Y
-    const rawY = preferredY + minVisibleHeight <= stageRect.bottom - ITEM_INFO_PANEL_MARGIN
+    const preferredY = mouseY + toVisual(ITEM_INFO_PANEL_OFFSET_Y)
+    const rawY = preferredY + toVisual(minVisibleHeight) <= stageRect.bottom - stageMargin
       ? preferredY
-      : mouseY - minVisibleHeight - ITEM_INFO_PANEL_MARGIN
+      : mouseY - toVisual(minVisibleHeight) - stageMargin
     adjustedY = clampToStage(
       rawY,
-      stageRect.top + ITEM_INFO_PANEL_MARGIN,
-      stageRect.bottom - ITEM_INFO_PANEL_MARGIN - minVisibleHeight,
+      stageRect.top + stageMargin,
+      stageRect.bottom - stageMargin - toVisual(minVisibleHeight),
     )
     tooltipMaxHeight = Math.min(
       stageInnerHeight,
       Math.max(
         minVisibleHeight,
-        stageRect.bottom - adjustedY - ITEM_INFO_PANEL_MARGIN,
+        (stageRect.bottom - adjustedY - stageMargin) / visualScale,
       ),
     )
   }
@@ -375,6 +395,8 @@ function ItemInfoWindow({ html, compareHtml = '', visible, mouseX, mouseY, pinne
           maxHeight: tooltipMaxHeight,
           pointerEvents: 'none',
           zIndex: pinned ? 10000 : 10001,
+          transform: `scale(${visualScale})`,
+          transformOrigin: 'top left',
         }}
       >
         <div data-bwe-item-info-panel="candidate" style={panelStyle}>

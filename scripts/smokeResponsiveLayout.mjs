@@ -6,12 +6,14 @@ import { chromium } from '@playwright/test';
 const root = process.cwd();
 const distDir = join(root, 'dist');
 const indexFile = join(distDir, 'index.html');
+const DESIGN_STAGE_WIDTH = 1280;
+const DESIGN_STAGE_HEIGHT = 720;
 
 const viewports = [
-  { name: 'desktop', width: 1280, height: 800 },
-  { name: 'tablet', width: 820, height: 720 },
-  { name: 'mobilePortrait', width: 390, height: 844 },
-  { name: 'mobileLandscape', width: 844, height: 390 },
+  { name: 'stage720p', width: 1280, height: 720 },
+  { name: 'fhd', width: 1920, height: 1080 },
+  { name: 'qhd', width: 2560, height: 1440 },
+  { name: 'uhd', width: 3840, height: 2160 },
 ];
 
 const mimeTypes = new Map([
@@ -73,6 +75,10 @@ function rectIsVisible(rect) {
   return rect && rect.width > 0 && rect.height > 0;
 }
 
+function nearlyEqual(actual, expected, tolerance = 3) {
+  return Math.abs(actual - expected) <= tolerance;
+}
+
 const { server, url } = await serveDist();
 const browser = await chromium.launch({ headless: true });
 
@@ -93,44 +99,77 @@ try {
         const el = document.querySelector(selector);
         if (!el) return null;
         const rect = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
         return {
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-          display: getComputedStyle(el).display,
+          width: Number(rect.width.toFixed(2)),
+          height: Number(rect.height.toFixed(2)),
+          display: style.display,
+          fontSize: Number.parseFloat(style.fontSize),
         };
       };
+      const layout = document.querySelector('.game-layout');
+      const stageScale = layout
+        ? Number.parseFloat(getComputedStyle(layout).getPropertyValue('--bwe-stage-scale'))
+        : Number.NaN;
+      const log = getRect('.battle-log-panel');
 
       return {
         viewport: {
           width: document.documentElement.clientWidth,
           height: document.documentElement.clientHeight,
         },
+        stageScale,
+        frame: getRect('.game-stage-frame'),
         shell: getRect('.game-shell'),
         scene: getRect('.main-scene'),
         player: getRect('.main-scene__player'),
         battle: getRect('.main-scene__battle'),
         other: getRect('.main-scene__other'),
-        log: getRect('.main-scene__log'),
+        logRegion: getRect('.main-scene__log'),
+        log,
+        effectiveLogFontSize: log ? Number((log.fontSize * stageScale).toFixed(2)) : 0,
         visibleTextLength: document.body.innerText.trim().length,
       };
     });
 
+    const expectedScale = Math.min(
+      viewport.width / DESIGN_STAGE_WIDTH,
+      viewport.height / DESIGN_STAGE_HEIGHT
+    );
+
     assert(errors.length === 0, `${viewport.name} has console/page errors: ${errors.join(' | ')}`);
+    assert(
+      Number.isFinite(metrics.stageScale) && Math.abs(metrics.stageScale - expectedScale) <= 0.03,
+      `${viewport.name} exposes expected stage scale ${expectedScale.toFixed(2)}, got ${metrics.stageScale}`
+    );
+    assert(rectIsVisible(metrics.frame), `${viewport.name} renders the stage frame`);
     assert(rectIsVisible(metrics.shell), `${viewport.name} renders the game shell`);
     assert(rectIsVisible(metrics.scene), `${viewport.name} renders the main scene`);
+    assert(
+      nearlyEqual(metrics.shell.width, DESIGN_STAGE_WIDTH * metrics.stageScale) &&
+        nearlyEqual(metrics.shell.height, DESIGN_STAGE_HEIGHT * metrics.stageScale),
+      `${viewport.name} scales the shell from the fixed 1280x720 stage`
+    );
+    assert(
+      nearlyEqual(metrics.scene.width, metrics.shell.width, 3 + metrics.stageScale * 2) &&
+        nearlyEqual(metrics.scene.height, metrics.shell.height, 3 + metrics.stageScale * 2),
+      `${viewport.name} keeps the main scene aligned with the scaled shell`
+    );
     assert(rectIsVisible(metrics.player), `${viewport.name} renders player region`);
     assert(rectIsVisible(metrics.battle), `${viewport.name} renders battle region`);
     assert(rectIsVisible(metrics.other), `${viewport.name} renders function window region`);
-    assert(
-      viewport.name === 'mobileLandscape' || rectIsVisible(metrics.log),
-      `${viewport.name} renders log region when the layout has vertical room`
-    );
+    assert(rectIsVisible(metrics.logRegion), `${viewport.name} renders log region`);
     assert(metrics.visibleTextLength > 20, `${viewport.name} renders non-empty game UI text`);
+    assert(
+      metrics.effectiveLogFontSize >= 12 * metrics.stageScale - 0.5,
+      `${viewport.name} effectively scales the 12px battle-log text to ${metrics.effectiveLogFontSize}px`
+    );
 
     console.log(
       `PASS ${viewport.name}: ${metrics.viewport.width}x${metrics.viewport.height}, ` +
-      `shell ${metrics.shell.width}x${metrics.shell.height}, ` +
-      `scene ${metrics.scene.width}x${metrics.scene.height}`
+      `scale ${metrics.stageScale}, ` +
+      `shell ${Math.round(metrics.shell.width)}x${Math.round(metrics.shell.height)}, ` +
+      `effective log font ${metrics.effectiveLogFontSize}px`
     );
 
     await page.close();

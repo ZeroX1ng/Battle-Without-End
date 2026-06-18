@@ -18,6 +18,7 @@ function assert(condition, message) {
 const packageJson = JSON.parse(read('package.json'));
 const gameLayout = read('src/components/layout/GameLayout.tsx');
 const mainScene = read('src/components/scenes/MainScene.tsx');
+const infoWindow = read('src/components/common/InfoWindow.tsx');
 const overlayStart = mainScene.indexOf('{overlay && (');
 const primaryMainScene = overlayStart === -1 ? mainScene : mainScene.slice(0, overlayStart);
 const layoutCss = fs.existsSync(path.join(root, 'src/styles/layout.css'))
@@ -33,18 +34,24 @@ assert(
 );
 
 assert(
-  !/transform:\s*`translate\(-50%, -50%\) scale\(\$\{scale\}\)`/.test(gameLayout),
-  'GameLayout no longer uses Flash-style whole-stage transform scaling'
+  /DESIGN_STAGE_WIDTH\s*=\s*1280/.test(gameLayout) &&
+    /DESIGN_STAGE_HEIGHT\s*=\s*720/.test(gameLayout),
+  'GameLayout declares the AS3-adjacent 1280x720 design stage'
 );
 
 assert(
-  !/\bwidth:\s*800\b/.test(gameLayout) && !/\bheight:\s*600\b/.test(gameLayout),
-  'GameLayout no longer hard-codes the root stage to 800x600'
+  /calculateStageScale/.test(gameLayout) &&
+    /--bwe-stage-scale/.test(gameLayout) &&
+    /data-bwe-stage-frame/.test(gameLayout) &&
+    /data-bwe-stage-shell/.test(gameLayout),
+  'GameLayout exposes a measured whole-stage scale and stable DOM hooks'
 );
 
 assert(
-  /className="game-layout"/.test(gameLayout) && /className="game-shell"/.test(gameLayout),
-  'GameLayout delegates viewport sizing to semantic layout classes'
+  /className="game-layout"/.test(gameLayout) &&
+    /className="game-stage-frame"/.test(gameLayout) &&
+    /className="game-shell"/.test(gameLayout),
+  'GameLayout renders a viewport frame around the fixed game shell'
 );
 
 assert(
@@ -53,10 +60,25 @@ assert(
 );
 
 assert(
-  /@media\s*\(max-width:\s*899px\)/.test(mainSceneCss) &&
-    /@media\s*\(max-width:\s*639px\)/.test(mainSceneCss) &&
-    /@media\s*\(orientation:\s*landscape\)\s*and\s*\(max-height:\s*520px\)/.test(mainSceneCss),
-  'MainScene CSS defines tablet, mobile portrait, and mobile landscape breakpoints'
+  /\.game-stage-frame/.test(layoutCss) &&
+    /width:\s*calc\(var\(--bwe-stage-width\)\s*\*\s*var\(--bwe-stage-scale\)\)/.test(layoutCss) &&
+    /height:\s*calc\(var\(--bwe-stage-height\)\s*\*\s*var\(--bwe-stage-scale\)\)/.test(layoutCss),
+  'layout CSS sizes the visual frame from the fixed stage and measured scale'
+);
+
+assert(
+  /width:\s*var\(--bwe-stage-width\)/.test(layoutCss) &&
+    /height:\s*var\(--bwe-stage-height\)/.test(layoutCss) &&
+    /transform:\s*scale\(var\(--bwe-stage-scale\)\)/.test(layoutCss) &&
+    /transform-origin:\s*top left/.test(layoutCss),
+  'game shell keeps fixed design pixels and scales visually as one stage'
+);
+
+assert(
+  !/@media\s*\(max-width:\s*899px\)/.test(mainSceneCss) &&
+    !/@media\s*\(max-width:\s*639px\)/.test(mainSceneCss) &&
+    !/@media\s*\(orientation:\s*landscape\)\s*and\s*\(max-height:\s*520px\)/.test(mainSceneCss),
+  'MainScene no longer changes its primary layout by viewport breakpoints'
 );
 
 assert(
@@ -69,6 +91,13 @@ assert(
 assert(
   !/position:\s*'absolute'/.test(primaryMainScene),
   'MainScene no longer relies on fixed absolute AS3 coordinates for primary layout'
+);
+
+assert(
+  /getTooltipStageScale/.test(infoWindow) &&
+    /visualScale/.test(infoWindow) &&
+    /transform:\s*`scale\(\$\{visualScale\}\)`/.test(infoWindow),
+  'InfoWindow scales out-of-stage tooltips with the visual game stage'
 );
 
 if (failed) {
