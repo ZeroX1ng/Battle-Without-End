@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.2 - 2026-06-19
+
+- 🐞 Fixed game stage not scaling correctly at high resolutions (2K/4K), causing UI stretching or clipping. The canvas now auto-scales proportionally on window resize, preserving the AS3 original experience.
+- 🐞 Fixed Chromium background timer throttling causing the game loop to pause when the window is minimized or occluded. Added `--disable-background-timer-throttling` to the Electron command line so the game logic keeps running even when the window is hidden, ensuring uninterrupted idle gameplay.
+- 🛠 Synced dist assets and guard gate checks.
+
+## 0.3.1 - 2026-06-18
+
+- 🐞 Fixed residual internal `down` state on button deselection causing visual glitches — button state now resets correctly on deselection.
+- 🐞 Fixed the selected equipment compare panel disappearing after switching equipment — the compare panel now remains pinned.
+- 🐞 Fixed HelpWindow title text overflowing the container.
+- 🛠 Tree-shake sprite assets at build time — unused sprites are now automatically removed, reducing bundle size.
+- 🛠 Split map sprites into layered webp format with missing dynamic sprite key protection.
+
 ## 0.3.0 - 2026-06-14
 
 - 🆕 Player info panel redesigned with AS3 three-column layout: race/age/LV/HP/MP/EXP/gold in column 0, primary attributes (STR/DEX/INT/WILL/LUCK/AP/CP) in column 1, combat stats (ATK/BAL/CRIT/CRIT-MUL/DEF/PROT/PROT-IGN) in column 2. All stat labels show AS3 tooltip descriptions on hover; HP/MP/EXP rendered as inline progress bars.
