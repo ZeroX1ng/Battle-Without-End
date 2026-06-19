@@ -3,6 +3,9 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { app, BrowserWindow, Menu, net, protocol } = require('electron');
 
+// 禁用 Chromium 后台定时器节流，确保挂机游戏在最小化/窗口遮挡时持续运行
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'app',
