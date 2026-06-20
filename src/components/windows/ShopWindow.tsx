@@ -101,7 +101,7 @@ export function ShopWindow() {
                 >
                   <span style={{ flex: 1, overflow: 'hidden' }}>
                     <span style={{ color: 'var(--color-text)' }}>{equip.realName}?</span>
-                    <span style={{ color: 'var(--color-text-dim)', marginLeft: 6, fontSize: 10 }}>
+                    <span style={{ color: 'var(--color-text-dim)', marginLeft: 6, fontSize: 11 }}>
                       ??? {getSlotLabel(equip.position)}
                     </span>
                   </span>

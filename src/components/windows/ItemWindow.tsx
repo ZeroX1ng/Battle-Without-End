@@ -238,7 +238,7 @@ export function ItemWindow() {
             </div>
 
             {blacksmithLevel <= 1 && (
-              <div style={{ fontSize: 10, color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 11, color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
                 学习 Blacksmithing 后可解锁自动锻造。
               </div>
             )}

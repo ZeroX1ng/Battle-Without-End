@@ -253,7 +253,7 @@ export function EquipWindow() {
                         background: 'rgba(255,255,255,0.08)',
                         color: 'var(--color-text-bright)',
                         cursor: 'help',
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                       }}
                     >

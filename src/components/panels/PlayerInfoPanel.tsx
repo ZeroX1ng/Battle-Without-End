@@ -109,7 +109,7 @@ export function PlayerInfoPanel() {
 const ROW_STYLE: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  fontSize: 10,
+  fontSize: 11,
 }
 
 const LABEL_STYLE: React.CSSProperties = {
@@ -177,7 +177,7 @@ function PrimaryRow({
       </span>
       <span style={VALUE_STYLE}>
         <span style={{ color: display.color }}>{display.valueText}</span>
-        <span style={{ color: 'var(--color-text-dim)', fontSize: 9, marginLeft: 1 }}>({display.basicText})</span>
+        <span style={{ color: 'var(--color-text-dim)', fontSize: 11, marginLeft: 1 }}>({display.basicText})</span>
       </span>
     </div>
   )

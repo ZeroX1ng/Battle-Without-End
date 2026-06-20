@@ -40,7 +40,7 @@ const ARROW_FACE_BASE: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: 10,
+  fontSize: 11,
   background: 'rgba(255,255,255,0.95)',
   border: '1px solid rgba(205,175,95,0.8)',
   boxSizing: 'border-box',
@@ -73,10 +73,10 @@ function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
         style={{ width: 30, height: 30, imageRendering: 'pixelated' }}
       />
       <span style={{
-        fontSize: 9,
+        fontSize: 11,
         color: selected ? '#fff' : 'var(--color-text-dim)',
         fontWeight: selected ? 'bold' : 'normal',
-        lineHeight: '10px',
+        lineHeight: '11px',
       }}>
         {tab.label}
       </span>

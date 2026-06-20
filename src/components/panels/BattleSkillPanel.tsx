@@ -34,13 +34,13 @@ export function BattleSkillPanel() {
         战斗技能
       </div>
 
-      <div style={{ color: 'var(--color-red)', fontWeight: 'bold', fontSize: 10, marginBottom: 2 }}>攻击</div>
+      <div style={{ color: 'var(--color-red)', fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>攻击</div>
       {attackSkills.length === 0 ? (
-        <div style={{ color: 'var(--color-text-dim)', fontSize: 10, marginBottom: 6 }}>无</div>
+        <div style={{ color: 'var(--color-text-dim)', fontSize: 11, marginBottom: 6 }}>无</div>
       ) : (
         attackSkills.map(skill => (
           <div key={skill.skillData.name} style={{
-            fontSize: 10, color: 'var(--color-text)', marginBottom: 1,
+            fontSize: 11, color: 'var(--color-text)', marginBottom: 1,
             display: 'flex', justifyContent: 'space-between'
           }}>
             <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>
@@ -49,13 +49,13 @@ export function BattleSkillPanel() {
         ))
       )}
 
-      <div style={{ color: 'var(--color-blue)', fontWeight: 'bold', fontSize: 10, marginBottom: 2, marginTop: 4 }}>防御</div>
+      <div style={{ color: 'var(--color-blue)', fontWeight: 'bold', fontSize: 11, marginBottom: 2, marginTop: 4 }}>防御</div>
       {defenceSkills.length === 0 ? (
-        <div style={{ color: 'var(--color-text-dim)', fontSize: 10 }}>无</div>
+        <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>无</div>
       ) : (
         defenceSkills.map(skill => (
           <div key={skill.skillData.name} style={{
-            fontSize: 10, color: 'var(--color-text)', marginBottom: 1,
+            fontSize: 11, color: 'var(--color-text)', marginBottom: 1,
             display: 'flex', justifyContent: 'space-between'
           }}>
             <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>

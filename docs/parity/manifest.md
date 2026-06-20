@@ -1,6 +1,6 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-13 (battle cadence, monster-info flicker, and equipment tooltip bounds verified; combat-power readout remains a product decision)
+Last updated: 2026-06-20 (minimum-window readability verified; combat-power readout remains a product decision)
 
 ## 中文
 
@@ -113,6 +113,7 @@ Last updated: 2026-06-13 (battle cadence, monster-info flicker, and equipment to
 | P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | 战斗力读数与装备实战力脱钩 | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` 均不含装备；后续若要表达装备后实战力，应新增 product override 显示，不要替换 AS3 内部 CP；Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
 | P1-EQUIP-TOOLTIP-BOUNDS | P1 | 装备浮窗尺寸与边界 | Verified | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` 固定 130px 并按 stage 边界修正；React 已限制为 130-180px 紧凑面板并按游戏容器收敛 compare 浮窗；Passed 2026-06-13: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, inventory/shop browser bounds smoke |
 
+| P1-RESPONSIVE-MIN-READABILITY | P1 | 720p 最小窗口核心文字可读性 | Verified | `p1-responsive-min-readability.md` | Passed 2026-06-20: `assert:responsive-layout`; `assertResponsiveMinimumReadability` 1280x720/1366x768/1080p/2K/4K effective font sizes with no main-region overlap; nearby `assert:other-window-children`, `assert:equip-window`, `assert:shop-window`; `npx tsc -b` |
 ### Architecture Review Queue
 
 2026-05-30 新增架构审阅队列：`architecture-review-queue-2026-05-30.md`。这些条目每次只处理一张；`No AS3; React architecture review` 条目不强行寻找 AS3，但必须保持已有 AS3 parity guard 绿色。
@@ -251,3 +252,4 @@ Added 2026-06-07: a focused review of pet battle logs, pet panel display, pet da
 | P1-MONSTER-INFO-ATTACK-FLICKER | P1 | Monster info attack flicker | Verified | `playtest-followups-2026-06-08.md#p1-monster-info-attack-flicker` | AS3 monster info does not display the random attack getter; React does not read `mon.attack` during render and keeps name, title, HP, CP, and buffs; `assert:monster-info-display-parity`, adjacent monster guards, `assert:battle-damage-log-death`, `npx tsc -b`, and browser flicker smoke passed 2026-06-13 |
 | P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | Combat power readout excludes equipment | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` both exclude equipment; any equipment-inclusive strength display should be a product override and not replace internal AS3 CP; Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
 | P1-EQUIP-TOOLTIP-BOUNDS | P1 | Equipment tooltip size and bounds | Verified | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` is 130px wide and stage-clamped; React now uses compact 130-180px panes and constrains compare tooltips inside the game container; Passed 2026-06-13: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, inventory/shop browser bounds smoke |
+| P1-RESPONSIVE-MIN-READABILITY | P1 | Minimum-window core text readability | Verified | `p1-responsive-min-readability.md` | Passed 2026-06-20: `assert:responsive-layout`; `assertResponsiveMinimumReadability` 1280x720/1366x768/1080p/2K/4K effective font sizes with no main-region overlap; nearby `assert:other-window-children`, `assert:equip-window`, `assert:shop-window`; `npx tsc -b` |
