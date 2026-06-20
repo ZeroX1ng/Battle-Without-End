@@ -18,6 +18,7 @@ import { EquipmentList } from '../core/data/equipmentData';
 import { serializeSave, localLoad, deserializeSave } from '../core/systems/SaveSystem';
 import { shouldDisplayLog } from '../core/systems/SystemConfig';
 import { getAutoForgeTarget, getForgeCost, getForgeSuccessRate, resolveForgeFailure } from '../core/systems/ForgeSystem';
+import { getShopGamblePrice, getShopGambleRatio, getShopSellRatio, getShopStockPower } from '../core/systems/ShopStockProgression';
 import { Stat } from '../core/constants';
 import { SkillDataList } from '../core/data/skillData';
 import {
@@ -61,26 +62,27 @@ function createInitialLoot(): LootState {
 
 function generateShopState(playerState: PlayerState) {
   const luck = getLuck(playerState);
-  const combatPower = getCombatPower(playerState);
+  const baseCombatPower = getCombatPower(playerState);
+  const stockPower = Math.max(baseCombatPower, getShopStockPower(playerState));
   const sellItems = [];
   const gambleItems = [];
 
   for (let i = 0; i < 7; i++) {
-    const ratio = Math.random() * 3 * (1 + luck / 400) * (1 + combatPower / 1000);
+    const ratio = getShopSellRatio({ random: Math.random(), luck, stockPower });
     const data = EquipmentList[Math.floor(Math.random() * EquipmentList.length)];
     const equip = 'category' in data
-      ? new Weapon(data as WeaponData, ratio, false, combatPower)
-      : new Equipment(data, ratio, false, combatPower);
+      ? new Weapon(data as WeaponData, ratio, false, stockPower)
+      : new Equipment(data, ratio, false, stockPower);
     sellItems.push({ equip, price: Math.floor(equip.getSellMoney()) });
   }
 
   for (let i = 0; i < 7; i++) {
-    const ratio = Math.random() * 6 * (1 + luck / 200) * (1 + combatPower / 700);
+    const ratio = getShopGambleRatio({ random: Math.random(), luck, stockPower });
     const data = EquipmentList[Math.floor(Math.random() * EquipmentList.length)];
     const equip = 'category' in data
-      ? new Weapon(data as WeaponData, ratio, false, combatPower)
-      : new Equipment(data, ratio, false, combatPower);
-    const price = Math.floor(10000 + Math.random() * 100000 * (1 + combatPower / 700));
+      ? new Weapon(data as WeaponData, ratio, false, stockPower)
+      : new Equipment(data, ratio, false, stockPower);
+    const price = getShopGamblePrice({ random: Math.random(), stockPower });
     gambleItems.push({ equip, price });
   }
 

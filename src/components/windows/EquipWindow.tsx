@@ -171,9 +171,9 @@ export function EquipWindow() {
           paddingRight: 2,
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) minmax(150px, 0.78fr)', gap: 8, minHeight: 0 }}>
+        <div data-bwe-equip-content-column style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
-            <div style={{
+            <div data-bwe-equip-figure-panel style={{
               position: 'relative',
               minHeight: EQUIP_FIGURE_HEIGHT,
               border: '1px solid var(--color-border)',
@@ -264,7 +264,7 @@ export function EquipWindow() {
               </div>
           </div>
 
-          <section style={{
+          <section data-bwe-equip-pet-info style={{
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
             background: 'var(--color-bg-panel)',
