@@ -21,6 +21,7 @@
     "assert:other-panel": "node scripts/assertOtherPanelParity.mjs",
     "assert:other-window-children": "node scripts/assertOtherWindowChildrenParity.mjs",
     "assert:other-window-overlay": "node scripts/assertOtherWindowOverlayParity.mjs",
+    "assert:otherpanel-tab-alignment": "node scripts/assertOtherPanelTabContentAlignment.mjs",
     "assert:system-window": "node scripts/assertSystemWindowParity.mjs",
     "assert:window-sprite-icons": "node scripts/assertWindowSpriteIconParity.mjs",
     "assert:item-window": "node scripts/assertItemWindowParity.mjs",

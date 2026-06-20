@@ -31,6 +31,7 @@ function assertMatches(source, pattern, message) {
 }
 
 const equipWindow = read('src/components/windows/EquipWindow.tsx');
+const as3EquipWindow = read('reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/EquipWindow.as');
 const as3EquipCell = read('reference/as3/BOE-O/scripts/iPanel/iScene/iPanel/iWindow/iEquip/EquipCell.as');
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
 const common = read('src/components/common/Common.tsx');
@@ -41,6 +42,36 @@ const gameContext = read('src/state/GameContext.tsx');
 for (const slot of ['head', 'feet', 'body', 'necklace', 'ring', 'leftHand', 'rightHand']) {
   assertIncludes(equipWindow, `slot: '${slot}'`, `EquipWindow must render the original ${slot} equipment slot`);
 }
+
+assertIncludes(as3EquipWindow, 'private const SC:Number = 0.4;', 'AS3 EquipWindow must define people skeleton scale SC = 0.4.');
+assertIncludes(as3EquipWindow, 'private const SY:int = 100;', 'AS3 EquipWindow must define people skeleton y offset SY = 100.');
+assertIncludes(as3EquipWindow, 'new people_use1()', 'AS3 EquipWindow must render the first people skeleton sprite layer.');
+assertIncludes(as3EquipWindow, 'new people_use2()', 'AS3 EquipWindow must render the second people skeleton sprite layer.');
+assertIncludes(as3EquipWindow, 'this.head.x = 210;', 'AS3 EquipWindow head slot x must remain the slot-map source.');
+assertIncludes(as3EquipWindow, 'this.feet.y = 480;', 'AS3 EquipWindow feet slot y must remain the slot-map source.');
+assertIncludes(equipWindow, 'const AS3_SKELETON_SCALE = 0.4', 'EquipWindow must keep the AS3 people skeleton scale as an explicit constant.');
+assertIncludes(equipWindow, 'const AS3_SKELETON_Y = 100', 'EquipWindow must keep the AS3 people skeleton y offset as an explicit constant.');
+assertIncludes(equipWindow, 'const AS3_SLOT_POSITIONS', 'EquipWindow slot positions must come from an explicit AS3 coordinate map.');
+for (const [slot, x, y] of [
+  ['head', 210, -50],
+  ['feet', 210, 480],
+  ['body', 390, 300],
+  ['necklace', 380, 100],
+  ['ring', 10, 120],
+  ['leftHand', 5, 230],
+  ['rightHand', 415, 220],
+]) {
+  assertMatches(
+    equipWindow,
+    new RegExp(`${slot}:\\s*\\{\\s*x:\\s*${x},\\s*y:\\s*${y}\\s*\\}`),
+    `EquipWindow ${slot} slot must use AS3 coordinates (${x}, ${y}).`,
+  );
+}
+assertIncludes(equipWindow, 'name="people_use1"', 'EquipWindow must render people_use1 through SpriteImage.');
+assertIncludes(equipWindow, 'name="people_use2"', 'EquipWindow must render people_use2 through SpriteImage.');
+assertIncludes(equipWindow, 'data-bwe-equip-skeleton-layer="people_use1"', 'EquipWindow must expose people_use1 for browser smoke.');
+assertIncludes(equipWindow, 'data-bwe-equip-skeleton-layer="people_use2"', 'EquipWindow must expose people_use2 for browser smoke.');
+assertNotIncludes(equipWindow, 'borderRadius: 38', 'EquipWindow must not keep the CSS oval people placeholder as the visual body.');
 
 assertIncludes(equipWindow, 'useInfoWindow', 'EquipWindow must use the global item info hover window');
 assertIncludes(equipWindow, 'showItemInfo', 'EquipWindow must show equipped item details on hover');

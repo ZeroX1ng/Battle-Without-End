@@ -25,14 +25,21 @@ const EQUIP_SLOTS: EquipSlotConfig[] = [
   { slot: 'rightHand', label: '副手' },
 ]
 
-const SLOT_POSITIONS: Record<EquipSlotKey, CSSProperties> = {
-  head: { left: '50%', top: 10, transform: 'translateX(-50%)' },
-  necklace: { right: 16, top: 76 },
-  ring: { left: 16, top: 92 },
-  leftHand: { left: 10, top: 172 },
-  rightHand: { right: 10, top: 164 },
-  body: { left: '50%', top: 156, transform: 'translateX(-50%)' },
-  feet: { left: '50%', bottom: 14, transform: 'translateX(-50%)' },
+const AS3_SKELETON_SCALE = 0.4
+const AS3_SKELETON_Y = 100
+const AS3_EQUIP_CELL_SIZE = 100
+const EQUIP_SLOT_SIZE = AS3_EQUIP_CELL_SIZE * AS3_SKELETON_SCALE + 8
+const EQUIP_FIGURE_WIDTH = 224
+const EQUIP_FIGURE_HEIGHT = 350
+
+const AS3_SLOT_POSITIONS: Record<EquipSlotKey, { x: number; y: number }> = {
+  head: { x: 210, y: -50 },
+  feet: { x: 210, y: 480 },
+  body: { x: 390, y: 300 },
+  necklace: { x: 380, y: 100 },
+  ring: { x: 10, y: 120 },
+  leftHand: { x: 5, y: 230 },
+  rightHand: { x: 415, y: 220 },
 }
 
 const STAT_ORDER = [
@@ -75,8 +82,8 @@ function formatValue(value: number): string {
 
 function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
   return {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     borderRadius: '50%',
     background: 'rgba(255,255,255,0.88)',
     display: 'inline-flex',
@@ -88,11 +95,19 @@ function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
 }
 
 const slotIconImageStyle: CSSProperties = {
-  width: 64,
-  height: 64,
+  width: 48,
+  height: 48,
   objectFit: 'contain',
   display: 'block',
   pointerEvents: 'none',
+}
+
+function getSlotPositionStyle(slot: EquipSlotKey): CSSProperties {
+  const position = AS3_SLOT_POSITIONS[slot]
+  return {
+    left: position.x * AS3_SKELETON_SCALE,
+    top: AS3_SKELETON_Y + position.y * AS3_SKELETON_SCALE,
+  }
 }
 
 function getItemName(equip: any): string {
@@ -160,7 +175,7 @@ export function EquipWindow() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
             <div style={{
               position: 'relative',
-              minHeight: 330,
+              minHeight: EQUIP_FIGURE_HEIGHT,
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-md)',
               background: 'linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01))',
@@ -169,15 +184,43 @@ export function EquipWindow() {
               <div style={{
                 position: 'absolute',
                 left: '50%',
-                top: 54,
-                bottom: 58,
-                width: 76,
+                top: 0,
+                width: EQUIP_FIGURE_WIDTH,
+                height: EQUIP_FIGURE_HEIGHT,
                 transform: 'translateX(-50%)',
-                border: '1px solid rgba(205, 175, 95, 0.42)',
-                borderRadius: 38,
-                background: 'rgba(255,255,255,0.025)',
-                boxShadow: 'inset 0 0 28px rgba(205, 175, 95, 0.08)',
-              }} />
+              }}>
+                <div
+                  data-bwe-equip-skeleton-layer="people_use1"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: AS3_SKELETON_Y,
+                    width: 449 * AS3_SKELETON_SCALE,
+                    height: 453 * AS3_SKELETON_SCALE,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <SpriteImage
+                    name="people_use1"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                  />
+                </div>
+                <div
+                  data-bwe-equip-skeleton-layer="people_use2"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: AS3_SKELETON_Y,
+                    width: 350 * AS3_SKELETON_SCALE,
+                    height: 605 * AS3_SKELETON_SCALE,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <SpriteImage
+                    name="people_use2"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                  />
+                </div>
 
             {EQUIP_SLOTS.map(({ slot, label }) => {
               const equip = player[slot]
@@ -187,6 +230,7 @@ export function EquipWindow() {
               return (
                 <button
                   key={slot}
+                  data-bwe-equip-slot={slot}
                   onClick={() => setSelectedSlot(slot)}
                   onDoubleClick={() => handleUnequip(slot)}
                   onMouseEnter={event => handleHover(equip, event)}
@@ -195,9 +239,9 @@ export function EquipWindow() {
                   title={equip ? `${label}: 双击卸下` : `${label}: 空`}
                   style={{
                     position: 'absolute',
-                    ...SLOT_POSITIONS[slot],
-                    width: 72,
-                    height: 72,
+                    ...getSlotPositionStyle(slot),
+                    width: EQUIP_SLOT_SIZE,
+                    height: EQUIP_SLOT_SIZE,
                     borderRadius: '50%',
                     border: active ? '2px solid var(--color-yellow)' : '1px solid rgba(205, 175, 95, 0.58)',
                     background: equip ? 'rgba(20, 18, 32, 0.96)' : 'rgba(255,255,255,0.035)',
@@ -217,6 +261,7 @@ export function EquipWindow() {
                 </button>
               )
             })}
+              </div>
           </div>
 
           <section style={{

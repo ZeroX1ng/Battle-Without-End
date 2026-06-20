@@ -156,6 +156,8 @@ if (existsSync(helperPath)) {
     'map_icon',
     'mc_mode',
     'mc_smash',
+    'people_use1',
+    'people_use2',
     'pet_fox',
     'pSkill_fireball',
   ]) {
@@ -172,8 +174,6 @@ if (existsSync(helperPath)) {
     'brand_mc',
     'button_gamble',
     'caption_mc',
-    'people_use1',
-    'people_use2',
   ]) {
     if (spriteKeys.has(key)) {
       fail(`packaged asset plan still includes unused heavy sprite key: ${key}`);
@@ -222,6 +222,12 @@ if (existsSync(helperPath)) {
     }
     if (existsSync(join(outDir, 'sprites/DefineSprite_291_brand_mc'))) {
       fail('packaged output still contains unused brand_mc frames.');
+    }
+    if (!existsSync(join(outDir, 'sprites/DefineSprite_159_people_use1/1.png'))) {
+      fail('packaged output is missing runtime EquipWindow people_use1 sprite frames.');
+    }
+    if (!existsSync(join(outDir, 'sprites/DefineSprite_152_people_use2/1.png'))) {
+      fail('packaged output is missing runtime EquipWindow people_use2 sprite frames.');
     }
     for (const dir of ['buttons', 'frames', 'images', 'morphshapes', 'movies', 'shapes']) {
       if (existsSync(join(outDir, dir))) {

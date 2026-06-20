@@ -1,12 +1,14 @@
 # BWE AS3 Parity Manifest
 
-Last updated: 2026-06-20 (minimum-window readability verified; combat-power readout remains a product decision)
+Last updated: 2026-06-20 (minimum-window readability, OtherPanel alignment, and EquipWindow skeleton verified; shop-stock progression remains a product decision)
 
 ## 中文
 
 ### 使用方式
 
 这是 AI 修复和审阅顺序的总表。P0 条目当前已有 guard 保护；后续如果出现新问题、guard 变红或需要浏览器 smoke，只选一个条目，先读 AS3，再补/确认 guard，再做最小修复。
+
+**2026-06-19 重要提示：** 新增 4 张来自 UI/商店审阅的路由卡：`P1-RESPONSIVE-MIN-READABILITY` 处理 720p 最小窗口下核心文本可读性；`P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT` 处理右上角 tab 栏与下方内容窗口边界不齐；`P2-EQUIP-WINDOW-PEOPLE-SKELETON` 处理装备窗口未使用 AS3 `people_use1/people_use2` 火柴人骨架；`P1-SHOP-STOCK-PROGRESSION-OVERRIDE` 确认为 product override 候选，AS3/React 商店和赌博公式基本一致，不能直接替换 `combatPower` 语义。
 
 **2026-06-13 重要提示：** `P0-BATTLE-TEMPO-CADENCE` 已由 `assert:battle-tempo-cadence` 守住 1x 前台单调度最多 1 个可见战斗 tick 的节奏边界，并完成 browser cadence smoke；`P1-MONSTER-INFO-ATTACK-FLICKER` 已由 `assert:monster-info-display-parity` 守住 AS3 怪物面板不显示随机攻击 getter 的 UI 边界，并完成 10 秒 browser flicker smoke；`P1-EQUIP-TOOLTIP-BOUNDS` 已由 `assert:item-info-window-bounds` 守住 AS3-adjacent 紧凑宽度、游戏容器边界收敛与 compare 双面板布局，并完成 inventory/shop browser bounds smoke；`P1-COMBAT-POWER-EQUIPLESS-READOUT` 已确认 AS3/React 都是不含装备的基础 CP，后续若要改善真实强度表达，应作为 product override 单独决策，不能直接替换 AS3 `combatPower` 语义。
 
@@ -33,14 +35,15 @@ Last updated: 2026-06-20 (minimum-window readability verified; combat-power read
 1. **战斗系统审计修复 2026-06-06/07**：`P0-BUFF-DOT` 当前为 Guarded；`P0-DMG-FLAT-OUT` 当前为 Guarded intentional divergence；`P1-PET-SKILL-PROT` 当前为 Guarded shared formula；`P2-BATTLE-TYPE-CONTRACTS` 当前为 Guarded；`P2-BALRAND-STATUS` 已完成文档路由修正；`P1-BALRAND-DIV0` 当前为 Guarded。每张运行时代码卡必须先读 AS3/卡片 Source of Truth，再补红灯 guard，再做最小修复。
 2. **宠物模块审阅 2026-06-07**：`P1-PET-ATTACK-LOG-CONSISTENCY` 和 `P2-PET-INFO-TYPE-LABEL` 均已 Verified；后续若出现新宠物模块回归，仍要先扩展红灯 guard，再做单点修复，且不要把已排除的 pet data / `Protective` / `mc_name` / 战斗宠物快照项带入修复。
 3. **试玩 follow-up 2026-06-08**：`P0-BATTLE-TEMPO-CADENCE`、`P1-MONSTER-INFO-ATTACK-FLICKER` 和 `P1-EQUIP-TOOLTIP-BOUNDS` 已 Verified；`P1-COMBAT-POWER-EQUIPLESS-READOUT` 仍先做产品决策，不要直接改 AS3 `combatPower` 公式。
-4. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复；但不要把该随机 getter 暴露在持续重渲染的怪物信息面板中。
-5. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
-6. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
-7. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
-8. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
-9. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
-10. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
-11. 重构工作：只做已有 guard 覆盖范围内的小步重构。
+4. **UI/商店审阅 2026-06-19/20**：`P1-RESPONSIVE-MIN-READABILITY`、`P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT` 和 `P2-EQUIP-WINDOW-PEOPLE-SKELETON` 已 Verified；`P1-SHOP-STOCK-PROGRESSION-OVERRIDE` 先做 product decision，不要直接改 AS3 `combatPower` 或装备 `level` 默认值。
+5. `P1-MON-ATK-GET` 已确认 AS3-identical：Monster/Pet attack getter 每次随机是 AS3 原版设计，无需修复；但不要把该随机 getter 暴露在持续重渲染的怪物信息面板中。
+6. 浏览器 smoke：逐项确认新近 Guarded 的玩家可见流程，优先 `p0-start-burn-save.md`、`p0-save-persistence.md`、`p0-save-load-runtime-continuity.md`、`p0-game-loop-hook-parity.md`。
+7. 静态表可见性抽查：打开地图、技能、怪物信息相关窗口，确认 `p0-map-data-model-parity.md`、`p0-skill-data-values.md`、`p0-monster-data-integrity.md` 的 guard 结果在 UI 中没有被展示层破坏。
+8. Battle core formula cards：当前均为 Guarded；仅在出现新漂移或 guard 变红时，按下面表格一次复核一张。
+9. Battle review queue：`p0-battle-fix-deepseek260519.md` 当前队列均已有 focused guard；仅在出现新症状时按单行复核。
+10. Equipment review queue：`p0-equipment-deepseek.md` 当前队列已 Guarded / intentional divergence；仅在装备新回归出现时按单行复核。
+11. 新问题审阅：先写短 audit，再决定是否新增 parity 卡。
+12. 重构工作：只做已有 guard 覆盖范围内的小步重构。
 
 ### 战斗核心公式复核卡
 
@@ -112,8 +115,11 @@ Last updated: 2026-06-20 (minimum-window readability verified; combat-power read
 | P1-MONSTER-INFO-ATTACK-FLICKER | P1 | 怪物信息面板攻击力跳变 | Verified | `playtest-followups-2026-06-08.md#p1-monster-info-attack-flicker` | AS3 怪物面板不显示随机攻击值；React 不在渲染路径读取 `mon.attack`，并保留名称、称号、HP、CP 和 buff；`assert:monster-info-display-parity`、相邻 monster guards、`assert:battle-damage-log-death`、`npx tsc -b` 和 browser flicker smoke passed 2026-06-13 |
 | P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | 战斗力读数与装备实战力脱钩 | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` 均不含装备；后续若要表达装备后实战力，应新增 product override 显示，不要替换 AS3 内部 CP；Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
 | P1-EQUIP-TOOLTIP-BOUNDS | P1 | 装备浮窗尺寸与边界 | Verified | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` 固定 130px 并按 stage 边界修正；React 已限制为 130-180px 紧凑面板并按游戏容器收敛 compare 浮窗；Passed 2026-06-13: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, inventory/shop browser bounds smoke |
-
 | P1-RESPONSIVE-MIN-READABILITY | P1 | 720p 最小窗口核心文字可读性 | Verified | `p1-responsive-min-readability.md` | Passed 2026-06-20: `assert:responsive-layout`; `assertResponsiveMinimumReadability` 1280x720/1366x768/1080p/2K/4K effective font sizes with no main-region overlap; nearby `assert:other-window-children`, `assert:equip-window`, `assert:shop-window`; `npx tsc -b` |
+| P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT | P1 | OtherPanel tab 栏与内容窗口边界对齐 | Verified | `p1-otherpanel-tab-content-alignment.md` | Passed 2026-06-20: `assert:otherpanel-tab-alignment`, `assert:other-window-children`, `assert:other-window-overlay`, `assert:responsive-layout`, `npx tsc -b`, browser rect smoke at 720p/FHD/UHD |
+| P2-EQUIP-WINDOW-PEOPLE-SKELETON | P2 | 装备窗口 AS3 火柴人骨架 | Verified | `p2-equip-window-people-skeleton.md` | Passed 2026-06-20: `assert:equip-window`, `assert:equip-window-bounds`, `assert:packaged-assets`, `assert:window-sprite-icons`, `assert:common-cell`, `npx tsc -b`, browser smoke for skeleton/slot/tooltip/unequip |
+| P1-SHOP-STOCK-PROGRESSION-OVERRIDE | P1 | 商店/赌博库存成长 product override | Needs product decision | `p1-shop-stock-progression-override.md` | AS3/React shop ratios use base `combatPower` and new equipment `level = 0`; Suggested: `assert:shop-stock-progression-override`, `assert:shop-window`, optional `assert:combat-power-readout-parity`, `assert:stat-list`, `assert:equipment-data`, `npx tsc -b` |
+
 ### Architecture Review Queue
 
 2026-05-30 新增架构审阅队列：`architecture-review-queue-2026-05-30.md`。这些条目每次只处理一张；`No AS3; React architecture review` 条目不强行寻找 AS3，但必须保持已有 AS3 parity guard 绿色。
@@ -133,6 +139,8 @@ Last updated: 2026-06-20 (minimum-window readability verified; combat-power read
 ### How To Use
 
 This is the repair and review order for AI work. P0 items are currently guarded. For future work, pick one new issue, red guard, or browser-smoke target, read AS3 first, add or confirm the guard, then make the smallest repair.
+
+**2026-06-19 note:** Four UI/shop audit cards have been added: `P1-RESPONSIVE-MIN-READABILITY` for minimum-window text readability, `P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT` for the right-column tab/content bounds mismatch, `P2-EQUIP-WINDOW-PEOPLE-SKELETON` for restoring the AS3 `people_use1`/`people_use2` equipment skeleton, and `P1-SHOP-STOCK-PROGRESSION-OVERRIDE` as a product-override candidate. Shop/gamble generation currently matches the AS3 base-`combatPower` formulas closely, so do not silently replace `combatPower`.
 
 **2026-06-13 note:** `P0-BATTLE-TEMPO-CADENCE` is guarded by `assert:battle-tempo-cadence`, which protects the 1x foreground rule that one scheduler pass emits at most one visible battle tick, and browser cadence smoke has passed. `P1-MONSTER-INFO-ATTACK-FLICKER` is now guarded by `assert:monster-info-display-parity`, which protects the AS3 UI boundary that monster info does not display the random attack getter, and a 10-second browser flicker smoke has passed. `P1-EQUIP-TOOLTIP-BOUNDS` is now guarded by `assert:item-info-window-bounds`, which protects AS3-adjacent compact width, game-container clamping, and compare-pane bounds, and inventory/shop browser bounds smoke has passed. `P1-COMBAT-POWER-EQUIPLESS-READOUT` has AS3/React evidence showing that `combatPower` is base-only and excludes equipment; any stronger equipment-inclusive readout must be a product override and must not silently replace the AS3 `combatPower` semantics.
 
@@ -159,14 +167,15 @@ This is the repair and review order for AI work. P0 items are currently guarded.
 1. **Battle-system audit fixes 2026-06-06/07**: `P0-BUFF-DOT` is now Guarded, `P0-DMG-FLAT-OUT` is now a Guarded intentional divergence, `P1-PET-SKILL-PROT` is now Guarded as a shared-formula decision, and `P2-BATTLE-TYPE-CONTRACTS` is now Guarded. `P2-BALRAND-STATUS` is already a docs-routing correction, and `P1-BALRAND-DIV0` is Guarded. For future runtime cards, read AS3/source-of-truth first, add the red guard, then make the smallest repair.
 2. **Pet-module review 2026-06-07**: `P1-PET-ATTACK-LOG-CONSISTENCY` and `P2-PET-INFO-TYPE-LABEL` are now Verified. For future pet-module regressions, add the red guard first, keep fixes separate, and do not pull the excluded pet data / `Protective` / `mc_name` / battle-pet snapshot findings into the repair.
 3. **Playtest follow-up 2026-06-08**: `P0-BATTLE-TEMPO-CADENCE`, `P1-MONSTER-INFO-ATTACK-FLICKER`, and `P1-EQUIP-TOOLTIP-BOUNDS` are Verified; keep `P1-COMBAT-POWER-EQUIPLESS-READOUT` in product-decision mode before changing any AS3 `combatPower` formula.
-4. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. Do not expose that random getter in continuously re-rendered monster info UI.
-5. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
-6. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
-7. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
-8. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
-9. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
-10. New issue review: write a short audit before adding a new parity card.
-11. Refactor work: only make small refactors under existing guard coverage.
+4. **UI/shop audit 2026-06-19/20**: `P1-RESPONSIVE-MIN-READABILITY`, `P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT`, and `P2-EQUIP-WINDOW-PEOPLE-SKELETON` are Verified; keep `P1-SHOP-STOCK-PROGRESSION-OVERRIDE` in product-decision mode before changing shop stock progression.
+5. `P1-MON-ATK-GET` confirmed AS3-identical: Monster/Pet attack getter re-rolling on every access is AS3's original design. Do not expose that random getter in continuously re-rendered monster info UI.
+6. Browser smoke: confirm newly Guarded player-visible flows first, especially `p0-start-burn-save.md`, `p0-save-persistence.md`, `p0-save-load-runtime-continuity.md`, and `p0-game-loop-hook-parity.md`.
+7. Static-table visibility checks: open the map, skill, and monster-info related surfaces and confirm `p0-map-data-model-parity.md`, `p0-skill-data-values.md`, and `p0-monster-data-integrity.md` are not broken by presentation code.
+8. Battle core formula cards: all are currently Guarded; re-open one card only when a new drift appears or a guard turns red.
+9. Battle review queue: `p0-battle-fix-deepseek260519.md` rows currently have focused guards; re-open one row only for a new symptom.
+10. Equipment review queue: `p0-equipment-deepseek.md` rows are Guarded / intentional divergence; re-open one row only for an equipment regression.
+11. New issue review: write a short audit before adding a new parity card.
+12. Refactor work: only make small refactors under existing guard coverage.
 
 ### Architecture Review Queue
 
@@ -253,3 +262,6 @@ Added 2026-06-07: a focused review of pet battle logs, pet panel display, pet da
 | P1-COMBAT-POWER-EQUIPLESS-READOUT | P1 | Combat power readout excludes equipment | Needs product decision | `playtest-followups-2026-06-08.md#p1-combat-power-equipless-readout` | AS3/React `combatPower` both exclude equipment; any equipment-inclusive strength display should be a product override and not replace internal AS3 CP; Suggested: `assert:combat-power-readout-parity`, adjacent `assert:stat-list`, `assert:monster-reward`, `npx tsc -b` |
 | P1-EQUIP-TOOLTIP-BOUNDS | P1 | Equipment tooltip size and bounds | Verified | `playtest-followups-2026-06-08.md#p1-equip-tooltip-bounds` | AS3 `ItemInfoWindow` is 130px wide and stage-clamped; React now uses compact 130-180px panes and constrains compare tooltips inside the game container; Passed 2026-06-13: `assert:item-info-window-bounds`, adjacent `assert:equipment-compare-tooltip`, `assert:equip-window`, `assert:common-cell`, `npx tsc -b`, inventory/shop browser bounds smoke |
 | P1-RESPONSIVE-MIN-READABILITY | P1 | Minimum-window core text readability | Verified | `p1-responsive-min-readability.md` | Passed 2026-06-20: `assert:responsive-layout`; `assertResponsiveMinimumReadability` 1280x720/1366x768/1080p/2K/4K effective font sizes with no main-region overlap; nearby `assert:other-window-children`, `assert:equip-window`, `assert:shop-window`; `npx tsc -b` |
+| P1-OTHERPANEL-TAB-CONTENT-ALIGNMENT | P1 | OtherPanel tab rail and content bounds | Verified | `p1-otherpanel-tab-content-alignment.md` | Passed 2026-06-20: `assert:otherpanel-tab-alignment`, `assert:other-window-children`, `assert:other-window-overlay`, `assert:responsive-layout`, `npx tsc -b`, browser rect smoke at 720p/FHD/UHD |
+| P2-EQUIP-WINDOW-PEOPLE-SKELETON | P2 | EquipWindow AS3 people skeleton | Verified | `p2-equip-window-people-skeleton.md` | Passed 2026-06-20: `assert:equip-window`, `assert:equip-window-bounds`, `assert:packaged-assets`, `assert:window-sprite-icons`, `assert:common-cell`, `npx tsc -b`, browser smoke for skeleton/slot/tooltip/unequip |
+| P1-SHOP-STOCK-PROGRESSION-OVERRIDE | P1 | Shop/gamble stock progression product override | Needs product decision | `p1-shop-stock-progression-override.md` | AS3/React shop ratios use base `combatPower` and new equipment `level = 0`; Suggested: `assert:shop-stock-progression-override`, `assert:shop-window`, optional `assert:combat-power-readout-parity`, `assert:stat-list`, `assert:equipment-data`, `npx tsc -b` |

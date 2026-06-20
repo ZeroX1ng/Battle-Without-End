@@ -32,10 +32,18 @@ const tabDefs: Array<{
 
 const TAB_SIZE = 40
 const VISIBLE_COUNT = 4
+const ARROW_WIDTH = 20
 const VISIBLE_WIDTH = VISIBLE_COUNT * TAB_SIZE
+const OTHER_PANEL_AS3_RAIL_WIDTH = ARROW_WIDTH * 2 + VISIBLE_WIDTH
+
+const OTHER_PANEL_BOUNDARY_STYLE: React.CSSProperties = {
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+}
 
 const ARROW_FACE_BASE: React.CSSProperties = {
-  width: 20,
+  width: ARROW_WIDTH,
   height: 40,
   display: 'flex',
   alignItems: 'center',
@@ -111,69 +119,108 @@ export function OtherPanel() {
   }, [scrollOffset])
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <div style={{
+    <div
+      data-bwe-other-panel
+      style={{
+        ...OTHER_PANEL_BOUNDARY_STYLE,
+        flex: 1,
         display: 'flex',
-        alignItems: 'flex-start',
-        height: 44,
-      }}>
-        <ButtonCell
-          width={20}
-          height={40}
-          disabled={!showLeft}
-          onClick={scrollLeft}
-          style={{ flexShrink: 0 }}
-          before={<div style={showLeft ? ARROW_FACE_BASE : ARROW_FACE_DIM}>{"\u25C0"}</div>}
-          after={<div style={ARROW_FACE_ACTIVE}>{"\u25C0"}</div>}
-        />
-
-        <div style={{ width: VISIBLE_WIDTH, overflow: 'hidden', height: 44, flexShrink: 0 }}>
-          <div style={{
+        flexDirection: 'column',
+        minHeight: 0,
+      }}
+    >
+      <div
+        data-bwe-other-tab-rail
+        style={{
+          ...OTHER_PANEL_BOUNDARY_STYLE,
+          display: 'flex',
+          alignItems: 'flex-start',
+          height: 44,
+          overflow: 'hidden',
+          background: 'var(--color-bg-panel)',
+          border: '1px solid var(--color-border)',
+          borderBottom: 0,
+          borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+        }}
+      >
+        <div
+          data-bwe-other-tab-strip
+          style={{
+            width: OTHER_PANEL_AS3_RAIL_WIDTH,
             display: 'flex',
-            transform: `translateX(${-scrollOffset * TAB_SIZE}px)`,
-            transition: 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          }}>
-            {tabDefs.map(tab => {
-              const selected = activeTab === tab.id
-              return (
-                <MenuButton
-                  key={tab.id}
-                  label={tab.label}
-                  info={tab.label}
-                  selected={selected}
-                  onClick={() => handleTabClick(tab.id)}
-                  before={renderTabFace(tab, false)}
-                  after={renderTabFace(tab, true)}
-                  style={{
-                    width: TAB_SIZE,
-                    height: 40,
-                    flexShrink: 0,
-                  }}
-                />
-              )
-            })}
-          </div>
-        </div>
+            flexShrink: 0,
+          }}
+        >
+          <ButtonCell
+            width={ARROW_WIDTH}
+            height={40}
+            disabled={!showLeft}
+            onClick={scrollLeft}
+            aria-label="Scroll other tabs left"
+            data-bwe-other-tab-scroll="left"
+            style={{ flexShrink: 0 }}
+            before={<div style={showLeft ? ARROW_FACE_BASE : ARROW_FACE_DIM}>{"\u25C0"}</div>}
+            after={<div style={ARROW_FACE_ACTIVE}>{"\u25C0"}</div>}
+          />
 
-        <ButtonCell
-          width={20}
-          height={40}
-          disabled={!showRight}
-          onClick={scrollRight}
-          style={{ flexShrink: 0 }}
-          before={<div style={showRight ? ARROW_FACE_BASE : ARROW_FACE_DIM}>{"\u25B6"}</div>}
-          after={<div style={ARROW_FACE_ACTIVE}>{"\u25B6"}</div>}
-        />
+          <div style={{ width: VISIBLE_WIDTH, overflow: 'hidden', height: 44, flexShrink: 0 }}>
+            <div style={{
+              display: 'flex',
+              transform: `translateX(${-scrollOffset * TAB_SIZE}px)`,
+              transition: 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            }}>
+              {tabDefs.map(tab => {
+                const selected = activeTab === tab.id
+                return (
+                  <MenuButton
+                    key={tab.id}
+                    label={tab.label}
+                    info={tab.label}
+                    selected={selected}
+                    onClick={() => handleTabClick(tab.id)}
+                    aria-label={tab.label}
+                    data-bwe-other-tab={tab.id}
+                    data-bwe-other-tab-active={selected ? 'true' : 'false'}
+                    before={renderTabFace(tab, false)}
+                    after={renderTabFace(tab, true)}
+                    style={{
+                      width: TAB_SIZE,
+                      height: 40,
+                      flexShrink: 0,
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </div>
+
+          <ButtonCell
+            width={ARROW_WIDTH}
+            height={40}
+            disabled={!showRight}
+            onClick={scrollRight}
+            aria-label="Scroll other tabs right"
+            data-bwe-other-tab-scroll="right"
+            style={{ flexShrink: 0 }}
+            before={<div style={showRight ? ARROW_FACE_BASE : ARROW_FACE_DIM}>{"\u25B6"}</div>}
+            after={<div style={ARROW_FACE_ACTIVE}>{"\u25B6"}</div>}
+          />
+        </div>
       </div>
 
-      <div style={{
-        flex: 1,
-        minHeight: 0,
-        background: 'var(--color-bg-panel)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        overflow: 'hidden',
-      }}>
+      <div
+        data-bwe-other-content
+        data-bwe-other-content-active={activeTab}
+        style={{
+          ...OTHER_PANEL_BOUNDARY_STYLE,
+          flex: 1,
+          minHeight: 0,
+          background: 'var(--color-bg-panel)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '0 0 var(--radius-md) var(--radius-md)',
+          overflow: 'hidden',
+        }}
+      >
         {tabDefs.map(({ id, node }) => (
           <div
             key={id}
