@@ -107,9 +107,11 @@ function installLocalStorageMock() {
 
 try {
   const as3SaveScene = readAs3('scripts/iPanel/iScene/SaveScene.as');
+  const as3BeginScene = readAs3('scripts/iPanel/iScene/BeginScene.as');
   const as3Player = readAs3('scripts/iGlobal/Player.as');
   const as3PlayerInfoPanel = readAs3('scripts/iPanel/iScene/iPanel/PlayerInfoPanel.as');
   const packageJson = JSON.parse(read('package.json'));
+  const beginScene = read('src/components/scenes/BeginScene.tsx');
   const saveScene = read('src/components/scenes/SaveScene.tsx');
   const raceScene = read('src/components/scenes/RaceScene.tsx');
   const gameContext = read('src/state/GameContext.tsx');
@@ -122,6 +124,8 @@ try {
   assertIncludes(as3SaveScene, 'start.visible = false;', 'AS3 new button must be hidden for an empty name');
   assertIncludes(as3SaveScene, 'slot = "slot" + num;', 'AS3 new-game flow must bind the active save slot before RaceScene');
   assertIncludes(as3SaveScene, 'Player.playerName = text.text;', 'AS3 new-game flow must copy the typed name to Player.playerName before RaceScene');
+  assertIncludes(as3SaveScene, 'this.drawSave(4);', 'AS3 SaveScene must expose four save slots.');
+  assertIncludes(as3BeginScene, 'var _loc1_:SaveScene = new SaveScene();', 'AS3 BeginScene must route the start button to SaveScene before RaceScene');
   assertIncludes(as3Player, 'public static var playerName:String = "Jason";', 'AS3 Player.playerName default must remain Jason before custom naming');
   assertIncludes(as3Player, '_loc1_.data.userName = playerName;', 'AS3 Player.save must persist Player.playerName as userName');
   assertIncludes(as3Player, 'playerName = _loc1_.data.userName;', 'AS3 Player.load must restore playerName from userName');
@@ -134,6 +138,10 @@ try {
     'node scripts/assertStartCustomPlayerNameParity.mjs',
     'package.json must expose assert:start-custom-player-name',
   );
+  assertIncludes(beginScene, "dispatch({ type: 'SET_SCENE', scene: 'save' })", 'BeginScene new-game path must enter SaveScene so empty slots can collect a custom player name');
+  assert(!beginScene.includes("dispatch({ type: 'SET_SCENE', scene: 'race' })"), 'BeginScene must not bypass SaveScene by entering RaceScene directly');
+  assertIncludes(saveScene, "const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']", 'SaveScene must expose the four AS3 save slots, including slot4');
+  assertIncludes(saveScene, "slot4: ''", 'SaveScene empty-slot input state must include slot4');
   assertIncludes(saveScene, 'const name = names[slot].trim()', 'SaveScene must trim empty-slot input before new-game creation');
   assertIncludes(saveScene, 'if (!name || loading) return', 'SaveScene must reject empty names before entering RaceScene');
   assertIncludes(saveScene, 'disabled={!names[slot].trim() || loading}', 'SaveScene new-game button must be disabled while the slot name is empty');

@@ -18,6 +18,12 @@ function assertIncludes(source, needle, message) {
   }
 }
 
+function assertNotIncludes(source, needle, message) {
+  if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
 function assertOrder(source, before, after, message) {
   const beforeIndex = source.indexOf(before);
   const afterIndex = source.indexOf(after);
@@ -28,10 +34,10 @@ function assertOrder(source, before, after, message) {
 
 const equipWindow = read('src/components/windows/EquipWindow.tsx');
 
-assertIncludes(
+assertNotIncludes(
   equipWindow,
   'EQUIP_WINDOW_CONTENT_MAX_HEIGHT',
-  'EquipWindow must define an explicit AS3-style bounded content height for its internal scroll area.',
+  'EquipWindow must not cap its scroll region below the available right-panel height.',
 );
 assertIncludes(
   equipWindow,
@@ -40,8 +46,18 @@ assertIncludes(
 );
 assertIncludes(
   equipWindow,
-  'maxHeight: EQUIP_WINDOW_CONTENT_MAX_HEIGHT',
-  'EquipWindow internal scroll region must cap content height instead of relying on page scroll.',
+  'flex: 1',
+  'EquipWindow internal scroll region must flex within the right-panel content height.',
+);
+assertIncludes(
+  equipWindow,
+  'minHeight: 0',
+  'EquipWindow internal scroll region must be allowed to shrink inside the fixed panel instead of forcing page scroll.',
+);
+assertIncludes(
+  equipWindow,
+  "minHeight: '100%'",
+  'EquipWindow content column must fill the available scroll height so lower detail can reach the panel bottom.',
 );
 assertIncludes(
   equipWindow,
@@ -50,7 +66,7 @@ assertIncludes(
 );
 assertIncludes(
   equipWindow,
-  'minHeight: 180',
+  'minHeight: 190',
   'EquipWindow detail/stat panel must keep a usable minimum height in small viewports.',
 );
 assertIncludes(

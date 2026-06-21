@@ -1,8 +1,8 @@
 # P1 LootPanel And Battle Log Alignment
 
-Last updated: 2026-06-20
+Last updated: 2026-06-21
 
-Current status: Needs repair
+Current status: Verified
 
 ## Chinese
 
@@ -62,6 +62,8 @@ Current status: Needs repair
 - Nearby: `npm run assert:monster-reward`
 - Always: `npx tsc -b`
 
+Passed 2026-06-21: `assert:loot-panel-log-alignment` covers the red/green DOM rect contract at 1280x720, 1920x1080, and 3840x2160. The repaired layout keeps `LootPanel` in the `battle-bottom` information column, stretches it through the available lower space, and aligns its bottom edge with the battle log region without changing loot statistics, reward formulas, or log scrolling.
+
 ### Manual Smoke
 
 运行主场景并等待若干战斗日志产生。确认左侧日志和当前地图统计在底部区域关系清晰，统计面板没有孤立地下沉，日志滚动仍然正常。分别在 1280x720、1920x1080、3840x2160 检查。
@@ -96,3 +98,5 @@ Align the current-map loot statistics panel with the battle log region, or give 
 - `npm run assert:battle-log-sticky-scroll`
 - `npm run assert:monster-reward`
 - `npx tsc -b`
+
+Passed 2026-06-21: browser rect smoke at 1280x720, 1920x1080, and 3840x2160 confirms the loot panel now fills the battle-bottom information column and bottom-aligns with the battle log region.

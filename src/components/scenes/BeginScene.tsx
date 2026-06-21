@@ -1,8 +1,7 @@
 import { useGameContext } from '../../state/GameContext'
 
 export function BeginScene() {
-  const { state, dispatch } = useGameContext();
-  const { player } = state;
+  const { dispatch } = useGameContext();
 
   return (
     <div style={{
@@ -19,7 +18,7 @@ export function BeginScene() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 30 }}>
         <button
-          onClick={() => dispatch({ type: 'SET_SCENE', scene: 'race' })}
+          onClick={() => dispatch({ type: 'SET_SCENE', scene: 'save' })}
           style={{
             padding: '10px 40px', fontSize: 16,
             background: 'var(--color-green)', color: '#fff',

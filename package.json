@@ -51,6 +51,8 @@
     "assert:item-info-window-bounds": "node scripts/assertItemInfoWindowBounds.mjs",
     "assert:equip-window-bounds": "node scripts/assertEquipWindowBoundsParity.mjs",
     "assert:equip-window-detail-placement": "node scripts/assertEquipWindowDetailPlacement.mjs",
+    "assert:equip-window-space-utilization": "node scripts/assertEquipWindowSpaceUtilization.mjs",
+    "assert:loot-panel-log-alignment": "node scripts/assertLootPanelLogAlignment.mjs",
     "assert:drop-filter-auto-sell": "node scripts/assertDropFilterAutoSellParity.mjs",
     "assert:age-growth-visible": "node scripts/assertAgeGrowthVisibleParity.mjs",
     "assert:battle-log-sticky-scroll": "node scripts/assertBattleLogStickyScrollParity.mjs",

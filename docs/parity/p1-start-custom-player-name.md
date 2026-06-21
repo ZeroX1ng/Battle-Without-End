@@ -1,6 +1,6 @@
 # P1 Start Custom Player Name
 
-Last updated: 2026-06-20
+Last updated: 2026-06-21
 
 Current status: Verified
 
@@ -9,6 +9,8 @@ Current status: Verified
 ### Verified Notes
 
 2026-06-20: `npm run assert:start-custom-player-name` now guards the AS3 empty-slot naming contract and the React chain from `PLAYER_SET_NAME` through `PLAYER_BURN`, `PlayerInfoPanel`, local save/load, and manual export/import. Browser smoke passed with `DearMasterSmoke`: empty slot custom name -> RaceScene -> main panel -> refresh/load preserved the same name. No production code change was needed.
+
+2026-06-21 follow-up: Dear Master's browser playtest found the start screen still bypassed the empty-slot naming UI. The guard now also covers `BeginScene -> SaveScene`, AS3's four save slots, and slot4 input state. React now routes the start button into SaveScene before RaceScene and exposes all four AS3 save slots.
 
 ### 当前状态
 
@@ -101,7 +103,7 @@ AS3 证据显示，自定义姓名入口不在 `RaceScene.as`，而是在 `SaveS
 
 ### Current Status
 
-Verified on 2026-06-20. The dedicated guard covers the AS3 creation-time naming flow plus React display and persistence. Browser smoke confirmed refresh/load preserves `DearMasterSmoke`; no production code change was needed.
+Verified on 2026-06-21. The dedicated guard covers the AS3 creation-time naming flow, the BeginScene start route into SaveScene, all four save slots, React display, and persistence. Browser smoke confirms the player can enter a custom name before RaceScene and keep it through main-scene display and load.
 
 ### Required Fix
 

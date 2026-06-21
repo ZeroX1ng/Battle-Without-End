@@ -30,7 +30,7 @@ const AS3_SKELETON_Y = 100
 const AS3_EQUIP_CELL_SIZE = 100
 const EQUIP_SLOT_SIZE = AS3_EQUIP_CELL_SIZE * AS3_SKELETON_SCALE + 8
 const EQUIP_FIGURE_WIDTH = 224
-const EQUIP_FIGURE_HEIGHT = 350
+const EQUIP_FIGURE_HEIGHT = 342
 
 const AS3_SLOT_POSITIONS: Record<EquipSlotKey, { x: number; y: number }> = {
   head: { x: 210, y: -50 },
@@ -40,6 +40,11 @@ const AS3_SLOT_POSITIONS: Record<EquipSlotKey, { x: number; y: number }> = {
   ring: { x: 10, y: 120 },
   leftHand: { x: 5, y: 230 },
   rightHand: { x: 415, y: 220 },
+}
+
+const SLOT_RECT_SEPARATION_OFFSETS: Partial<Record<EquipSlotKey, { x: number; y: number }>> = {
+  body: { x: 0, y: 18 },
+  leftHand: { x: 0, y: 6 },
 }
 
 const STAT_ORDER = [
@@ -60,8 +65,6 @@ const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
   { label: '护甲', getValue: pet => String(Math.floor(pet.pro ?? 0)) },
   { label: '魔攻', getValue: pet => `${Math.floor(pet.magicatt ?? 0)}%` },
 ]
-
-const EQUIP_WINDOW_CONTENT_MAX_HEIGHT = 'min(508px, 100%)'
 
 function getSlotComparison(equip: any): Array<{ name: string; value: number }> {
   const totals = new Map<string, number>()
@@ -104,9 +107,10 @@ const slotIconImageStyle: CSSProperties = {
 
 function getSlotPositionStyle(slot: EquipSlotKey): CSSProperties {
   const position = AS3_SLOT_POSITIONS[slot]
+  const offset = SLOT_RECT_SEPARATION_OFFSETS[slot] ?? { x: 0, y: 0 }
   return {
-    left: position.x * AS3_SKELETON_SCALE,
-    top: AS3_SKELETON_Y + position.y * AS3_SKELETON_SCALE,
+    left: position.x * AS3_SKELETON_SCALE + offset.x,
+    top: AS3_SKELETON_Y + position.y * AS3_SKELETON_SCALE + offset.y,
   }
 }
 
@@ -165,13 +169,12 @@ export function EquipWindow() {
         style={{
           flex: 1,
           minHeight: 0,
-          maxHeight: EQUIP_WINDOW_CONTENT_MAX_HEIGHT,
           overflowY: 'auto',
           overflowX: 'hidden',
           paddingRight: 2,
         }}
       >
-        <div data-bwe-equip-content-column style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
+        <div data-bwe-equip-content-column style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
             <div data-bwe-equip-figure-panel style={{
               position: 'relative',
@@ -265,24 +268,24 @@ export function EquipWindow() {
           </div>
 
           <section data-bwe-equip-pet-info style={{
-            border: '1px solid var(--color-border)',
+            border: player.pet ? '1px solid var(--color-border)' : 'none',
             borderRadius: 'var(--radius-md)',
-            background: 'var(--color-bg-panel)',
-            padding: 8,
+            background: player.pet ? 'var(--color-bg-panel)' : 'transparent',
+            padding: player.pet ? 8 : '0 2px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: '4px 10px',
+            gridTemplateColumns: player.pet ? 'repeat(5, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+            gap: player.pet ? '4px 10px' : 0,
             fontSize: 11,
           }}>
             {player.pet ? (
               <>
                 {PET_STATS.map(stat => (
-                  <div key={stat.label} style={{ display: 'grid', gridTemplateColumns: '38px minmax(0, 1fr)', gap: 4 }}>
+                  <div key={stat.label} style={{ display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', gap: 4 }}>
                     <span style={{ color: 'var(--color-text-dim)' }}>{stat.label}</span>
                     <span style={{ color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stat.getValue(player.pet)}</span>
                   </div>
                 ))}
-                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 6, minHeight: 28, paddingTop: 4 }}>
+                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 6, minHeight: 24, paddingTop: 2 }}>
                   {player.pet?.skillList.length ? player.pet?.skillList.map((skill: any, index: number) => (
                     <button
                       key={`${skill.skillData?.name ?? 'pet-skill'}-${index}`}
@@ -291,8 +294,8 @@ export function EquipWindow() {
                       onMouseLeave={hideItemInfo}
                       title={getPetSkillName(skill)}
                       style={{
-                        width: 32,
-                        height: 26,
+                        width: 30,
+                        height: 24,
                         border: '1px solid rgba(205, 175, 95, 0.58)',
                         borderRadius: 4,
                         background: 'rgba(255,255,255,0.08)',
@@ -308,7 +311,17 @@ export function EquipWindow() {
                 </div>
               </>
             ) : (
-              <div style={{ gridColumn: '1 / -1', color: 'var(--color-text-dim)' }}>尚未装备宠物</div>
+              <div
+                data-bwe-equip-pet-empty
+                style={{
+                  gridColumn: '1 / -1',
+                  color: 'var(--color-text-dim)',
+                  minHeight: 16,
+                  lineHeight: '16px',
+                }}
+              >
+                尚未装备宠物
+              </div>
             )}
           </section>
         </div>
@@ -320,7 +333,9 @@ export function EquipWindow() {
           borderRadius: 'var(--radius-md)',
           background: 'var(--color-bg-panel)',
           padding: 10,
-          minHeight: 180,
+          minHeight: 190,
+          flex: '1 1 190px',
+          boxSizing: 'border-box',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -357,11 +372,20 @@ export function EquipWindow() {
                 <div style={{ color: 'var(--color-red)', fontSize: 11 }}>背包已满，无法卸下</div>
               )}
               <div style={{ color: 'var(--color-text)', fontSize: 12, fontWeight: 700 }}>卸下后的属性变化</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '4px 8px', fontSize: 11 }}>
+              <div
+                data-bwe-equip-stat-grid
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))',
+                  gap: '4px 10px',
+                  fontSize: 11,
+                  alignItems: 'start',
+                }}
+              >
                 {comparison.length === 0 ? (
                   <span style={{ color: 'var(--color-text-dim)', gridColumn: '1 / -1' }}>这件装备没有属性加成</span>
                 ) : comparison.map(stat => (
-                  <div key={stat.name} style={{ display: 'contents' }}>
+                  <div key={stat.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, minWidth: 0 }}>
                     <span style={{ color: 'var(--color-text-dim)' }}>{statTranslate(stat.name)}</span>
                     <span style={{ color: stat.value > 0 ? 'var(--color-red)' : 'var(--color-green)', textAlign: 'right' }}>{formatValue(stat.value)}</span>
                   </div>

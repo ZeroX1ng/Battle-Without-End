@@ -3,7 +3,7 @@ import { useGameContext } from '../../state/GameContext'
 import { localLoad, fileImport } from '../../core/systems/SaveSystem'
 import { Button } from '../common/Common'
 
-const SLOTS = ['slot1', 'slot2', 'slot3']
+const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 
 interface SlotData {
   userName: string
@@ -18,7 +18,7 @@ function loadSlotData(slot: string): SlotData | null {
 
 export function SaveScene() {
   const { dispatch } = useGameContext()
-  const [names, setNames] = useState<Record<string, string>>({ slot1: '', slot2: '', slot3: '' })
+  const [names, setNames] = useState<Record<string, string>>({ slot1: '', slot2: '', slot3: '', slot4: '' })
   const [loading, setLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [slotData, setSlotData] = useState<Record<string, SlotData | null>>({})

@@ -19,9 +19,10 @@ export function LootPanel() {
   const l = state.loot
 
   return (
-    <div style={{
+    <div data-bwe-loot-panel style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '10px 14px', width: 170, fontSize: 12,
+      padding: '10px 14px', width: 170, minHeight: 185, height: '100%',
+      fontSize: 12, boxSizing: 'border-box',
     }}>
       <div style={{
         fontSize: 13, fontWeight: 'bold', color: 'var(--color-text-bright)',

@@ -31,6 +31,10 @@ const STAT_TOOLTIPS: Record<string, string> = {
   '无视护甲': '无视敌方护甲的数值',
 }
 
+type PlayerInfoPanelProps = {
+  testSpeedControl?: React.ReactNode
+}
+
 // ═══ AS3 三列布局 ═══
 // AS3 原始公式: x = beginX + sXGap*(i%2) + bXGap*(i/14>>0)
 //               y = beginY + yGap + yGap*(i%14/2>>0)
@@ -41,7 +45,7 @@ const STAT_TOOLTIPS: Record<string, string> = {
 //
 // HP/MP/EXP 条作为全宽组件保留在上方，三列中跳过它们。
 
-export function PlayerInfoPanel() {
+export function PlayerInfoPanel({ testSpeedControl }: PlayerInfoPanelProps) {
   const { state } = useGameContext();
   const { showStringInfo, hideStringInfo, updateMouse } = useInfoWindow();
   const s = selectPlayerStats(state.player);
@@ -61,8 +65,23 @@ export function PlayerInfoPanel() {
       padding: '8px 8px', width: 385, fontSize: 13, maxHeight: 220, overflowY: 'auto'
     }}>
       {/* AS3: _name at x=10,y=10, prefix with title.realName when equipped */}
-      <div style={{ fontSize: 16, fontWeight: 'bold', color: 'var(--color-red)', marginBottom: 4 }}>
-        {s.titleRealName ? <span style={{ color: 'var(--color-yellow)' }}>{s.titleRealName}</span> : null}{s.playerName}
+      <div
+        data-bwe-player-name-row
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          minHeight: 24,
+          fontSize: 16,
+          fontWeight: 'bold',
+          color: 'var(--color-red)',
+          marginBottom: 4,
+        }}
+      >
+        <span>
+          {s.titleRealName ? <span style={{ color: 'var(--color-yellow)' }}>{s.titleRealName}</span> : null}{s.playerName}
+        </span>
+        {testSpeedControl}
       </div>
 
       {/* AS3: HP/MP/EXP bars — col0 row3-5, label at x=10, bar at x=40, width ~80px */}

@@ -39,6 +39,7 @@ const as3MainScene = readAs3('iPanel/iScene/MainScene.as');
 const as3Player = readAs3('iGlobal/Player.as');
 const packageJson = JSON.parse(read('package.json'));
 const mainScene = read('src/components/scenes/MainScene.tsx');
+const playerInfoPanel = read('src/components/panels/PlayerInfoPanel.tsx');
 const speedControl = read('src/components/debug/TestSpeedControl.tsx');
 const mainSceneCss = read('src/styles/main-scene.css');
 const testSpeed = read('src/core/debug/testSpeedControl.ts');
@@ -69,6 +70,10 @@ assertIncludes(testSpeed, 'export const DEFAULT_TEST_ONE_HIT_KILL_ENABLED = fals
 assertIncludes(testSpeed, 'baseIntervalMs / multiplier', 'Speed control must affect effective loop interval only.');
 
 assertIncludes(speedControl, 'data-bwe-test-speed-control', 'Speed control must render a browser-visible smoke target.');
+assertIncludes(speedControl, 'data-bwe-test-speed-trigger', 'Speed control must render as a compact floating trigger instead of a permanent button row.');
+assertIncludes(speedControl, 'aria-expanded={isOpen}', 'Speed control trigger must expose popover open state to browser smoke.');
+assertIncludes(speedControl, 'data-bwe-test-speed-popover', 'Speed control must expose a browser-visible popover hook when opened.');
+assertIncludes(speedControl, '{isOpen &&', 'Speed control popover must render only while opened.');
 assertIncludes(speedControl, 'TEST_SPEED_MULTIPLIERS.map', 'Speed control UI must be generated from the shared multiplier list.');
 assertIncludes(speedControl, 'aria-pressed={multiplier === value}', 'Speed control must expose selected state to browser smoke.');
 assertIncludes(speedControl, 'data-bwe-test-one-hit-kill', 'One-hit kill must render next to the temporary speed controls for browser smoke.');
@@ -79,7 +84,9 @@ assertIncludes(speedControl, '无敌', 'One-hit kill control must display the sh
 assertNotIncludes(speedControl, '一击必杀', 'One-hit kill control must not keep the oversized visible label.');
 assertIncludes(speedControl, 'onOneHitKillToggle', 'One-hit kill button must use a functional toggle owned by MainScene.');
 assertNotIncludes(speedControl, 'test-speed-control__button--wide', 'One-hit kill button must use the normal compact speed-control button width.');
-assertIncludes(mainSceneCss, 'grid-template-columns: repeat(5, 34px);', 'Speed control layout must reserve only one compact slot for the one-hit control.');
+assertNotIncludes(mainSceneCss, 'right: 10px;', 'Speed control must not be fixed against the right tab rail.');
+assertNotIncludes(mainSceneCss, 'top: 10px;', 'Speed control must not keep the old main-scene top-right anchor.');
+assertIncludes(mainSceneCss, '.test-speed-control__popover', 'Speed control must style the speed options as a popover.');
 assertNotIncludes(mainSceneCss, 'test-speed-control__button--wide', 'Speed control CSS must not keep the old oversized one-hit slot.');
 
 assertIncludes(mainScene, 'TEST_SPEED_CONTROL_ENABLED', 'MainScene must keep speed UI behind the feature flag.');
@@ -90,7 +97,11 @@ assertIncludes(mainScene, 'setTestOneHitKillEnabled(enabled => !enabled)', 'Main
 assertIncludes(mainScene, 'testOneHitKillEnabledRef.current ? { oneHitKill: true } : undefined', 'MainScene must omit transient one-hit debug meta when the toggle is off.');
 assertIncludes(mainScene, 'gameTick(stateRef.current, dispatch, battleDebugOptions)', 'MainScene must pass one-hit kill through the tick meta only while the debug toggle is enabled.');
 assertIncludes(mainScene, 'intervalMs: gameLoopIntervalMs', 'useGameLoop must consume the effective interval.');
+assertIncludes(mainScene, 'testSpeedControl={TEST_SPEED_CONTROL_ENABLED ?', 'MainScene must pass the dev-only speed control into the player panel without leaving a release placeholder.');
 assertIncludes(mainScene, '<TestSpeedControl', 'MainScene must render the speed control while the feature flag is enabled.');
+assertIncludes(playerInfoPanel, 'testSpeedControl?: React.ReactNode', 'PlayerInfoPanel must accept an optional dev-only speed-control trigger slot.');
+assertIncludes(playerInfoPanel, 'data-bwe-player-name-row', 'PlayerInfoPanel must expose the player-name row for browser layout smoke.');
+assertIncludes(playerInfoPanel, '{testSpeedControl}', 'PlayerInfoPanel must place the speed-control trigger next to the player name.');
 
 assertIncludes(useGameLoop, 'intervalMs = 500', 'useGameLoop must preserve the 500ms default baseline.');
 assertNotIncludes(useGameLoop, 'TEST_SPEED', 'useGameLoop must stay generic and not own the temporary test feature.');

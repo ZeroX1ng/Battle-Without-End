@@ -70,17 +70,17 @@ export function MainScene() {
 
   return (
     <div className="main-scene">
-      {TEST_SPEED_CONTROL_ENABLED && (
-        <TestSpeedControl
-          value={testSpeedMultiplier}
-          onChange={setTestSpeedMultiplier}
-          oneHitKillEnabled={testOneHitKillEnabled}
-          onOneHitKillToggle={toggleTestOneHitKill}
-        />
-      )}
-
       <section className="main-scene__player" aria-label="玩家状态">
-        <PlayerInfoPanel />
+        <PlayerInfoPanel
+          testSpeedControl={TEST_SPEED_CONTROL_ENABLED ? (
+            <TestSpeedControl
+              value={testSpeedMultiplier}
+              onChange={setTestSpeedMultiplier}
+              oneHitKillEnabled={testOneHitKillEnabled}
+              onOneHitKillToggle={toggleTestOneHitKill}
+            />
+          ) : undefined}
+        />
       </section>
 
       <section className="main-scene__battle" aria-label="战斗状态">

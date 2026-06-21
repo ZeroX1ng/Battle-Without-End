@@ -1,8 +1,8 @@
 # P1 EquipWindow Space Utilization
 
-Last updated: 2026-06-20
+Last updated: 2026-06-21
 
-Current status: Needs repair after detail-placement fix
+Current status: Verified
 
 ## Chinese
 
@@ -63,6 +63,12 @@ Current status: Needs repair after detail-placement fix
 - Nearby: `npm run assert:window-sprite-icons`
 - Always: `npx tsc -b`
 
+### Verification 2026-06-21
+
+Passed: `assert:equip-window-space-utilization`, `assert:equip-window-detail-placement`, `assert:equip-window`, `assert:equip-window-bounds`, `assert:window-sprite-icons`, `npx tsc -b`, and browser smoke for empty-pet and equipped-pet EquipWindow states.
+
+2026-06-21 follow-up: Dear Master's browser playtest found the detail panel still left lower space unused and kept removal deltas in a single vertical list. The guard now requires the detail panel bottom to align with the scroll region, at least 190px of visible detail at 1280x720, and a responsive multi-column stat delta grid. Browser rect smoke now reports 237px visible detail at 1280x720 and 355.5px at FHD.
+
 ### Manual Smoke
 
 打开装备 tab，检查七个装备 slot 的 hover、选中、双击卸下是否都能独立触发。无宠物时确认空状态只是下方轻量提示；装备宠物后确认宠物属性和宠物技能在下方可读。观察 1280x720 和 1920x1080 下是否还有图标重叠、详情挤压和底部空白浪费。
@@ -99,3 +105,9 @@ After the detail-placement card lands, tighten the equipment figure, slot, empty
 - `npm run assert:equip-window-bounds`
 - `npm run assert:window-sprite-icons`
 - `npx tsc -b`
+
+### Verification 2026-06-21
+
+Passed: `assert:equip-window-space-utilization`, `assert:equip-window-detail-placement`, `assert:equip-window`, `assert:equip-window-bounds`, `assert:window-sprite-icons`, `npx tsc -b`, and browser smoke for empty-pet and equipped-pet EquipWindow states.
+
+2026-06-21 follow-up: The guard now requires the lower detail panel to fill the available scroll height and the stat delta list to use a responsive multi-column grid. Browser rect smoke now reports 237px visible detail at 1280x720 and 355.5px at FHD.

@@ -51,6 +51,9 @@ async function enterMainScene(page) {
   if (await page.locator('.main-scene').count()) return;
 
   await page.locator('button').first().click();
+  await page.waitForSelector('input:not([type])', { timeout: 5000 });
+  await page.locator('input:not([type])').first().fill('DearMasterGuard');
+  await page.locator('button').first().click();
   await page.waitForFunction(() => document.querySelectorAll('button').length >= 5, null, { timeout: 5000 });
   await page.locator('button').first().click();
   await page.waitForSelector('input[type="range"]', { timeout: 5000 });
