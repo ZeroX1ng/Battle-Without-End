@@ -1,10 +1,32 @@
 # Changelog
 
+## 0.3.6 - 2026-06-21
+
+- 💄 Equipment screen is tidier now — body and left-hand slots have proper spacing so icons no longer overlap.
+- 💄 When you don't have a pet, the empty panel is replaced by a single subtle line of text, making the equipment screen much cleaner.
+- 💄 Unequipping gear now shows stat changes in a multi-column layout — long stat lists no longer force you to scroll through a single narrow column.
+- 💄 The loot tracker (monster/gear/gold counts) now aligns neatly with the battle log, no more drifting around.
+- 🎮 Speed and invincibility controls are now hidden behind your character name — click the name to reveal a popup, keeping the main screen clutter-free.
+
+## 0.3.5 - 2026-06-21
+
+- 🆕 Equipment details moved below the character figure instead of crowding the far right of the screen. You can now scroll through all stats comfortably without fighting the tab bar for space.
+- 🆕 You can now name your character! Pick an empty save slot → type a name → choose a race, and your name stays with you through saves and reloads.
+- 🔧 Shop and gamble equipment generation has been reorganized behind the scenes. The current experience matches the original — future shop refresh tuning will be handled separately.
+
+## 0.3.4 - 2026-06-20
+
+- 💄 The right-side tab bar now lines up properly with the content window below — no more tabs sticking out wider than the panel.
+- 🆕 The equipment screen now shows a character figure! Head, body, and hand gear appear right on the little person's body, way more satisfying than the old empty outlines.
+
+## 0.3.3 - 2026-06-20
+
+- 🐞 Fixed text becoming unreadable when the window is shrunk to minimum size (1280x720) — battle logs, stats, and buttons stay crisp and readable at any size.
+
 ## 0.3.2 - 2026-06-19
 
-- 🐞 Fixed game stage not scaling correctly at high resolutions (2K/4K), causing UI stretching or clipping. The canvas now auto-scales proportionally on window resize, preserving the AS3 original experience.
-- 🐞 Fixed Chromium background timer throttling causing the game loop to pause when the window is minimized or occluded. Added `--disable-background-timer-throttling` to the Electron command line so the game logic keeps running even when the window is hidden, ensuring uninterrupted idle gameplay.
-- 🛠 Synced dist assets and guard gate checks.
+- 🐞 Fixed game graphics stretching and breaking on high-res screens (2K/4K) — the game now scales properly no matter how big or small your window is.
+- 🐞 Fixed idle combat pausing when you minimize or cover the window — the game now keeps running in the background, so your character never stops grinding.
 
 ## 0.3.1 - 2026-06-18
 
