@@ -2,7 +2,7 @@
 // AS3 原始: iPanel.iScene.iPanel.MonsterInfoPanel
 // 显示当前战斗怪物的名称、战力、头衔（含描述提示）、HP条和 BUFF
 
-import type { MouseEvent } from 'react'
+import { useEffect, type MouseEvent } from 'react'
 import type { BuffData } from '../../core/types'
 import { useGameContext } from '../../state/GameContext'
 import { getCombatPower } from '../../core/models/Player'
@@ -11,22 +11,55 @@ import { useInfoWindow } from '../common/InfoWindow'
 import { getMonsterTitleDescription } from '../../core/data/monsterData'
 import { SpriteImage } from '../shared/SpriteImage'
 
+function getBuffInfoHtml(buff: BuffData): string {
+  const count = Math.floor(Number(buff.count) || 0);
+  switch (buff.name) {
+    case 'burn':
+      return `<p align='center'><font size='16' color='#ff4040'>灼伤</font></p>每回合造成 <font color='#ff4040'>${count}</font> 点伤害。`;
+    case 'frozen':
+      return `<p align='center'><font size='16' color='#66ccff'>冰冻</font></p>剩余 <font color='#66ccff'>${count}</font> 回合，期间怪物无法行动。`;
+    case 'poison':
+      return `<p align='center'><font size='16' color='#66ff66'>中毒</font></p>每回合造成 <font color='#66ff66'>${count}</font> 点伤害。`;
+    case 'corrosion':
+      return `<p align='center'><font size='16' color='#d6a15b'>腐蚀</font></p>降低怪物护甲 <font color='#d6a15b'>${count}</font> 点。`;
+    default:
+      return `<p align='center'><font size='16'>${buff.name}</font></p>层数 / 数值：${count}`;
+  }
+}
+
 export function MonsterInfoPanel() {
   const { state } = useGameContext();
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow();
   const battle = state.battle as any;
-  if (!battle?.monster) return null;
+  const mon = battle?.monster ?? null;
+  const hp = battle?.monsterHp ?? 0;
+  const maxHp = mon?.hp ?? 0;
+  const buffs: BuffData[] = mon && Array.isArray(mon.buffList) ? mon.buffList : [];
+  const tooltipOwnerKey = mon
+    ? `${mon.data?.name ?? mon.nameHtml ?? 'monster'}:${mon.title?.name ?? ''}:${mon.CP}:${maxHp}`
+    : 'none';
+  const monsterDead = !mon || hp <= 0;
 
-  const mon = battle.monster;
-  const hp = battle.monsterHp;
-  const maxHp = mon.hp;
-  const buffs: BuffData[] = Array.isArray(mon.buffList) ? mon.buffList : [];
+  useEffect(() => {
+    if (monsterDead) hideItemInfo();
+    return () => hideItemInfo();
+  }, [hideItemInfo, monsterDead, tooltipOwnerKey]);
+
+  if (!mon) return null;
+
   const handleTitleMouseEnter = (event: MouseEvent<HTMLSpanElement>) => {
     if (!mon.title) return;
     updateMouse(event.clientX, event.clientY);
     showItemInfo(getMonsterTitleDescription(mon.title));
   };
   const handleTitleMouseMove = (event: MouseEvent<HTMLSpanElement>) => {
+    updateMouse(event.clientX, event.clientY);
+  };
+  const handleBuffMouseEnter = (buff: BuffData, event: MouseEvent<HTMLSpanElement>) => {
+    updateMouse(event.clientX, event.clientY);
+    showItemInfo(getBuffInfoHtml(buff));
+  };
+  const handleBuffMouseMove = (event: MouseEvent<HTMLSpanElement>) => {
     updateMouse(event.clientX, event.clientY);
   };
 
@@ -55,12 +88,20 @@ export function MonsterInfoPanel() {
       {buffs.length > 0 && (
         <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap', minHeight: 16 }}>
           {buffs.map((buff, index) => (
-            <SpriteImage
+            <span
               key={`${buff.name}-${index}`}
-              name={`buff_${buff.name}`}
-              autoPlay={false}
-              style={{ width: 16, height: 16, imageRendering: 'pixelated' }}
-            />
+              data-bwe-monster-buff-icon={buff.name}
+              onMouseEnter={event => handleBuffMouseEnter(buff, event)}
+              onMouseMove={handleBuffMouseMove}
+              onMouseLeave={hideItemInfo}
+              style={{ width: 16, height: 16, display: 'inline-flex', cursor: 'help' }}
+            >
+              <SpriteImage
+                name={`buff_${buff.name}`}
+                autoPlay={false}
+                style={{ width: 16, height: 16, imageRendering: 'pixelated' }}
+              />
+            </span>
           ))}
         </div>
       )}

@@ -79,10 +79,9 @@ assertIncludes(equipWindow, 'hideItemInfo', 'EquipWindow must hide item details 
 assertIncludes(equipWindow, "dispatch({ type: 'UNEQUIP_ITEM'", 'EquipWindow must dispatch UNEQUIP_ITEM when an equipped slot is clicked');
 assertIncludes(equipWindow, 'getSlotComparison', 'EquipWindow must include equipped-item comparison data for each occupied slot');
 assertIncludes(equipWindow, 'const delta = -value', 'EquipWindow comparison must show the stat delta after removing the equipped item');
-assertIncludes(equipWindow, 'PET_STATS', 'EquipWindow must render the original pet stat block below equipment slots');
-assertIncludes(equipWindow, 'player.pet?.skillList', 'EquipWindow must render the equipped pet skill cells');
-assertIncludes(equipWindow, 'getPetSkillDescription', 'EquipWindow must show pet skill details on hover');
-assertIncludes(equipWindow, 'handlePetSkillHover', 'EquipWindow must wire pet skill hover behavior to the info window');
+assertNotIncludes(equipWindow, 'const PET_STATS', 'EquipWindow must not duplicate the active pet stat block after it moves to PetInfoPanel');
+assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the moved active-pet info block');
+assertNotIncludes(equipWindow, 'handlePetSkillHover', 'EquipWindow must not keep pet skill hover wiring after the move to PetInfoPanel');
 assertIncludes(as3EquipCell, '_loc4_ = new mc_mode();', 'AS3 EquipCell must render mc_mode for empty equipment slots.');
 assertIncludes(as3EquipCell, 'getDefinitionByName("mc_" + this.equip.type)', 'AS3 EquipCell must render weapon slot icons from mc_<type>.');
 assertIncludes(as3EquipCell, 'getDefinitionByName("mc_" + this.equip.position + "_" + this.equip.type)', 'AS3 EquipCell must render armor/accessory slot icons from mc_<position>_<type>.');

@@ -18,7 +18,14 @@ import { list as RaceList, UNDEATH } from '../data/raceData';
 import { TitleList, createTitleListState, deserializeTitleState, serializeTitleState } from '../data/titleData';
 import { updateAllInfo } from '../models/Player';
 
-const SAVE_PREFIX = 'boe_save_';
+export const SAVE_PREFIX = 'boe_save_';
+export const SAVE_SLOTS = ['slot1', 'slot2', 'slot3', 'slot4'] as const;
+export const SAVE_LOCAL_STORAGE_KEYS = SAVE_SLOTS.map(slot => `${SAVE_PREFIX}${slot}`);
+export const SAVE_COMPATIBILITY_WARNING = '现在我的修复会对存档造成不可逆的损伤，然后分析如何修复';
+
+export function getBrowserSaveStorageHint(): string {
+  return `网页端本地槽位保存在当前网址的 localStorage：${SAVE_LOCAL_STORAGE_KEYS.join(', ')}。手动导出的 .boe 文件由浏览器保存，通常在下载目录；网页安全限制不允许游戏自动预选玩家本机文件夹。`;
+}
 
 /**
  * 序列化玩家状态为存档字符串

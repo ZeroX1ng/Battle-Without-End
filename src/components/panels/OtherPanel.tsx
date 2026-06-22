@@ -31,10 +31,12 @@ const tabDefs: Array<{
 ]
 
 const TAB_SIZE = 40
-const VISIBLE_COUNT = 4
+const AS3_VISIBLE_COUNT = 4
+const VISIBLE_COUNT = tabDefs.length
 const ARROW_WIDTH = 20
-const VISIBLE_WIDTH = VISIBLE_COUNT * TAB_SIZE
-const OTHER_PANEL_AS3_RAIL_WIDTH = ARROW_WIDTH * 2 + VISIBLE_WIDTH
+const AS3_VISIBLE_WIDTH = AS3_VISIBLE_COUNT * TAB_SIZE
+const OTHER_PANEL_AS3_RAIL_WIDTH = ARROW_WIDTH * 2 + AS3_VISIBLE_WIDTH
+const OTHER_PANEL_PRODUCT_FILL_TABS = true
 
 const OTHER_PANEL_BOUNDARY_STYLE: React.CSSProperties = {
   width: '100%',
@@ -68,7 +70,8 @@ const ARROW_FACE_DIM: React.CSSProperties = {
 function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
   return (
     <div style={{
-      width: TAB_SIZE,
+      width: '100%',
+      minWidth: 0,
       height: 40,
       display: 'flex',
       flexDirection: 'column',
@@ -98,7 +101,7 @@ export function OtherPanel() {
   const { hidePinnedItemInfo } = useInfoWindow()
 
   const minOffset = 0
-  const maxOffset = tabDefs.length - VISIBLE_COUNT
+  const maxOffset = Math.max(0, tabDefs.length - VISIBLE_COUNT)
 
   const showLeft = scrollOffset > minOffset
   const showRight = scrollOffset < maxOffset
@@ -146,9 +149,10 @@ export function OtherPanel() {
         <div
           data-bwe-other-tab-strip
           style={{
-            width: OTHER_PANEL_AS3_RAIL_WIDTH,
+            width: '100%',
             display: 'flex',
-            flexShrink: 0,
+            flex: '1 1 0',
+            minWidth: 0,
           }}
         >
           <ButtonCell
@@ -163,11 +167,20 @@ export function OtherPanel() {
             after={<div style={ARROW_FACE_ACTIVE}>{"\u25C0"}</div>}
           />
 
-          <div style={{ width: VISIBLE_WIDTH, overflow: 'hidden', height: 44, flexShrink: 0 }}>
+          <div
+            data-bwe-other-tab-viewport
+            style={{
+              flex: '1 1 0',
+              minWidth: 0,
+              overflow: 'hidden',
+              height: 44,
+            }}
+          >
             <div style={{
               display: 'flex',
               transform: `translateX(${-scrollOffset * TAB_SIZE}px)`,
               transition: 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              width: OTHER_PANEL_PRODUCT_FILL_TABS ? '100%' : OTHER_PANEL_AS3_RAIL_WIDTH,
             }}>
               {tabDefs.map(tab => {
                 const selected = activeTab === tab.id
@@ -183,10 +196,13 @@ export function OtherPanel() {
                     data-bwe-other-tab-active={selected ? 'true' : 'false'}
                     before={renderTabFace(tab, false)}
                     after={renderTabFace(tab, true)}
+                    width="100%"
+                    height={40}
                     style={{
-                      width: TAB_SIZE,
+                      width: 'auto',
+                      minWidth: 30,
                       height: 40,
-                      flexShrink: 0,
+                      flex: '1 1 0',
                     }}
                   />
                 )

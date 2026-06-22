@@ -127,20 +127,19 @@ async function collectRects(page, label) {
       tabRail: getRect('[data-bwe-other-tab-rail]'),
       equipScroll: getRect('[data-bwe-equip-scroll-region]'),
       figurePanel: getRect('[data-bwe-equip-figure-panel]'),
-      petInfo: getRect('[data-bwe-equip-pet-info]'),
       detailPanel: getRect('[data-bwe-equip-detail-panel]'),
     };
   }, label);
 }
 
 function assertRectPlacement(metrics) {
-  const { otherContent, tabRail, equipScroll, figurePanel, petInfo, detailPanel, label } = metrics;
+  const { otherContent, tabRail, equipScroll, figurePanel, detailPanel, label } = metrics;
   assert(metrics.activeTab === 'equip', `${label}: equip tab must be active`);
-  for (const [name, rect] of Object.entries({ otherContent, tabRail, equipScroll, figurePanel, petInfo, detailPanel })) {
+  for (const [name, rect] of Object.entries({ otherContent, tabRail, equipScroll, figurePanel, detailPanel })) {
     assert(rect && rect.width > 0 && rect.height > 0, `${label}: ${name} must render with a visible rect`);
   }
 
-  assert(detailPanel.top >= petInfo.bottom - 1, `${label}: detail panel must sit below the pet info block`);
+  assert(detailPanel.top >= figurePanel.bottom - 1, `${label}: detail panel must sit below the figure panel`);
   assert(detailPanel.left >= equipScroll.left - 1, `${label}: detail panel must stay inside the equip scroll region left edge`);
   assert(detailPanel.right <= equipScroll.right + 1, `${label}: detail panel must stay inside the equip scroll region right edge`);
   assert(equipScroll.left >= otherContent.left - 1, `${label}: equip scroll region must stay inside OtherPanel content left edge`);
@@ -173,12 +172,11 @@ assertNotIncludes(
 assertIncludes(equipWindow, 'data-bwe-equip-scroll-region', 'EquipWindow must expose the bounded internal scroll region.');
 assertIncludes(equipWindow, 'data-bwe-equip-content-column', 'EquipWindow must expose the single vertical content column.');
 assertIncludes(equipWindow, 'data-bwe-equip-figure-panel', 'EquipWindow must expose the figure/slot panel for placement smoke.');
-assertIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must expose the pet info panel for placement smoke.');
 assertIncludes(equipWindow, 'data-bwe-equip-detail-panel', 'EquipWindow must expose the selected equipment detail panel.');
+assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the moved active-pet info block.');
 assertOrder(equipWindow, 'data-bwe-equip-scroll-region', 'data-bwe-equip-content-column', 'EquipWindow content column must live inside the bounded scroll region.');
 assertOrder(equipWindow, 'data-bwe-equip-content-column', 'data-bwe-equip-figure-panel', 'EquipWindow figure panel must be first in the vertical flow.');
-assertOrder(equipWindow, 'data-bwe-equip-figure-panel', 'data-bwe-equip-pet-info', 'EquipWindow pet info must follow the figure panel.');
-assertOrder(equipWindow, 'data-bwe-equip-pet-info', 'data-bwe-equip-detail-panel', 'EquipWindow detail panel must follow the pet info block.');
+assertOrder(equipWindow, 'data-bwe-equip-figure-panel', 'data-bwe-equip-detail-panel', 'EquipWindow detail panel must follow the figure panel.');
 
 const { server, url } = await startViteServer();
 const browser = await chromium.launch({ headless: true });

@@ -30,6 +30,10 @@ function assertIncludes(source, needle, message) {
   assert(source.includes(needle), message);
 }
 
+function assertNotIncludes(source, needle, message) {
+  assert(!source.includes(needle), message);
+}
+
 function assertMatches(source, pattern, message) {
   assert(pattern.test(source), message);
 }
@@ -112,16 +116,12 @@ async function collectMetrics(page, label) {
       slots,
       scrollRegion: getRect('[data-bwe-equip-scroll-region]'),
       figurePanel: getRect('[data-bwe-equip-figure-panel]'),
-      petInfo: getRect('[data-bwe-equip-pet-info]'),
-      petEmpty: getRect('[data-bwe-equip-pet-empty]'),
       detailPanel: getRect('[data-bwe-equip-detail-panel]'),
       statGrid: getRect('[data-bwe-equip-stat-grid]'),
       statGridColumns: document.querySelector('[data-bwe-equip-stat-grid]')
         ? getComputedStyle(document.querySelector('[data-bwe-equip-stat-grid]')).gridTemplateColumns
         : '',
       detailText: document.querySelector('[data-bwe-equip-detail-panel]')?.textContent?.trim() ?? '',
-      petInfoText: document.querySelector('[data-bwe-equip-pet-info]')?.textContent?.trim() ?? '',
-      petEmptyText: document.querySelector('[data-bwe-equip-pet-empty]')?.textContent?.trim() ?? '',
     };
   }, { sampleLabel: label, expectedSlots: slotNames });
 }
@@ -154,16 +154,12 @@ function assertSlotRects(metrics) {
 }
 
 function assertLowerFlow(metrics) {
-  const { scrollRegion, figurePanel, petEmpty, detailPanel, statGrid, statGridColumns, detailText, petEmptyText } = metrics;
+  const { scrollRegion, figurePanel, detailPanel, statGrid, statGridColumns, detailText } = metrics;
   for (const [name, rect] of Object.entries({ scrollRegion, figurePanel, detailPanel })) {
     assert(rect && rect.width > 0 && rect.height > 0, `${metrics.label}: ${name} must render with a visible rect`);
   }
   assert(statGrid && statGrid.width > 0 && statGrid.height > 0, `${metrics.label}: statGrid must render with a visible rect`);
-  assert(petEmpty && petEmpty.height > 0, `${metrics.label}: empty-pet state must be a measured lightweight lower-flow hint`);
-  assert(petEmptyText.length > 0, `${metrics.label}: empty-pet hint must be readable text`);
-  assert(petEmpty.top >= figurePanel.bottom - 1, `${metrics.label}: empty-pet hint must sit below the figure panel`);
-  assert(detailPanel.top >= petEmpty.bottom - 1, `${metrics.label}: detail panel must sit below the empty-pet hint`);
-  assert(petEmpty.height <= 28, `${metrics.label}: empty-pet hint must be lightweight, got height ${petEmpty.height}`);
+  assert(detailPanel.top >= figurePanel.bottom - 1, `${metrics.label}: detail panel must sit below the figure panel`);
 
   const visibleDetailHeight = Math.max(0, Math.min(detailPanel.bottom, scrollRegion.bottom) - Math.max(detailPanel.top, scrollRegion.top));
   const bottomGap = Math.abs(scrollRegion.bottom - detailPanel.bottom);
@@ -208,7 +204,8 @@ for (const [slot, x, y] of [
     `EquipWindow ${slot} slot must keep AS3 coordinates (${x}, ${y}).`,
   );
 }
-assertIncludes(equipWindow, 'data-bwe-equip-pet-empty', 'EquipWindow must expose the empty-pet lower-flow hint for browser smoke.');
+assertNotIncludes(equipWindow, 'data-bwe-equip-pet-empty', 'EquipWindow must not keep the moved empty-pet lower-flow hint.');
+assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the moved active-pet info block.');
 
 const { server, url } = await startViteServer();
 const browser = await chromium.launch({ headless: true });
@@ -233,7 +230,7 @@ try {
 
     const slotSummary = metrics.slots.map(({ slot, rect }) => `${slot}:${rectToText(rect)}`).join(' | ');
     console.log(
-      `PASS ${metrics.label}: slots ${slotSummary}; emptyPet=${rectToText(metrics.petEmpty)}; ` +
+      `PASS ${metrics.label}: slots ${slotSummary}; detail=${rectToText(metrics.detailPanel)}; ` +
       `detailVisible=${Math.max(0, Math.min(metrics.detailPanel.bottom, metrics.scrollRegion.bottom) - Math.max(metrics.detailPanel.top, metrics.scrollRegion.top))}`,
     );
 

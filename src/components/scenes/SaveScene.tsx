@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameContext } from '../../state/GameContext'
-import { localLoad, fileImport } from '../../core/systems/SaveSystem'
+import {
+  SAVE_LOCAL_STORAGE_KEYS,
+  SAVE_PREFIX,
+  fileImport,
+  getBrowserSaveStorageHint,
+  localLoad,
+} from '../../core/systems/SaveSystem'
 import { Button } from '../common/Common'
 
 const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
@@ -55,7 +61,7 @@ export function SaveScene() {
   }
 
   const handleDelete = (slot: string) => {
-    localStorage.removeItem('boe_save_' + slot)
+    localStorage.removeItem(SAVE_PREFIX + slot)
     setConfirmDelete(null)
     refreshSlots()
   }
@@ -184,6 +190,24 @@ export function SaveScene() {
             style={{ display: 'none' }}
             onChange={handleImport}
           />
+        </div>
+
+        <div
+          data-bwe-save-storage-hint
+          style={{
+            border: '1px solid rgba(205, 175, 95, 0.42)',
+            borderRadius: 'var(--radius-md)',
+            padding: '10px 14px',
+            background: 'rgba(255,255,255,0.035)',
+            color: 'var(--color-text-dim)',
+            fontSize: 11,
+            lineHeight: 1.5,
+          }}
+        >
+          <div>{getBrowserSaveStorageHint()}</div>
+          <div style={{ marginTop: 4 }}>
+            keys: {SAVE_LOCAL_STORAGE_KEYS.join(' / ')}
+          </div>
         </div>
       </div>
 

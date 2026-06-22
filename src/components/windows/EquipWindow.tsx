@@ -29,6 +29,9 @@ const AS3_SKELETON_SCALE = 0.4
 const AS3_SKELETON_Y = 100
 const AS3_EQUIP_CELL_SIZE = 100
 const EQUIP_SLOT_SIZE = AS3_EQUIP_CELL_SIZE * AS3_SKELETON_SCALE + 8
+const EQUIP_SLOT_SOURCE_SIZE = EQUIP_SLOT_SIZE / AS3_SKELETON_SCALE
+const EQUIP_SLOT_ICON_FRAME_SOURCE_SIZE = 40 / AS3_SKELETON_SCALE
+const EQUIP_SLOT_ICON_IMAGE_SOURCE_SIZE = 48 / AS3_SKELETON_SCALE
 const EQUIP_FIGURE_WIDTH = 224
 const EQUIP_FIGURE_HEIGHT = 342
 
@@ -53,19 +56,6 @@ const STAT_ORDER = [
   'protectionIgnore', 'protectionReduce', 'magicDamage',
 ]
 
-const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
-  { label: '宠物', getValue: pet => pet.realName ?? pet.name ?? '-' },
-  { label: 'Hp', getValue: pet => String(Math.floor(pet.hp ?? 0)) },
-  { label: 'Mp', getValue: pet => String(Math.floor(pet.mp ?? 0)) },
-  { label: '攻击', getValue: pet => `${Math.floor(pet.attmin ?? 0)}~${Math.floor(pet.attmax ?? 0)}` },
-  { label: '平衡', getValue: pet => String(Math.floor(pet.balance ?? 0)) },
-  { label: '暴击', getValue: pet => String(Math.floor(pet.cri ?? 0)) },
-  { label: '暴伤', getValue: pet => `${Math.floor(pet.crimul ?? 0)}%` },
-  { label: '防御', getValue: pet => String(Math.floor(pet.defence ?? 0)) },
-  { label: '护甲', getValue: pet => String(Math.floor(pet.pro ?? 0)) },
-  { label: '魔攻', getValue: pet => `${Math.floor(pet.magicatt ?? 0)}%` },
-]
-
 function getSlotComparison(equip: any): Array<{ name: string; value: number }> {
   const totals = new Map<string, number>()
   for (const stat of [...(equip?.basicStat ?? []), ...(equip?.qualityStat ?? []), ...(equip?.levelStat ?? [])]) {
@@ -85,8 +75,8 @@ function formatValue(value: number): string {
 
 function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
   return {
-    width: 40,
-    height: 40,
+    width: EQUIP_SLOT_ICON_FRAME_SOURCE_SIZE,
+    height: EQUIP_SLOT_ICON_FRAME_SOURCE_SIZE,
     borderRadius: '50%',
     background: 'rgba(255,255,255,0.88)',
     display: 'inline-flex',
@@ -98,19 +88,19 @@ function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
 }
 
 const slotIconImageStyle: CSSProperties = {
-  width: 48,
-  height: 48,
+  width: EQUIP_SLOT_ICON_IMAGE_SOURCE_SIZE,
+  height: EQUIP_SLOT_ICON_IMAGE_SOURCE_SIZE,
   objectFit: 'contain',
   display: 'block',
   pointerEvents: 'none',
 }
 
-function getSlotPositionStyle(slot: EquipSlotKey): CSSProperties {
+function getSlotSourcePositionStyle(slot: EquipSlotKey): CSSProperties {
   const position = AS3_SLOT_POSITIONS[slot]
   const offset = SLOT_RECT_SEPARATION_OFFSETS[slot] ?? { x: 0, y: 0 }
   return {
-    left: position.x * AS3_SKELETON_SCALE + offset.x,
-    top: AS3_SKELETON_Y + position.y * AS3_SKELETON_SCALE + offset.y,
+    left: position.x + offset.x / AS3_SKELETON_SCALE,
+    top: position.y + offset.y / AS3_SKELETON_SCALE,
   }
 }
 
@@ -120,15 +110,6 @@ function getItemName(equip: any): string {
 
 function getItemDescription(equip: any): string {
   return equip?.getDescription ? equip.getDescription() : getItemName(equip)
-}
-
-function getPetSkillName(skill: any): string {
-  return skill?.getRealName ? skill.getRealName() : skill?.skillData?.realName ?? skill?.skillData?.name ?? '-'
-}
-
-function getPetSkillDescription(skill: any): string {
-  if (skill?.skillData?.desFunction) return skill.skillData.desFunction(skill)
-  return getPetSkillName(skill)
 }
 
 export function EquipWindow() {
@@ -144,11 +125,6 @@ export function EquipWindow() {
   const handleHover = (equip: any, event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
     if (equip) showItemInfo(getItemDescription(equip))
-  }
-
-  const handlePetSkillHover = (skill: any, event: ReactMouseEvent) => {
-    updateMouse(event.clientX, event.clientY)
-    showItemInfo(getPetSkillDescription(skill))
   }
 
   const handleUnequip = (slot: EquipSlotKey) => {
@@ -193,39 +169,51 @@ export function EquipWindow() {
                 transform: 'translateX(-50%)',
               }}>
                 <div
-                  data-bwe-equip-skeleton-layer="people_use1"
+                  data-bwe-equip-coordinate-plane
                   style={{
                     position: 'absolute',
                     left: 0,
                     top: AS3_SKELETON_Y,
-                    width: 449 * AS3_SKELETON_SCALE,
-                    height: 453 * AS3_SKELETON_SCALE,
-                    pointerEvents: 'none',
+                    width: 449,
+                    height: 605,
+                    transform: `scale(${AS3_SKELETON_SCALE})`,
+                    transformOrigin: 'top left',
                   }}
                 >
-                  <SpriteImage
-                    name="people_use1"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                  />
-                </div>
-                <div
-                  data-bwe-equip-skeleton-layer="people_use2"
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: AS3_SKELETON_Y,
-                    width: 350 * AS3_SKELETON_SCALE,
-                    height: 605 * AS3_SKELETON_SCALE,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <SpriteImage
-                    name="people_use2"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                  />
-                </div>
+                  <div
+                    data-bwe-equip-skeleton-layer="people_use1"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      width: 449,
+                      height: 453,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <SpriteImage
+                      name="people_use1"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                  <div
+                    data-bwe-equip-skeleton-layer="people_use2"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      width: 350,
+                      height: 605,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <SpriteImage
+                      name="people_use2"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
 
-            {EQUIP_SLOTS.map(({ slot, label }) => {
+                  {EQUIP_SLOTS.map(({ slot, label }) => {
               const equip = player[slot]
               const active = selectedSlot === slot
               const glow = equip && equip.level >= 7 ? `0 0 ${equip.level + 3}px rgba(255, 64, 64, 0.7)` : 'none'
@@ -242,9 +230,9 @@ export function EquipWindow() {
                   title={equip ? `${label}: 双击卸下` : `${label}: 空`}
                   style={{
                     position: 'absolute',
-                    ...getSlotPositionStyle(slot),
-                    width: EQUIP_SLOT_SIZE,
-                    height: EQUIP_SLOT_SIZE,
+                    ...getSlotSourcePositionStyle(slot),
+                    width: EQUIP_SLOT_SOURCE_SIZE,
+                    height: EQUIP_SLOT_SOURCE_SIZE,
                     borderRadius: '50%',
                     border: active ? '2px solid var(--color-yellow)' : '1px solid rgba(205, 175, 95, 0.58)',
                     background: equip ? 'rgba(20, 18, 32, 0.96)' : 'rgba(255,255,255,0.035)',
@@ -263,67 +251,11 @@ export function EquipWindow() {
                   </span>
                 </button>
               )
-            })}
+                  })}
+                </div>
               </div>
           </div>
 
-          <section data-bwe-equip-pet-info style={{
-            border: player.pet ? '1px solid var(--color-border)' : 'none',
-            borderRadius: 'var(--radius-md)',
-            background: player.pet ? 'var(--color-bg-panel)' : 'transparent',
-            padding: player.pet ? 8 : '0 2px',
-            display: 'grid',
-            gridTemplateColumns: player.pet ? 'repeat(5, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
-            gap: player.pet ? '4px 10px' : 0,
-            fontSize: 11,
-          }}>
-            {player.pet ? (
-              <>
-                {PET_STATS.map(stat => (
-                  <div key={stat.label} style={{ display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', gap: 4 }}>
-                    <span style={{ color: 'var(--color-text-dim)' }}>{stat.label}</span>
-                    <span style={{ color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stat.getValue(player.pet)}</span>
-                  </div>
-                ))}
-                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 6, minHeight: 24, paddingTop: 2 }}>
-                  {player.pet?.skillList.length ? player.pet?.skillList.map((skill: any, index: number) => (
-                    <button
-                      key={`${skill.skillData?.name ?? 'pet-skill'}-${index}`}
-                      onMouseEnter={event => handlePetSkillHover(skill, event)}
-                      onMouseMove={event => handlePetSkillHover(skill, event)}
-                      onMouseLeave={hideItemInfo}
-                      title={getPetSkillName(skill)}
-                      style={{
-                        width: 30,
-                        height: 24,
-                        border: '1px solid rgba(205, 175, 95, 0.58)',
-                        borderRadius: 4,
-                        background: 'rgba(255,255,255,0.08)',
-                        color: 'var(--color-text-bright)',
-                        cursor: 'help',
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {getPetSkillName(skill).slice(0, 2)}
-                    </button>
-                  )) : <span style={{ color: 'var(--color-text-dim)' }}>暂无宠物技能</span>}
-                </div>
-              </>
-            ) : (
-              <div
-                data-bwe-equip-pet-empty
-                style={{
-                  gridColumn: '1 / -1',
-                  color: 'var(--color-text-dim)',
-                  minHeight: 16,
-                  lineHeight: '16px',
-                }}
-              >
-                尚未装备宠物
-              </div>
-            )}
-          </section>
         </div>
 
         <div

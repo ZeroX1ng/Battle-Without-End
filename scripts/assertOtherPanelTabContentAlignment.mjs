@@ -41,17 +41,27 @@ if (packageJson.scripts?.['assert:otherpanel-tab-alignment'] !== 'node scripts/a
 }
 
 assertMatches(otherPanel, /const\s+TAB_SIZE\s*=\s*40/, 'OtherPanel must preserve AS3 40px tab buttons');
-assertMatches(otherPanel, /const\s+VISIBLE_COUNT\s*=\s*4/, 'OtherPanel must preserve four visible AS3 tabs');
+assertMatches(otherPanel, /const\s+AS3_VISIBLE_COUNT\s*=\s*4/, 'OtherPanel must keep the AS3 four visible tabs as explicit evidence');
+assertMatches(
+  otherPanel,
+  /const\s+VISIBLE_COUNT\s*=\s*tabDefs\.length/,
+  'OtherPanel must fill the rewritten right rail with all current tabs',
+);
 assertMatches(otherPanel, /const\s+ARROW_WIDTH\s*=\s*20/, 'OtherPanel must preserve AS3 20px arrow buttons');
 assertMatches(
   otherPanel,
-  /const\s+VISIBLE_WIDTH\s*=\s*VISIBLE_COUNT\s*\*\s*TAB_SIZE/,
-  'OtherPanel visible tab width must stay derived from AS3 tab size and count'
+  /const\s+AS3_VISIBLE_WIDTH\s*=\s*AS3_VISIBLE_COUNT\s*\*\s*TAB_SIZE/,
+  'OtherPanel AS3 visible tab width must stay available as legacy evidence'
 );
 assertMatches(
   otherPanel,
-  /const\s+OTHER_PANEL_AS3_RAIL_WIDTH\s*=\s*ARROW_WIDTH\s*\*\s*2\s*\+\s*VISIBLE_WIDTH/,
+  /const\s+OTHER_PANEL_AS3_RAIL_WIDTH\s*=\s*ARROW_WIDTH\s*\*\s*2\s*\+\s*AS3_VISIBLE_WIDTH/,
   'OtherPanel must keep the AS3 20+160+20 rail width explicit'
+);
+assertMatches(
+  otherPanel,
+  /const\s+OTHER_PANEL_PRODUCT_FILL_TABS\s*=\s*true/,
+  'OtherPanel must document the product override that widens the tab strip',
 );
 assertIncludes(
   otherPanel,
@@ -63,6 +73,7 @@ for (const marker of [
   'data-bwe-other-panel',
   'data-bwe-other-tab-rail',
   'data-bwe-other-tab-strip',
+  'data-bwe-other-tab-viewport',
   'data-bwe-other-content',
 ]) {
   assertIncludes(otherPanel, marker, `OtherPanel must expose ${marker} for browser rect smoke`);
@@ -86,8 +97,18 @@ assertRegionSharesBoundary(
 
 assertMatches(
   otherPanel,
-  /data-bwe-other-tab-strip[\s\S]{0,700}width:\s*OTHER_PANEL_AS3_RAIL_WIDTH/,
-  'OtherPanel must keep the AS3-size tab strip inside the shared rail boundary'
+  /data-bwe-other-tab-strip[\s\S]{0,700}width:\s*'100%'/,
+  'OtherPanel tab strip must fill the widened right rail',
+);
+assertMatches(
+  otherPanel,
+  /data-bwe-other-tab-strip[\s\S]{0,700}flex:\s*'1 1 0'/,
+  'OtherPanel tab strip must flex with the right rail',
+);
+assertMatches(
+  otherPanel,
+  /data-bwe-other-tab-viewport[\s\S]{0,700}flex:\s*'1 1 0'/,
+  'OtherPanel tab viewport must stretch between the arrow buttons',
 );
 
-console.log('OtherPanel tab/content alignment guard passed.');
+console.log('OtherPanel tab/content product-width alignment guard passed.');

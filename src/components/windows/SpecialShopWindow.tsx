@@ -29,9 +29,24 @@ export function SpecialShopWindow() {
 
   return (
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <div
+        data-bwe-overlay-window-header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 8,
+          paddingRight: 92,
+          minHeight: 30,
+          boxSizing: 'border-box',
+          gap: 12,
+        }}
+      >
         <b style={{ color: 'var(--color-text)', fontSize: 15 }}>特殊商店</b>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div
+          data-bwe-specialshop-header-meta
+          style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}
+        >
           <span style={{ color: 'var(--color-yellow)', fontSize: 12 }}>💰 {p.gold}</span>
         </div>
       </div>

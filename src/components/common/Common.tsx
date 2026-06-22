@@ -209,13 +209,26 @@ interface MenuButtonProps extends Omit<ButtonCellProps, 'before' | 'after'> {
   after?: React.ReactNode
 }
 
-export function MenuButton({ label, info, before, after, selected, disabled, onMouseEnter, onMouseLeave, style, ...props }: MenuButtonProps) {
+export function MenuButton({
+  label,
+  info,
+  before,
+  after,
+  selected,
+  disabled,
+  onMouseEnter,
+  onMouseLeave,
+  style,
+  width = 40,
+  height = 40,
+  ...props
+}: MenuButtonProps) {
   const { showStringInfo, hideStringInfo, updateMouse } = useInfoWindow()
 
   const renderFace = (active: boolean) => (
     <BasicCell
-      width={40}
-      height={40}
+      width={width}
+      height={height}
       bordered
       style={{
         display: 'flex',
@@ -237,8 +250,8 @@ export function MenuButton({ label, info, before, after, selected, disabled, onM
 
   return (
     <ButtonCell
-      width={40}
-      height={40}
+      width={width}
+      height={height}
       selected={selected}
       disabled={disabled}
       before={renderFace(false)}
@@ -575,16 +588,17 @@ const actionsStyle: CSSProperties = {
   justifyContent: 'flex-end',
 }
 
-interface ScrollListProps {
+interface ScrollListProps extends React.HTMLAttributes<HTMLDivElement> {
   items: any[]
-  maxHeight?: number
+  maxHeight?: number | string
   renderItem: (item: any, index: number) => React.ReactNode
   emptyText?: string
+  style?: CSSProperties
 }
 
-export function ScrollList({ items, maxHeight = 300, renderItem, emptyText = 'Empty' }: ScrollListProps) {
+export function ScrollList({ items, maxHeight = 300, renderItem, emptyText = 'Empty', style, ...props }: ScrollListProps) {
   return (
-    <div style={{ maxHeight, overflowY: 'auto', overflowX: 'hidden' }}>
+    <div style={{ maxHeight, overflowY: 'auto', overflowX: 'hidden', ...style }} {...props}>
       {items.length === 0
         ? <div style={{ textAlign: 'center', color: 'var(--color-text-dim)', padding: 20 }}>{emptyText}</div>
         : items.map((item, i) => <div key={i}>{renderItem(item, i)}</div>)

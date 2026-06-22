@@ -47,8 +47,11 @@ const gameContext = read('src/state/GameContext.tsx');
 
 assertIncludes(petInfoPanel, 'Lv.', 'PetInfoPanel must show the AS3 main-panel Lv label/value');
 assertIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must show the AS3 main-panel HP bar');
+assertIncludes(petInfoPanel, 'MP ${Math.floor(mp)}/${p.mp}', 'PetInfoPanel must show live combat pet MP in the active pet panel');
 assertIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must show the AS3 main-panel Exp progress bar');
 assertIncludes(petInfoPanel, 'getLevelExp', 'PetInfoPanel Exp max must come from the AS3 pet level-exp formula');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-stat-grid', 'PetInfoPanel must render the moved active pet status grid');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-list', 'PetInfoPanel must render the moved active pet skill list');
 assertNotIncludes(petInfoPanel, '{p.type}', 'PetInfoPanel must not expose the raw pet type key on the main panel');
 assertMatches(
   petInfoPanel,

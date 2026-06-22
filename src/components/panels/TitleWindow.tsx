@@ -51,8 +51,10 @@ export function TitleWindow() {
       </div>
 
       <ScrollList
+        data-bwe-title-list
         items={allTitles}
-        maxHeight={360}
+        maxHeight="100%"
+        style={{ flex: 1, minHeight: 0 }}
         renderItem={(item: TitleData) => (
           <TitleRow
             key={item.name}
@@ -97,6 +99,7 @@ function TitleRow({ title, equipped, onClick }: {
 
   return (
     <div
+      data-bwe-title-row
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
@@ -105,7 +108,8 @@ function TitleRow({ title, equipped, onClick }: {
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        width: 200,
+        width: '100%',
+        boxSizing: 'border-box',
         minHeight: 50,
         padding: '0 10px',
         marginBottom: 0,
@@ -119,7 +123,7 @@ function TitleRow({ title, equipped, onClick }: {
     >
       <div
         style={{
-          width: 180,
+          width: '100%',
           minHeight: 24,
           color: textColor,
           fontSize: 13,

@@ -198,6 +198,21 @@
   min-height: 20px;
 }
 
+.battle-log-panel font[size] {
+  line-height: 20px;
+  vertical-align: baseline;
+}
+
+.battle-log-panel font[size="20"] {
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.battle-log-panel font[size="24"] {
+  font-size: 18px;
+  line-height: 20px;
+}
+
 .main-scene__player > div,
 .main-scene__battle-top > div,
 .main-scene__battle-bottom > div,
