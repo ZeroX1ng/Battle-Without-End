@@ -16,19 +16,25 @@ interface SkillTab {
   id: SkillTabId
   label: string
   color: string
-  panelName: string
 }
 
 const SKILL_TABS: SkillTab[] = [
-  { id: 'combat', label: '战斗', color: '#ff4040', panelName: 'CombatInnerPanel' },
-  { id: 'magic', label: '魔法', color: '#4a90ff', panelName: 'MagicInnerPanel' },
-  { id: 'passive', label: '被动', color: '#ffd24a', panelName: 'PassiveInnerPanel' },
+  { id: 'combat', label: '战斗', color: '#ff4040' },
+  { id: 'magic', label: '魔法', color: '#4a90ff' },
+  { id: 'passive', label: '被动', color: '#ffd24a' },
 ]
 
 const SKILL_PANEL_META: Record<SkillTabId, { as3Panel: string; description: string }> = {
   combat: { as3Panel: 'CombatInnerPanel', description: 'ActiveSkill && category != MAGIC' },
   magic: { as3Panel: 'MagicInnerPanel', description: 'ActiveSkill && category == MAGIC' },
   passive: { as3Panel: 'PassiveInnerPanel', description: 'PassiveSkill' },
+}
+
+const SKILL_CATEGORY_LABELS: Record<string, string> = {
+  [SkillCategory.MELEE]: '近战',
+  [SkillCategory.RANGED]: '远程',
+  [SkillCategory.MAGIC]: '魔法',
+  [SkillCategory.ALL]: '通用',
 }
 
 function isActiveSkill(skill: Skill): boolean {
@@ -59,6 +65,30 @@ function getSkillSpriteName(skill: Skill): string {
   return `mc_${skill.skillData.name.toLowerCase().replace(/\s+/g, '_')}`
 }
 
+function getSkillCategoryLabel(skill: Skill): string {
+  return SKILL_CATEGORY_LABELS[skill.skillData.category] ?? skill.skillData.category
+}
+
+function getSkillTabButtonStyle(tab: SkillTab, active: boolean): CSSProperties {
+  return {
+    width: 63,
+    height: 25,
+    border: active ? `1px solid ${tab.color}` : '1px solid rgba(205, 175, 95, 0.58)',
+    borderRadius: 'var(--radius-sm)',
+    background: active
+      ? `linear-gradient(180deg, ${tab.color}36 0%, rgba(20,18,32,0.96) 58%, ${tab.color}22 100%)`
+      : 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(20,18,32,0.95) 62%, rgba(0,0,0,0.28) 100%)',
+    color: active ? '#fff' : 'var(--color-text-dim)',
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: 800,
+    boxShadow: active
+      ? `inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -2px 0 rgba(0,0,0,0.38), 0 0 10px ${tab.color}55`
+      : 'inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.42)',
+    textShadow: active ? `0 0 6px ${tab.color}` : '0 1px 0 rgba(0,0,0,0.68)',
+  }
+}
+
 export function SkillWindow() {
   const { state, dispatch } = useGameContext()
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
@@ -78,6 +108,7 @@ export function SkillWindow() {
   }, [state.player.skillList])
 
   const skills = skillGroups[activeTab]
+  const activePanelMeta = SKILL_PANEL_META[activeTab]
 
   const handleHover = (skill: Skill, event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
@@ -98,7 +129,12 @@ export function SkillWindow() {
   }
 
   return (
-    <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'hidden' }}>
+    <div
+      data-bwe-skill-window
+      data-bwe-skill-panel-source={activePanelMeta.as3Panel}
+      data-bwe-skill-panel-rule={activePanelMeta.description}
+      style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'hidden' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {SKILL_TABS.map(tab => {
@@ -107,18 +143,7 @@ export function SkillWindow() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                title={tab.panelName}
-                style={{
-                  width: 63,
-                  height: 24,
-                  border: active ? `1px solid ${tab.color}` : '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: active ? `${tab.color}22` : 'var(--color-bg-dark)',
-                  color: active ? tab.color : 'var(--color-text-dim)',
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
+                style={getSkillTabButtonStyle(tab, active)}
               >
                 {tab.label}
               </button>
@@ -126,15 +151,8 @@ export function SkillWindow() {
           })}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: 'var(--color-yellow)', fontSize: 12, fontWeight: 700 }}>AP {state.player.ap}</span>
+          <span style={{ color: 'var(--color-yellow)', fontSize: 12, fontWeight: 700 }}>技能点 {state.player.ap}</span>
         </div>
-      </div>
-
-      <div
-        title={SKILL_PANEL_META[activeTab].description}
-        style={{ color: 'var(--color-text-dim)', fontSize: 11, height: 14 }}
-      >
-        {SKILL_PANEL_META[activeTab].as3Panel}
       </div>
 
       <ScrollPanel height={286} style={{ flex: 1, minHeight: 0 }}>
@@ -221,19 +239,19 @@ function SkillCell({ skill, ap, equipped, equippable, onHover, onLeave, onToggle
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {name} {rank}
+          {name} 等级 {rank}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: 'rgba(29,24,48,0.7)' }}>
-          <span>Rank {rank}</span>
-          <span>{skill.skillData.category}</span>
-          {nextCost !== null && <span>AP {nextCost}</span>}
+          <span>等级 {rank}</span>
+          <span>{getSkillCategoryLabel(skill)}</span>
+          {nextCost !== null && <span>技能点 {nextCost}</span>}
           {equipped && <span style={{ color: '#9b6300', fontWeight: 700 }}>已装备</span>}
         </div>
       </div>
       <button
         onClick={event => onLevelup(skill, event)}
         disabled={!canLevel}
-        title={nextCost === null ? '已达最高 Rank' : canLevel ? `消耗 ${nextCost} AP 升级` : `需要 ${nextCost} AP`}
+        title={nextCost === null ? '已达最高等级' : canLevel ? `消耗 ${nextCost} 技能点升级` : `需要 ${nextCost} 技能点`}
         style={{
           width: 34,
           height: 24,
@@ -246,7 +264,7 @@ function SkillCell({ skill, ap, equipped, equippable, onHover, onLeave, onToggle
           fontWeight: 800,
         }}
       >
-        up
+        升
       </button>
     </div>
   )

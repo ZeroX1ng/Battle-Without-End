@@ -5,6 +5,10 @@
 import { useGameContext } from '../../state/GameContext'
 import { getAttackSkillList, getDefenceSkillList, getSpellChance } from '../../core/models/Player'
 
+const BATTLE_SKILL_PANEL_WIDTH = 170
+const BATTLE_SKILL_ROW_FONT_SIZE = 14
+const BATTLE_SKILL_GROUP_TITLE_FONT_SIZE = 17
+
 function getSkillChance(player: any, skillCount: number, kind: 'attack' | 'defence'): string {
   if (skillCount <= 0) return '0%'
   let chance = kind === 'attack'
@@ -25,22 +29,18 @@ export function BattleSkillPanel() {
   const defenceChance = getSkillChance(state.player, defenceSkills.length, 'defence')
 
   return (
-    <div style={{
+    <div data-bwe-battle-skill-panel style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '8px 10px', width: 170, minHeight: 165, fontSize: 11,
+      padding: '9px 12px', width: BATTLE_SKILL_PANEL_WIDTH, minHeight: 160, fontSize: BATTLE_SKILL_ROW_FONT_SIZE,
       boxSizing: 'border-box',
     }}>
-      <div style={{ color: 'var(--color-text-bright)', fontWeight: 'bold', marginBottom: 4, textAlign: 'center' }}>
-        战斗技能
-      </div>
-
-      <div style={{ color: 'var(--color-red)', fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>攻击</div>
+      <div style={{ color: 'var(--color-red)', fontWeight: 'bold', fontSize: BATTLE_SKILL_GROUP_TITLE_FONT_SIZE, marginBottom: 4 }}>攻击</div>
       {attackSkills.length === 0 ? (
-        <div style={{ color: 'var(--color-text-dim)', fontSize: 11, marginBottom: 6 }}>无</div>
+        <div style={{ color: 'var(--color-text-dim)', fontSize: BATTLE_SKILL_ROW_FONT_SIZE, marginBottom: 8 }}>无</div>
       ) : (
         attackSkills.map(skill => (
           <div key={skill.skillData.name} style={{
-            fontSize: 11, color: 'var(--color-text)', marginBottom: 1,
+            fontSize: BATTLE_SKILL_ROW_FONT_SIZE, color: 'var(--color-text)', marginBottom: 2,
             display: 'flex', justifyContent: 'space-between'
           }}>
             <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>
@@ -49,13 +49,13 @@ export function BattleSkillPanel() {
         ))
       )}
 
-      <div style={{ color: 'var(--color-blue)', fontWeight: 'bold', fontSize: 11, marginBottom: 2, marginTop: 4 }}>防御</div>
+      <div style={{ color: 'var(--color-blue)', fontWeight: 'bold', fontSize: BATTLE_SKILL_GROUP_TITLE_FONT_SIZE, marginBottom: 4, marginTop: 8 }}>防御</div>
       {defenceSkills.length === 0 ? (
-        <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>无</div>
+        <div style={{ color: 'var(--color-text-dim)', fontSize: BATTLE_SKILL_ROW_FONT_SIZE }}>无</div>
       ) : (
         defenceSkills.map(skill => (
           <div key={skill.skillData.name} style={{
-            fontSize: 11, color: 'var(--color-text)', marginBottom: 1,
+            fontSize: BATTLE_SKILL_ROW_FONT_SIZE, color: 'var(--color-text)', marginBottom: 2,
             display: 'flex', justifyContent: 'space-between'
           }}>
             <span>{skill.skillData.realName ?? skill.skillData.name} Lv.{skill.level}</span>

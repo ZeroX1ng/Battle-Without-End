@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 - 2026-06-23
+
+- 🆕 Added light/dark theme toggle — switch between dark and light color schemes in the settings window with a single click. All panels, buttons, and text adapt automatically. Your preference is saved locally and persists across sessions.
+- 💄 Rewrote the player info panel in AS3's original three-column layout: race/age/LV/HP/MP/EXP/gold in column 0, primary attributes (STR/DEX/INT/WILL/LUCK/AP/CP) in column 1, and combat stats (ATK/BAL/CRIT/CRIT-MUL/DEF/PROT/PROT-IGN) in column 2. Hover any stat label for its AS3 tooltip description. HP/MP/EXP are rendered as inline progress bars, with EXP using a distinct purple bar separate from the blue MP bar.
+- 🆕 Battle logs now include `[HH:MM:SS]` timestamps on every line. The font size automatically adjusts from 15px to 22px based on the longest log line and the available space, adapting in real time as you resize the window.
+- 💄 The main scene layout now uses a responsive three-column grid with proportional column widths instead of fixed pixel values. The battle log fills the entire lower-left region with no dead space. The center battle column is wider, giving all info cards more breathing room.
+- 🆕 The equipment screen now features the AS3 original character skeleton — head, weapon, armor, and other gear appear on the little figure, with SVG guide lines connecting anchor points to each equipment slot. Click a slot to highlight its guide line. The detail panel now sits beneath the skeleton and shows your active pet's attributes and skills (instead of the old unequip stat comparison).
+- 💄 The pet window uses a full-width auto-fill grid — pet cards flow naturally to fill available space with no fixed side panel. Click any pet to open a floating detail overlay in the bottom-right corner showing stats, type, and skills; close it anytime.
+- 💄 Loot statistics now align neatly with the battle log via CSS Grid, no more drifting.
+- 💄 OtherWindow entries automatically switch to a single-column layout when the right rail narrows, keeping buttons and labels comfortable to read.
+- 💄 Battle skill panel no longer shows a redundant title; attack/defence group headings are independently readable, and row text scales up to match the wider center column.
+- 🛠 Added multiple UI parity guards and smoke scripts covering theme toggle, player panel, battle log, equipment window, pet window, and loot alignment.
+
 ## 0.3.6 - 2026-06-21
 
 - 💄 Equipment screen is tidier now — body and left-hand slots have proper spacing so icons no longer overlap.

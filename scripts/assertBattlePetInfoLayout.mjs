@@ -44,19 +44,32 @@ assertIncludes(battleModel, 'this.petMp = this.pet.mp', 'React Battle must initi
 
 assertIncludes(petInfoPanel, 'data-bwe-battle-pet-panel', 'PetInfoPanel must expose the active battle pet panel for smoke checks.');
 assertIncludes(petInfoPanel, 'data-bwe-battle-pet-summary', 'PetInfoPanel must expose the compact pet summary area.');
-assertIncludes(petInfoPanel, 'data-bwe-battle-pet-stat-grid', 'PetInfoPanel must render the moved full pet stat grid.');
-assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-list', 'PetInfoPanel must render the moved active pet skill list.');
+assertNotIncludes(petInfoPanel, 'data-bwe-battle-pet-stat-grid', 'PetInfoPanel must not duplicate the full pet stat grid after it returns to EquipWindow.');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-list', 'PetInfoPanel must still render the active pet skill list.');
 assertIncludes(petInfoPanel, 'battle.petMp', 'PetInfoPanel must read live combat pet MP from Battle.');
-assertIncludes(petInfoPanel, 'MP ${Math.floor(mp)}/${p.mp}', 'PetInfoPanel must show the active pet MP value beside HP/Exp.');
+assertIncludes(petInfoPanel, 'getPetDisplayName', 'PetInfoPanel must display localized pet names instead of save keys.');
+assertIncludes(petInfoPanel, 'pet?.realName ?? pet?.name', 'PetInfoPanel localized pet names must prefer realName.');
+assertNotIncludes(petInfoPanel, 'p.name || p.realName', 'PetInfoPanel must not prefer English pet save names over realName.');
+assertIncludes(petInfoPanel, 'function PetBarRow', 'PetInfoPanel must use player-panel style hover bars for HP/MP/EXP.');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-bar', 'PetInfoPanel pet bars must expose hover smoke hooks.');
+assertIncludes(petInfoPanel, 'showStringInfo(`${Math.floor(value)}/${Math.floor(max)}`)', 'PetInfoPanel pet bar values must move to hover StringInfo.');
+assertNotIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must not render exact HP text inline.');
+assertNotIncludes(petInfoPanel, 'MP ${Math.floor(mp)}/${p.mp}', 'PetInfoPanel must not render exact MP text inline.');
+assertNotIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must not render exact Exp text inline.');
 assertIncludes(petInfoPanel, 'p.skillList', 'PetInfoPanel must render active pet skills after moving them out of EquipWindow.');
 assertIncludes(petInfoPanel, 'getPetSkillName', 'PetInfoPanel must keep pet skill labels readable.');
+assertIncludes(petInfoPanel, 'getPetSkillSpriteName(skill)', 'PetInfoPanel battle pet skills must use AS3 pSkill_<name> sprite icons.');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-icon', 'PetInfoPanel battle pet skill icons must expose sprite smoke hooks.');
+assertIncludes(petInfoPanel, '<SpriteImage name={skillSpriteName}', 'PetInfoPanel battle pet skill cells must render SpriteImage icons.');
 
 for (const statProperty of ['hp', 'mp', 'attmin', 'attmax', 'balance', 'cri', 'crimul', 'defence', 'pro', 'magicatt']) {
-  assertIncludes(petInfoPanel, statProperty, `PetInfoPanel moved stat grid must include pet.${statProperty}.`);
+  assertIncludes(equipWindow, statProperty, `EquipWindow active-pet detail grid must include pet.${statProperty}.`);
 }
 
-assertNotIncludes(equipWindow, 'const PET_STATS', 'EquipWindow must not keep the duplicated pet stat grid after the move.');
-assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the old pet stat block after the move.');
-assertNotIncludes(equipWindow, 'handlePetSkillHover', 'EquipWindow must not keep pet skill hover wiring after the move.');
+assertIncludes(equipWindow, 'const PET_STATS', 'EquipWindow must render the AS3 setPetInfo stat grid.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must own the AS3-style active pet stat block.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-skill-list', 'EquipWindow must own the AS3-style active pet skill block.');
+assertIncludes(equipWindow, 'handlePetSkillHover', 'EquipWindow must keep pet skill hover wiring in the equipment tab detail area.');
+assertIncludes(equipWindow, 'getPetSkillSpriteName(skill)', 'EquipWindow active pet skills must use AS3 pSkill_<name> sprite icons.');
 
 console.log('Battle pet info layout checks passed.');

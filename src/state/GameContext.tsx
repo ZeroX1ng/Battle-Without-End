@@ -40,6 +40,17 @@ import {
 
 // AS3 keeps 100 entries; React keeps 150 so sticky-scroll history is more useful during playtests.
 const MAX_BATTLE_LOG_MESSAGES = 150;
+const UI_THEME_STORAGE_KEY = 'bwe-ui-theme-mode';
+
+function getInitialThemeMode(): 'dark' | 'light' {
+  if (typeof window === 'undefined') return 'dark';
+  try {
+    const stored = window.localStorage.getItem(UI_THEME_STORAGE_KEY);
+    return stored === 'light' || stored === 'dark' ? stored : 'dark';
+  } catch {
+    return 'dark';
+  }
+}
 
 function createInitialConfig(): GlobalConfig {
   return {
@@ -115,7 +126,7 @@ function createInitialState(): GameState {
     battle: null,
     config: createInitialConfig(),
     activeSaveSlot: null,
-    ui: { activeWindow: null, infoMessages: [] },
+    ui: { activeWindow: null, infoMessages: [], themeMode: getInitialThemeMode() },
     loot: createInitialLoot(),
     shop: createInitialShopState(player),
     tick: 0,
@@ -639,6 +650,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'UI_CLOSE_WINDOW':
       return { ...state, ui: { ...state.ui, activeWindow: null } };
 
+    case 'UI_SET_THEME':
+      return { ...state, ui: { ...state.ui, themeMode: action.themeMode } };
+
     case 'UI_ADD_LOG': {
       return addLog(state, action.text, action.category, action.meta?.now);
     }
@@ -726,7 +740,7 @@ function withBattlePlayer(state: GameState, player: PlayerState): GameState {
   return { ...state, player, battle };
 }
 
-function addLog(state: GameState, text: string, category?: string, timestamp: number = state.tick): GameState {
+function addLog(state: GameState, text: string, category?: string, timestamp: number = Date.now()): GameState {
   if (!shouldDisplayLog(state.config, category)) return state;
   const previous = state.ui.infoMessages[state.ui.infoMessages.length - 1];
   const msg = { id: (previous?.id ?? 0) + 1, text, category, timestamp };
@@ -806,6 +820,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     processGameEffects(state.pendingEffects as GameEffect[] | undefined, processedEffectIdsRef.current);
   }, [state.pendingEffects, dispatch]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(UI_THEME_STORAGE_KEY, state.ui.themeMode);
+    } catch {
+      // Local UI preference persistence is best-effort and must not affect game state.
+    }
+  }, [state.ui.themeMode]);
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>

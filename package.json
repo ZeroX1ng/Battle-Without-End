@@ -1,7 +1,7 @@
 {
   "name": "boe-refactor",
   "private": true,
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "BWE desktop playtest build",
   "type": "module",
   "main": "electron/main.cjs",
@@ -59,6 +59,7 @@
     "assert:battle-log-sticky-scroll": "node scripts/assertBattleLogStickyScrollParity.mjs",
     "assert:test-speed-control": "node scripts/assertTestSpeedControlParity.mjs",
     "assert:visible-ui-followups": "node scripts/assertVisibleUiFollowups.mjs",
+    "assert:main-scene-ui-polish": "node scripts/assertMainSceneUiPolish.mjs",
     "assert:battle-pet-info-layout": "node scripts/assertBattlePetInfoLayout.mjs",
     "assert:shop-window": "node scripts/assertShopWindowParity.mjs",
     "assert:shop-stock-progression-override": "node scripts/assertShopStockProgressionOverride.mjs",

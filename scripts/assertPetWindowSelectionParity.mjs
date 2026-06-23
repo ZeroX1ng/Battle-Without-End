@@ -74,10 +74,10 @@ if (packageJson.scripts?.['assert:pet-window-selection'] !== 'node scripts/asser
   throw new Error('package.json must expose assert:pet-window-selection');
 }
 
-assertIncludes(petWindow, 'selectedPetKey', 'PetWindow must track selection by a stable pet key, not by object reference');
+assertIncludes(petWindow, 'pinnedPetKey', 'PetWindow must track pinned selection by a stable pet key, not by object reference');
 assertIncludes(petWindow, 'getPetSelectionKey', 'PetWindow must derive row keys from pet identity data');
 assertIncludes(petWindow, 'resolveSelectedPet', 'PetWindow must resolve the selected key against the current pet list after state clones');
-assertNotIncludes(petWindow, 'petList.includes(selectedPet)', 'PetWindow selection must not use object-reference includes checks');
+assertNotIncludes(petWindow, 'petList.includes(pinnedPet)', 'PetWindow selection must not use object-reference includes checks');
 assertNotIncludes(petWindow, 'visibleSelectedPet === pet', 'PetWindow row selection must not compare pet objects by reference');
 assertNotIncludes(petWindow, 'state.player.pet === visibleSelectedPet', 'PetWindow equipped state must not compare cloned pet objects by reference');
 

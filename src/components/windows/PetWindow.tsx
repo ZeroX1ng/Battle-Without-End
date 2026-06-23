@@ -4,7 +4,6 @@
 import { useMemo, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { useGameContext } from '../../state/GameContext'
-import { ScrollPanel } from '../common/ScrollPanel'
 import { useInfoWindow } from '../common/InfoWindow'
 import { SpriteImage } from '../shared/SpriteImage'
 import { getPetSelectionKey, resolveSelectedPet } from './petWindowSelection'
@@ -56,11 +55,11 @@ export function PetWindow() {
   const { state, dispatch } = useGameContext()
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const { petList } = state.player
-  const [selectedPetKey, setSelectedPetKey] = useState<string | null>(() => getPetSelectionKey(petList[0] ?? state.player.pet))
+  const [pinnedPetKey, setPinnedPetKey] = useState<string | null>(null)
 
   const visibleSelectedPet = useMemo(() => {
-    return resolveSelectedPet(petList, state.player.pet, selectedPetKey)
-  }, [petList, selectedPetKey, state.player.pet])
+    return pinnedPetKey ? resolveSelectedPet(petList, state.player.pet, pinnedPetKey) : null
+  }, [petList, pinnedPetKey, state.player.pet])
   const visibleSelectedPetKey = getPetSelectionKey(visibleSelectedPet)
   const activePetKey = getPetSelectionKey(state.player.pet)
   const visibleSelectedPetEquipped = Boolean(activePetKey && activePetKey === visibleSelectedPetKey)
@@ -78,7 +77,7 @@ export function PetWindow() {
   const handleSetPet = (pet: any, event: ReactMouseEvent) => {
     event.stopPropagation()
     hideItemInfo()
-    setSelectedPetKey(getPetSelectionKey(pet))
+    setPinnedPetKey(getPetSelectionKey(pet))
     dispatch({ type: 'PET_SET', pet })
   }
 
@@ -87,13 +86,14 @@ export function PetWindow() {
     hideItemInfo()
     const removedPetKey = getPetSelectionKey(pet)
     dispatch({ type: 'PET_REMOVE', pet })
-    if (removedPetKey && removedPetKey === selectedPetKey) {
-      setSelectedPetKey(null)
+    if (removedPetKey && removedPetKey === pinnedPetKey) {
+      setPinnedPetKey(null)
     }
   }
 
   const handleSelectPet = (pet: any) => {
-    setSelectedPetKey(getPetSelectionKey(pet))
+    hideItemInfo()
+    setPinnedPetKey(getPetSelectionKey(pet))
   }
 
   return (
@@ -102,35 +102,46 @@ export function PetWindow() {
         <b style={{ color: 'var(--color-text)' }}>宠物 ({petList.length}/{state.player.PETMAX})</b>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px minmax(0, 1fr)', gap: 8, flex: 1, minHeight: 0 }}>
-        <ScrollPanel height={302} style={{ minHeight: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 10 }}>
-            {petList.length === 0 ? (
-              <div style={{ color: 'var(--color-text-dim)', padding: 18, textAlign: 'center', fontSize: 12 }}>
-                暂无宠物
-              </div>
-            ) : petList.map((pet: any, i: number) => (
-              <PetCell
-                key={getPetSelectionKey(pet) ?? `${getPetName(pet)}-${i}`}
-                pet={pet}
-                selected={getPetSelectionKey(pet) === visibleSelectedPetKey}
-                onSelect={handleSelectPet}
-                onHover={handlePetHover}
-                onLeave={hideItemInfo}
-                onSetPet={handleSetPet}
-                onRemovePet={handleRemovePet}
-              />
-            ))}
-          </div>
-        </ScrollPanel>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <div data-bwe-pet-list-grid style={{
+          height: '100%',
+          minHeight: 0,
+          overflowY: 'auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          alignContent: 'start',
+          gap: 6,
+          paddingRight: 8,
+          boxSizing: 'border-box',
+        }}>
+          {petList.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', color: 'var(--color-text-dim)', padding: 18, textAlign: 'center', fontSize: 12 }}>
+              暂无宠物
+            </div>
+          ) : petList.map((pet: any, i: number) => (
+            <PetCell
+              key={getPetSelectionKey(pet) ?? `${getPetName(pet)}-${i}`}
+              pet={pet}
+              selected={getPetSelectionKey(pet) === visibleSelectedPetKey}
+              onSelect={handleSelectPet}
+              onHover={handlePetHover}
+              onLeave={hideItemInfo}
+              onSetPet={handleSetPet}
+              onRemovePet={handleRemovePet}
+            />
+          ))}
+        </div>
 
-        <PetDetailPanel
-          pet={visibleSelectedPet}
-          equipped={visibleSelectedPetEquipped}
-          onSkillHover={handlePetSkillHover}
-          onLeave={hideItemInfo}
-          onSetPet={handleSetPet}
-        />
+        {visibleSelectedPet ? (
+          <PinnedPetInfoPanel
+            pet={visibleSelectedPet}
+            equipped={visibleSelectedPetEquipped}
+            onSkillHover={handlePetSkillHover}
+            onLeave={hideItemInfo}
+            onSetPet={handleSetPet}
+            onClose={() => setPinnedPetKey(null)}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -216,25 +227,18 @@ function cellButtonStyle(color: string): CSSProperties {
   }
 }
 
-interface PetDetailPanelProps {
+interface PinnedPetInfoPanelProps {
   pet: any
   equipped: boolean
   onSkillHover: (skill: any, event: ReactMouseEvent) => void
   onLeave: () => void
   onSetPet: (pet: any, event: ReactMouseEvent) => void
+  onClose: () => void
 }
 
-function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetDetailPanelProps) {
-  if (!pet) {
-    return (
-      <section style={detailPanelStyle}>
-        <div style={{ color: 'var(--color-text-dim)', fontSize: 12 }}>暂无宠物</div>
-      </section>
-    )
-  }
-
+function PinnedPetInfoPanel({ pet, equipped, onSkillHover, onLeave, onSetPet, onClose }: PinnedPetInfoPanelProps) {
   return (
-    <section style={detailPanelStyle}>
+    <section data-bwe-pet-pinned-info style={pinnedInfoPanelStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ color: 'var(--color-text-bright)', fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -242,6 +246,14 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetD
           </div>
           <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>{pet.getTypeLabel ? pet.getTypeLabel() : pet.type}</div>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="关闭宠物详情"
+          style={pinnedCloseButtonStyle}
+        >
+          ×
+        </button>
         {equipped && (
           <button
             onClick={(event) => onSetPet(pet, event)}
@@ -261,11 +273,11 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetD
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '5px 10px', fontSize: 11 }}>
+      <div data-bwe-pet-stat-list style={petStatListStyle}>
         {PET_STATS.map(stat => (
-          <div key={stat.label} style={{ display: 'grid', gridTemplateColumns: '54px minmax(0, 1fr)', gap: 4 }}>
+          <div key={stat.label} style={petStatRowStyle}>
             <span style={{ color: 'var(--color-text-dim)' }}>{stat.label}</span>
-            <span style={{ color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stat.getValue(pet)}</span>
+            <span style={{ color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{stat.getValue(pet)}</span>
           </div>
         ))}
       </div>
@@ -305,16 +317,52 @@ function PetDetailPanel({ pet, equipped, onSkillHover, onLeave, onSetPet }: PetD
   )
 }
 
-const detailPanelStyle: CSSProperties = {
+const pinnedInfoPanelStyle: CSSProperties = {
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  zIndex: 2,
+  width: 190,
+  maxWidth: 'calc(100% - 16px)',
+  maxHeight: 'calc(100% - 16px)',
   border: '1px solid var(--color-border)',
   borderRadius: 'var(--radius-md)',
   background: 'var(--color-bg-panel)',
+  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.34)',
   padding: 10,
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: 'auto',
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
+}
+
+const pinnedCloseButtonStyle: CSSProperties = {
+  width: 22,
+  height: 22,
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-sm)',
+  background: 'var(--color-bg-dark)',
+  color: 'var(--color-text)',
+  cursor: 'pointer',
+  fontSize: 16,
+  lineHeight: '18px',
+  padding: 0,
+  flex: '0 0 auto',
+}
+
+const petStatListStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 3,
+  fontSize: 11,
+}
+
+const petStatRowStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '74px minmax(0, 1fr)',
+  gap: 6,
+  alignItems: 'baseline',
 }
 
 const petIconImageStyle: CSSProperties = {

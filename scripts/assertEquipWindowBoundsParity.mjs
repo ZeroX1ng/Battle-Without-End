@@ -67,18 +67,18 @@ assertIncludes(
 assertIncludes(
   equipWindow,
   'minHeight: 190',
-  'EquipWindow detail/stat panel must keep a usable minimum height in small viewports.',
+  'EquipWindow detail/pet panel must keep a usable minimum height in small viewports.',
 );
 assertIncludes(
   equipWindow,
-  'flexShrink: 0',
-  'EquipWindow action buttons must not shrink out of view at the bottom of the detail panel.',
+  'data-bwe-equip-pet-info',
+  'EquipWindow lower detail must expose the active pet info block.',
 );
 assertOrder(
   equipWindow,
   'data-bwe-equip-scroll-region',
   'data-bwe-equip-detail-panel',
-  'EquipWindow detail/stat panel must live inside the bounded internal scroll region.',
+  'EquipWindow detail/pet panel must live inside the bounded internal scroll region.',
 );
 
 console.log('EquipWindow bounds parity checks passed.');

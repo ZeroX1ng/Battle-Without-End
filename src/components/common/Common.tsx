@@ -30,7 +30,7 @@ interface BarProps {
   label?: string
 }
 
-export function Bar({ value, max, color = 'var(--color-hp)', bgColor = 'var(--color-bg-dark)', height = 12, label }: BarProps) {
+export function Bar({ value, max, color = 'var(--color-hp)', bgColor = 'var(--color-bar-track)', height = 12, label }: BarProps) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
   return (
     <div style={{ position: 'relative', width: '100%' }}>

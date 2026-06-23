@@ -1,12 +1,11 @@
 // Equipment window.
 // AS3 original: iPanel.iScene.iPanel.iWindow.EquipWindow / iEquip.EquipCell.
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { getEquipmentSpriteName } from '../common/Common'
 import { useInfoWindow } from '../common/InfoWindow'
 import { SpriteImage } from '../shared/SpriteImage'
-import { statTranslate } from '../../core/constants'
 import { useGameContext } from '../../state/GameContext'
 type EquipSlotKey = 'head' | 'feet' | 'body' | 'necklace' | 'ring' | 'leftHand' | 'rightHand'
 
@@ -50,28 +49,29 @@ const SLOT_RECT_SEPARATION_OFFSETS: Partial<Record<EquipSlotKey, { x: number; y:
   leftHand: { x: 0, y: 6 },
 }
 
-const STAT_ORDER = [
-  'attackMin', 'attackMax', 'ATTACK', 'hp', 'mp', 'str', 'dex', 'intelligence', 'will', 'luck',
-  'balance', 'crit', 'crit_mul', 'defence', 'protection', 'spellChance',
-  'protectionIgnore', 'protectionReduce', 'magicDamage',
+const EQUIP_GUIDE_PLANE_WIDTH = 560
+const EQUIP_GUIDE_ANCHORS: Record<EquipSlotKey, { x: number; y: number }> = {
+  head: { x: 270, y: 62 },
+  feet: { x: 266, y: 460 },
+  body: { x: 286, y: 292 },
+  necklace: { x: 278, y: 168 },
+  ring: { x: 166, y: 230 },
+  leftHand: { x: 152, y: 327 },
+  rightHand: { x: 335, y: 278 },
+}
+
+const PET_STATS: Array<{ label: string; getValue: (pet: any) => string }> = [
+  { label: '宠物', getValue: pet => pet?.realName ?? pet?.name ?? '-' },
+  { label: 'Hp', getValue: pet => String(Math.floor(pet.hp ?? 0)) },
+  { label: 'Mp', getValue: pet => String(Math.floor(pet.mp ?? 0)) },
+  { label: '攻击', getValue: pet => `${Math.floor(pet.attmin ?? 0)}~${Math.floor(pet.attmax ?? 0)}` },
+  { label: '平衡', getValue: pet => String(Math.floor(pet.balance ?? 0)) },
+  { label: '暴击', getValue: pet => String(Math.floor(pet.cri ?? 0)) },
+  { label: '暴倍', getValue: pet => `${Math.floor(pet.crimul ?? 0)}%` },
+  { label: '防御', getValue: pet => String(Math.floor(pet.defence ?? 0)) },
+  { label: '护甲', getValue: pet => String(Math.floor(pet.pro ?? 0)) },
+  { label: '魔攻', getValue: pet => `${Math.floor(pet.magicatt ?? 0)}%` },
 ]
-
-function getSlotComparison(equip: any): Array<{ name: string; value: number }> {
-  const totals = new Map<string, number>()
-  for (const stat of [...(equip?.basicStat ?? []), ...(equip?.qualityStat ?? []), ...(equip?.levelStat ?? [])]) {
-    totals.set(stat.name, (totals.get(stat.name) ?? 0) + stat.value)
-  }
-  return STAT_ORDER
-    .filter(name => totals.has(name))
-    .map(name => ({ name, value: totals.get(name) ?? 0 }))
-}
-
-function formatValue(value: number): string {
-  const delta = -value
-  const rounded = Math.abs(delta) >= 10 ? Math.floor(Math.abs(delta)) : Math.round(Math.abs(delta) * 10) / 10
-  if (rounded === 0) return '0'
-  return delta > 0 ? `+${rounded}` : `-${rounded}`
-}
 
 function slotIconFrameStyle(active: boolean, glow: string): CSSProperties {
   return {
@@ -95,12 +95,45 @@ const slotIconImageStyle: CSSProperties = {
   pointerEvents: 'none',
 }
 
-function getSlotSourcePositionStyle(slot: EquipSlotKey): CSSProperties {
+const petSkillIconImageStyle: CSSProperties = {
+  width: 30,
+  height: 30,
+  objectFit: 'contain',
+  display: 'block',
+  margin: '0 auto',
+  imageRendering: 'pixelated',
+  pointerEvents: 'none',
+}
+
+function getSlotSourcePosition(slot: EquipSlotKey): { x: number; y: number } {
   const position = AS3_SLOT_POSITIONS[slot]
   const offset = SLOT_RECT_SEPARATION_OFFSETS[slot] ?? { x: 0, y: 0 }
   return {
-    left: position.x + offset.x / AS3_SKELETON_SCALE,
-    top: position.y + offset.y / AS3_SKELETON_SCALE,
+    x: position.x + offset.x / AS3_SKELETON_SCALE,
+    y: position.y + offset.y / AS3_SKELETON_SCALE,
+  }
+}
+
+function getSlotSourcePositionStyle(slot: EquipSlotKey): CSSProperties {
+  const position = getSlotSourcePosition(slot)
+  return {
+    left: position.x,
+    top: position.y,
+  }
+}
+
+function getSlotCenterSourcePosition(slot: EquipSlotKey): { x: number; y: number } {
+  const position = getSlotSourcePosition(slot)
+  return {
+    x: position.x + EQUIP_SLOT_SOURCE_SIZE / 2,
+    y: position.y + EQUIP_SLOT_SOURCE_SIZE / 2,
+  }
+}
+
+function getSlotGuideLine(slot: EquipSlotKey): { from: { x: number; y: number }; to: { x: number; y: number } } {
+  return {
+    from: EQUIP_GUIDE_ANCHORS[slot],
+    to: getSlotCenterSourcePosition(slot),
   }
 }
 
@@ -112,19 +145,37 @@ function getItemDescription(equip: any): string {
   return equip?.getDescription ? equip.getDescription() : getItemName(equip)
 }
 
+function getPetSkillName(skill: any): string {
+  return skill?.getRealName ? skill.getRealName() : skill?.skillData?.realName ?? skill?.skillData?.name ?? '-'
+}
+
+function getPetSkillDescription(skill: any): string {
+  if (skill?.getDescription) return skill.getDescription()
+  if (skill?.skillData?.desFunction) return skill.skillData.desFunction(skill)
+  return getPetSkillName(skill)
+}
+
+function getPetSkillSpriteName(skill: any): string {
+  const rawName = String(skill?.skillData?.name ?? '').trim().toLowerCase()
+  return `pSkill_${rawName.replace(/\s+/g, '_')}`
+}
+
 export function EquipWindow() {
   const { state, dispatch } = useGameContext()
   const { showItemInfo, hideItemInfo, updateMouse } = useInfoWindow()
   const player = state.player
   const [selectedSlot, setSelectedSlot] = useState<EquipSlotKey>('leftHand')
 
-  const selectedEquip = player[selectedSlot]
-  const selectedConfig = EQUIP_SLOTS.find(s => s.slot === selectedSlot) ?? EQUIP_SLOTS[0]
-  const comparison = useMemo(() => getSlotComparison(selectedEquip), [selectedEquip])
+  const activePet = player.pet
 
   const handleHover = (equip: any, event: ReactMouseEvent) => {
     updateMouse(event.clientX, event.clientY)
     if (equip) showItemInfo(getItemDescription(equip))
+  }
+
+  const handlePetSkillHover = (skill: any, event: ReactMouseEvent) => {
+    updateMouse(event.clientX, event.clientY)
+    showItemInfo(getPetSkillDescription(skill))
   }
 
   const handleUnequip = (slot: EquipSlotKey) => {
@@ -213,6 +264,46 @@ export function EquipWindow() {
                     />
                   </div>
 
+                  <svg
+                    data-bwe-equip-guide-lines
+                    width={EQUIP_GUIDE_PLANE_WIDTH}
+                    height={605}
+                    viewBox={`0 0 ${EQUIP_GUIDE_PLANE_WIDTH} 605`}
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      overflow: 'visible',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {EQUIP_SLOTS.map(({ slot }) => {
+                      const guideLine = getSlotGuideLine(slot)
+                      const active = selectedSlot === slot
+                      return (
+                        <g key={slot} opacity={active ? 0.9 : 0.48}>
+                          <line
+                            data-bwe-equip-guide-line={slot}
+                            x1={guideLine.from.x}
+                            y1={guideLine.from.y}
+                            x2={guideLine.to.x}
+                            y2={guideLine.to.y}
+                            stroke={active ? '#ffd24a' : 'rgba(205, 175, 95, 0.75)'}
+                            strokeWidth={active ? 3 : 2}
+                            strokeLinecap="round"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <circle
+                            cx={guideLine.from.x}
+                            cy={guideLine.from.y}
+                            r={active ? 5 : 4}
+                            fill={active ? '#ffd24a' : 'rgba(205, 175, 95, 0.82)'}
+                          />
+                        </g>
+                      )
+                    })}
+                  </svg>
+
                   {EQUIP_SLOTS.map(({ slot, label }) => {
               const equip = player[slot]
               const active = selectedSlot === slot
@@ -273,60 +364,79 @@ export function EquipWindow() {
           flexDirection: 'column',
           gap: 8,
         }}>
-          <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>{selectedConfig.label}</div>
-          {selectedEquip ? (
-            <>
-              <div style={{ color: 'var(--color-text-bright)', fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}
-                dangerouslySetInnerHTML={{ __html: getItemName(selectedEquip) }}
-              />
-              <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>
-                {selectedEquip.getPositionLabel?.() ?? selectedConfig.label} / {selectedEquip.getTypeLabel?.() ?? selectedEquip.type}
+          {activePet ? (
+            <div data-bwe-equip-pet-info style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                <div style={{ color: 'var(--color-text)', fontSize: 12, fontWeight: 700 }}>宠物</div>
+                <div style={{ minWidth: 0, color: 'var(--color-green)', fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activePet.realName ?? activePet.name}
+                </div>
               </div>
-              <button
-                onClick={() => handleUnequip(selectedSlot)}
-                disabled={player.itemList.length >= player.BAGMAX}
-                style={{
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '5px 8px',
-                  background: player.itemList.length >= player.BAGMAX ? 'var(--color-bg-dark)' : 'var(--color-red)',
-                  color: '#fff',
-                  cursor: player.itemList.length >= player.BAGMAX ? 'not-allowed' : 'pointer',
-                  opacity: player.itemList.length >= player.BAGMAX ? 0.55 : 1,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                卸下
-              </button>
-              {player.itemList.length >= player.BAGMAX && (
-                <div style={{ color: 'var(--color-red)', fontSize: 11 }}>背包已满，无法卸下</div>
-              )}
-              <div style={{ color: 'var(--color-text)', fontSize: 12, fontWeight: 700 }}>卸下后的属性变化</div>
               <div
-                data-bwe-equip-stat-grid
+                data-bwe-equip-pet-stat-grid
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
                   gap: '4px 10px',
-                  fontSize: 11,
+                  fontSize: 12,
                   alignItems: 'start',
                 }}
               >
-                {comparison.length === 0 ? (
-                  <span style={{ color: 'var(--color-text-dim)', gridColumn: '1 / -1' }}>这件装备没有属性加成</span>
-                ) : comparison.map(stat => (
-                  <div key={stat.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, minWidth: 0 }}>
-                    <span style={{ color: 'var(--color-text-dim)' }}>{statTranslate(stat.name)}</span>
-                    <span style={{ color: stat.value > 0 ? 'var(--color-red)' : 'var(--color-green)', textAlign: 'right' }}>{formatValue(stat.value)}</span>
+                {PET_STATS.map(stat => (
+                  <div key={stat.label} style={{ display: 'grid', gridTemplateColumns: '42px minmax(0, 1fr)', gap: 5, minWidth: 0 }}>
+                    <span style={{ color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>{stat.label}</span>
+                    <span title={stat.getValue(activePet)} style={{ color: 'var(--color-text)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {stat.getValue(activePet)}
+                    </span>
                   </div>
                 ))}
               </div>
-            </>
+              <div style={{ color: 'var(--color-text)', fontSize: 12, fontWeight: 700, paddingTop: 2 }}>技能</div>
+              <div
+                data-bwe-equip-pet-skill-list
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  minHeight: 32,
+                  alignItems: 'center',
+                }}
+              >
+                {activePet.skillList?.length ? activePet.skillList.map((skill: any, index: number) => {
+                  const skillSpriteName = getPetSkillSpriteName(skill)
+                  return (
+                    <button
+                      key={`${skill.skillData?.name ?? 'pet-skill'}-${index}`}
+                      data-bwe-equip-pet-skill
+                      data-bwe-equip-pet-skill-icon={skillSpriteName}
+                      onMouseEnter={event => handlePetSkillHover(skill, event)}
+                      onMouseMove={event => handlePetSkillHover(skill, event)}
+                      onMouseLeave={hideItemInfo}
+                      title={getPetSkillName(skill)}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        padding: 0,
+                        border: skill.level ? '1px solid var(--color-red)' : '1px solid rgba(205, 175, 95, 0.65)',
+                        borderRadius: 4,
+                        background: skill.level ? 'rgba(255,64,64,0.12)' : 'rgba(255,255,255,0.08)',
+                        color: 'var(--color-text-bright)',
+                        cursor: 'help',
+                        boxShadow: skill.level ? '0 0 8px rgba(255,64,64,0.28)' : undefined,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <SpriteImage name={skillSpriteName} autoPlay={false} style={petSkillIconImageStyle} />
+                    </button>
+                  )
+                }) : (
+                  <span style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>暂无宠物技能</span>
+                )}
+              </div>
+            </div>
           ) : (
-            <div style={{ color: 'var(--color-text-dim)', fontSize: 12, lineHeight: 1.5 }}>
-              这个位置还没有装备。可以在背包中选择合适的装备穿戴。
+            <div data-bwe-equip-pet-empty style={{ color: 'var(--color-text-dim)', fontSize: 12, lineHeight: 1.5 }}>
+              当前没有出战宠物。装备宠物后，这里会显示 AS3 装备窗口中的宠物属性和技能。
             </div>
           )}
         </div>

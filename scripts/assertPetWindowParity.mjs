@@ -46,12 +46,17 @@ const player = read('src/core/models/Player.ts');
 const gameContext = read('src/state/GameContext.tsx');
 
 assertIncludes(petInfoPanel, 'Lv.', 'PetInfoPanel must show the AS3 main-panel Lv label/value');
-assertIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must show the AS3 main-panel HP bar');
-assertIncludes(petInfoPanel, 'MP ${Math.floor(mp)}/${p.mp}', 'PetInfoPanel must show live combat pet MP in the active pet panel');
-assertIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must show the AS3 main-panel Exp progress bar');
+assertIncludes(petInfoPanel, 'function PetBarRow', 'PetInfoPanel must use compact HP/MP/EXP bars with hover values');
+assertIncludes(petInfoPanel, 'label="HP"', 'PetInfoPanel must show the AS3 main-panel HP bar label');
+assertIncludes(petInfoPanel, 'label="MP"', 'PetInfoPanel must show live combat pet MP in the active pet panel label');
+assertIncludes(petInfoPanel, 'label="EXP"', 'PetInfoPanel must show the AS3 main-panel Exp progress bar label');
+assertIncludes(petInfoPanel, 'showStringInfo(`${Math.floor(value)}/${Math.floor(max)}`)', 'PetInfoPanel must show exact HP/MP/EXP values only on hover');
+assertNotIncludes(petInfoPanel, 'HP ${Math.floor(hp)}/${p.hp}', 'PetInfoPanel must not render exact HP inline in the compact battle panel');
+assertNotIncludes(petInfoPanel, 'MP ${Math.floor(mp)}/${p.mp}', 'PetInfoPanel must not render exact MP inline in the compact battle panel');
+assertNotIncludes(petInfoPanel, 'Exp ${Math.floor(exp)}/${expMax}', 'PetInfoPanel must not render exact Exp inline in the compact battle panel');
 assertIncludes(petInfoPanel, 'getLevelExp', 'PetInfoPanel Exp max must come from the AS3 pet level-exp formula');
-assertIncludes(petInfoPanel, 'data-bwe-battle-pet-stat-grid', 'PetInfoPanel must render the moved active pet status grid');
-assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-list', 'PetInfoPanel must render the moved active pet skill list');
+assertNotIncludes(petInfoPanel, 'data-bwe-battle-pet-stat-grid', 'PetInfoPanel must not duplicate the full active pet status grid after it returns to EquipWindow');
+assertIncludes(petInfoPanel, 'data-bwe-battle-pet-skill-list', 'PetInfoPanel must render the active pet skill list');
 assertNotIncludes(petInfoPanel, '{p.type}', 'PetInfoPanel must not expose the raw pet type key on the main panel');
 assertMatches(
   petInfoPanel,
@@ -64,8 +69,15 @@ assertIncludes(petWindow, 'showItemInfo(getPetDescription(pet))', 'PetWindow mus
 assertIncludes(petWindow, 'showItemInfo(getPetSkillDescription(skill))', 'PetWindow must show PetSkillCell details on skill hover');
 assertIncludes(petWindow, "dispatch({ type: 'PET_SET'", 'PetWindow must keep the original equip/switch pet action');
 assertIncludes(petWindow, "dispatch({ type: 'PET_REMOVE'", 'PetWindow must expose the original delete/sell pet action');
-assertIncludes(petWindow, 'selectedPet', 'PetWindow must keep selected pet state for detail/status display');
+assertIncludes(petWindow, 'setPinnedPetKey', 'PetWindow row click must persist the selected PetInfoWindow overlay.');
+assertIncludes(petWindow, 'data-bwe-pet-list-grid', 'PetWindow must render the pet list as the primary full-height surface.');
+assertIncludes(petWindow, 'data-bwe-pet-pinned-info', 'PetWindow must render clicked pet details as a pinned overlay instead of a permanent side column.');
+assertIncludes(petWindow, 'repeat(auto-fill, minmax(200px, 1fr))', 'PetWindow must use the available tab width for the pet list.');
+assertNotIncludes(petWindow, "gridTemplateColumns: '200px minmax(0, 1fr)'", 'PetWindow must not keep the old side-detail layout that created blank space.');
 assertIncludes(petWindow, 'PET_STATS', 'PetWindow must render the original PetInfoWindow status rows');
+assertIncludes(petWindow, 'data-bwe-pet-stat-list', 'PetWindow detail stat rows must expose a vertical list hook.');
+assertIncludes(petWindow, "flexDirection: 'column'", 'PetWindow detail stat rows must use a vertical layout instead of a cramped inline grid.');
+assertIncludes(petWindow, "gridTemplateColumns: '74px minmax(0, 1fr)'", 'PetWindow vertical stat rows must reserve enough label/value space.');
 for (const statLabel of ['Hp', 'Mp', '攻击', '平衡', '暴击率', '防御', '护甲', '魔法攻击']) {
   assertIncludes(petWindow, `label: '${statLabel}'`, `PetWindow detail panel must show AS3 PetInfoWindow ${statLabel}`);
   assertIncludes(petModel, `${statLabel}\\t`, `Pet hover description must include AS3 PetInfoWindow ${statLabel}`);

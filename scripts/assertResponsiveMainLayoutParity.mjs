@@ -40,18 +40,20 @@ assert(
 );
 
 assert(
-  /calculateStageScale/.test(gameLayout) &&
+  /calculateStageMetrics/.test(gameLayout) &&
     /--bwe-stage-scale/.test(gameLayout) &&
+    /--bwe-stage-width/.test(gameLayout) &&
+    /--bwe-stage-height/.test(gameLayout) &&
     /data-bwe-stage-frame/.test(gameLayout) &&
     /data-bwe-stage-shell/.test(gameLayout),
-  'GameLayout exposes a measured whole-stage scale and stable DOM hooks'
+  'GameLayout exposes measured adaptive stage metrics and stable DOM hooks'
 );
 
 assert(
   /className="game-layout"/.test(gameLayout) &&
     /className="game-stage-frame"/.test(gameLayout) &&
     /className="game-shell"/.test(gameLayout),
-  'GameLayout renders a viewport frame around the fixed game shell'
+  'GameLayout renders a viewport frame around the adaptive game shell'
 );
 
 assert(
@@ -63,7 +65,7 @@ assert(
   /\.game-stage-frame/.test(layoutCss) &&
     /width:\s*calc\(var\(--bwe-stage-width\)\s*\*\s*var\(--bwe-stage-scale\)\)/.test(layoutCss) &&
     /height:\s*calc\(var\(--bwe-stage-height\)\s*\*\s*var\(--bwe-stage-scale\)\)/.test(layoutCss),
-  'layout CSS sizes the visual frame from the fixed stage and measured scale'
+  'layout CSS sizes the visual frame from the adaptive stage dimensions and measured scale'
 );
 
 assert(
@@ -71,7 +73,7 @@ assert(
     /height:\s*var\(--bwe-stage-height\)/.test(layoutCss) &&
     /transform:\s*scale\(var\(--bwe-stage-scale\)\)/.test(layoutCss) &&
     /transform-origin:\s*top left/.test(layoutCss),
-  'game shell keeps fixed design pixels and scales visually as one stage'
+  'game shell keeps design pixels and scales visually as one stage'
 );
 
 assert(

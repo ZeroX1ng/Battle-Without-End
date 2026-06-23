@@ -37,9 +37,29 @@ assertIncludes(skillWindow, 'SkillType.PASSIVE', 'SkillWindow must split passive
 assertIncludes(skillWindow, 'SkillType.ATTACK', 'SkillWindow must treat attack skills as active/equippable');
 assertIncludes(skillWindow, 'SkillType.DEFENCE', 'SkillWindow must treat defence skills as active/equippable');
 assertIncludes(skillWindow, 'SKILL_PANEL_META', 'SkillWindow must preserve the original combat/magic/passive panel semantics');
+assertNotIncludes(
+  skillWindow,
+  'title={tab.panelName}',
+  'SkillWindow tab buttons must not expose AS3 internal panel class names as native tooltips'
+);
+assertNotIncludes(
+  skillWindow,
+  '{SKILL_PANEL_META[activeTab].as3Panel}',
+  'SkillWindow must not render AS3 internal panel class names as player-visible text'
+);
 assertIncludes(skillWindow, 'isSkillInTab', 'SkillWindow must filter each panel through a dedicated AS3 parity predicate');
 assertIncludes(skillWindow, 'getRankLabel', 'SkillWindow must display original Rank as 15 - level in hex');
 assertIncludes(skillWindow, 'getNextApCost', 'SkillWindow must show next level AP cost');
+assertIncludes(skillWindow, 'SKILL_CATEGORY_LABELS', 'SkillWindow must translate raw skill categories for players');
+assertIncludes(skillWindow, 'getSkillCategoryLabel', 'SkillWindow skill rows must use localized category labels');
+assertIncludes(skillWindow, '等级 {rank}', 'SkillWindow must render localized rank labels in the detail row');
+assertIncludes(skillWindow, '技能点 {nextCost}', 'SkillWindow must render localized AP cost labels in the detail row');
+assertNotIncludes(skillWindow, 'Rank {rank}', 'SkillWindow must not render the English Rank label in skill rows');
+assertNotIncludes(skillWindow, '{skill.skillData.category}', 'SkillWindow must not render raw category keys in skill rows');
+assertNotIncludes(skillWindow, 'AP {nextCost}', 'SkillWindow must not render the English AP cost label in skill rows');
+assertIncludes(skillWindow, 'getSkillTabButtonStyle', 'SkillWindow tabs must use a dedicated dimensional button style');
+assertIncludes(skillWindow, 'boxShadow', 'SkillWindow tab style must provide dimensional depth');
+assertIncludes(skillWindow, "textShadow: active", 'SkillWindow active tab labels must gain depth with text shadow');
 assertIncludes(skillWindow, 'canLevelup(state.player.ap)', 'SkillWindow must gate level-up by current AP');
 assertIncludes(skillWindow, "dispatch({ type: 'SKILL_LEVELUP'", 'SkillWindow must dispatch SKILL_LEVELUP from each skill cell');
 assertIncludes(skillWindow, 'useInfoWindow', 'SkillWindow must use the global description hover window');

@@ -50,6 +50,8 @@ export function ItemWindow() {
     const bs = state.player.skillList.find((s: any) => s.skillData.name === 'BLACKSMITHING')
     return bs ? bs.level : 0
   }, [state.player.skillList])
+  const blacksmithUnlocked = blacksmithLevel > 1
+  const autoForgeLockedHint = '学习锻造后可解锁自动锻造。'
 
   const forgeInfo = useMemo(() => {
     if (!selectedItem) return null
@@ -200,9 +202,10 @@ export function ItemWindow() {
                 onMouseMove={(event) => updateMouse(event.clientX, event.clientY)}
                 onMouseEnter={(event) => {
                   updateMouse(event.clientX, event.clientY)
-                  showStringInfo(autoForgeLabel)
+                  if (!blacksmithUnlocked) showStringInfo(autoForgeLockedHint)
                 }}
                 onMouseLeave={hideStringInfo}
+                title={!blacksmithUnlocked ? autoForgeLockedHint : undefined}
                 style={toggleStyle}
               >
                 <input
@@ -236,12 +239,6 @@ export function ItemWindow() {
                 锻造
               </button>
             </div>
-
-            {blacksmithLevel <= 1 && (
-              <div style={{ fontSize: 11, color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
-                学习 Blacksmithing 后可解锁自动锻造。
-              </div>
-            )}
           </>
         ) : (
           <div style={{ color: 'var(--color-text-dim)', fontSize: 11 }}>选择背包装备后可锻造</div>

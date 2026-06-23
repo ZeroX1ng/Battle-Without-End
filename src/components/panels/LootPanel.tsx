@@ -5,6 +5,10 @@
 import { useGameContext } from '../../state/GameContext'
 import { QualityColor } from '../../core/constants'
 
+const LOOT_PANEL_WIDTH = 170
+const LOOT_PANEL_MIN_HEIGHT = 220
+const LOOT_PANEL_ROW_FONT_SIZE = 16
+
 const QUALITY_LABELS = [
   { key: 'basic' as const, label: '普通' },
   { key: 'magic' as const, label: '精品' },
@@ -21,12 +25,12 @@ export function LootPanel() {
   return (
     <div data-bwe-loot-panel style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '10px 14px', width: 170, minHeight: 185, height: '100%',
-      fontSize: 12, boxSizing: 'border-box',
+      padding: '8px 12px', width: LOOT_PANEL_WIDTH, minHeight: LOOT_PANEL_MIN_HEIGHT, height: '100%',
+      fontSize: LOOT_PANEL_ROW_FONT_SIZE, boxSizing: 'border-box',
     }}>
       <div style={{
-        fontSize: 13, fontWeight: 'bold', color: 'var(--color-text-bright)',
-        marginBottom: 8, textAlign: 'center',
+        fontSize: 18, fontWeight: 'bold', color: 'var(--color-text-bright)',
+        marginBottom: 7, textAlign: 'center',
       }}>
         当前地图统计
       </div>
@@ -35,7 +39,7 @@ export function LootPanel() {
       <StatLine label="经验" value={l.exp} color="#4a60d7" />
 
       <div style={{
-        margin: '6px 0', borderTop: '1px solid var(--color-border)',
+        margin: '5px 0', borderTop: '1px solid var(--color-border)',
       }} />
 
       {QUALITY_LABELS.map(({ key, label }, i) => (
@@ -52,12 +56,12 @@ export function LootPanel() {
 
 function StatLine({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div style={{
+    <div data-bwe-loot-stat-line style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '2px 0', fontSize: 11,
+      padding: '1px 0', fontSize: LOOT_PANEL_ROW_FONT_SIZE, lineHeight: '20px',
     }}>
       <span style={{ color: 'var(--color-text-dim)' }}>{label}</span>
-      <span style={{ color: color || 'var(--color-text)', fontWeight: 'bold' }}>
+      <span data-bwe-loot-stat-value={label} style={{ color: color || 'var(--color-text)', fontWeight: 'bold' }}>
         {value}
       </span>
     </div>

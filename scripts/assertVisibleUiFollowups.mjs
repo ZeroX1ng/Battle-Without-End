@@ -90,7 +90,8 @@ for (const [label, source, metaHook] of [
 }
 
 assertIncludes(mainSceneCss, '.battle-log-panel font[size="20"]', 'Battle log must clamp AS3 large critical-hit font tags.');
-assertIncludes(mainSceneCss, 'font-size: 16px', 'Battle log critical-hit text must stay readable without covering prior lines.');
+assertIncludes(mainSceneCss, 'font-size: 1.12em', 'Battle log critical-hit text must scale with the measured log font size.');
+assertIncludes(mainSceneCss, 'white-space: nowrap', 'Battle log messages must preserve the single-line sizing contract.');
 assertIncludes(mainSceneCss, '.battle-log-panel font[size]', 'Battle log must scope font-tag normalization to the log panel.');
 
 assertIncludes(monsterInfoPanel, 'useEffect', 'MonsterInfoPanel must clean up hover info on monster changes/unmount.');

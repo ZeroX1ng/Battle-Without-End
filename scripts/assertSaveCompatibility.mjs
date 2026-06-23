@@ -84,6 +84,15 @@ function expectLoadedSave(loaded, context) {
   assert(loaded.player.pet?.skillList.length === 2, `${context}: equipped legacy pet skills must remain readable.`);
 }
 
+function expectRecoveredLegacyEquipment(loaded, context) {
+  assert(loaded.playerName === 'LegacyEquipSlot', `${context}: playerName must come from the save slot argument.`);
+  assert(loaded.player.leftHand?.name === 'axe', `${context}: incomplete legacy equipped weapon must not block loading.`);
+  assert(loaded.player.leftHand?.basicStat?.length > 0, `${context}: recovered legacy equipped weapon must keep usable basic stats.`);
+  assert(loaded.player.itemList.length === 1, `${context}: incomplete legacy bag equipment must not block loading.`);
+  assert(loaded.player.itemList[0]?.name === 'axe', `${context}: recovered legacy bag equipment must preserve its item identity.`);
+  assert(loaded.player.itemList[0]?.basicStat?.length > 0, `${context}: recovered legacy bag equipment must keep usable basic stats.`);
+}
+
 const packageJson = JSON.parse(read('package.json'));
 const saveSystemSource = read('src/core/systems/SaveSystem.ts');
 const visibleGuard = read('scripts/assertVisibleUiFollowups.mjs');
@@ -131,8 +140,26 @@ const legacyRaw = [
 ].join('');
 const legacySave = encodeSave(legacyRaw);
 
+const incompleteLegacyEquipmentRaw = [
+  '@BASIC:lv,3,age,11,ap,1,xp,20,gold,30,apCost,0,caculate,0,BAGMAX,50,PETMAX,10,',
+  '@RACE:undeath',
+  '@EQUIP:leftHand,axe#0#1#1,',
+  '@ITEM:axe#0#1#1,',
+  '@SKILL:',
+  '@TITLE:',
+  '@OTHER:hp,12,mp,8,luck,2,intelligence,3,str,4,dex,5,will,6,',
+  '@GLOBAL:toggle,battle#true#battleIntro#true#money#true#exp#true#item#true#sound#true#',
+  '@SELECTION:map,Legacy Meadow',
+  '@PET:',
+  '@EQUIPEDPET:',
+].join('');
+const incompleteLegacyEquipmentSave = encodeSave(incompleteLegacyEquipmentRaw);
+
 const loaded = deserializeSave(legacySave, 'LegacySlot');
 expectLoadedSave(loaded, 'legacy import');
+
+const recoveredLegacyEquipment = deserializeSave(incompleteLegacyEquipmentSave, 'LegacyEquipSlot');
+expectRecoveredLegacyEquipment(recoveredLegacyEquipment, 'incomplete legacy equipment import');
 
 const reserialized = serializeSave(loaded.player, loaded.config, loaded.mapName, 'LegacySlot');
 const reloaded = deserializeSave(reserialized, 'LegacySlot');

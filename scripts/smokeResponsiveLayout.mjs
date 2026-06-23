@@ -149,9 +149,14 @@ try {
     assert(rectIsVisible(metrics.shell), `${viewport.name} renders the game shell`);
     assert(rectIsVisible(metrics.scene), `${viewport.name} renders the main scene`);
     assert(
-      nearlyEqual(metrics.shell.width, DESIGN_STAGE_WIDTH * metrics.stageScale) &&
-        nearlyEqual(metrics.shell.height, DESIGN_STAGE_HEIGHT * metrics.stageScale),
-      `${viewport.name} scales the shell from the fixed 1280x720 stage`
+      nearlyEqual(metrics.frame.width, metrics.viewport.width, 3 + metrics.stageScale * 2) &&
+        nearlyEqual(metrics.frame.height, metrics.viewport.height, 3 + metrics.stageScale * 2),
+      `${viewport.name} expands the visual stage to fill the current viewport`
+    );
+    assert(
+      nearlyEqual(metrics.shell.width, metrics.frame.width, 3 + metrics.stageScale * 2) &&
+        nearlyEqual(metrics.shell.height, metrics.frame.height, 3 + metrics.stageScale * 2),
+      `${viewport.name} keeps the shell aligned with the adaptive visual frame`
     );
     assert(
       nearlyEqual(metrics.scene.width, metrics.shell.width, 3 + metrics.stageScale * 2) &&
@@ -164,14 +169,14 @@ try {
     assert(rectIsVisible(metrics.logRegion), `${viewport.name} renders log region`);
     assert(metrics.visibleTextLength > 20, `${viewport.name} renders non-empty game UI text`);
     assert(
-      metrics.effectiveLogFontSize >= 12 * metrics.stageScale - 0.5,
-      `${viewport.name} effectively scales the 12px battle-log text to ${metrics.effectiveLogFontSize}px`
+      metrics.effectiveLogFontSize >= 15 * metrics.stageScale - 0.5,
+      `${viewport.name} effectively scales the measured battle-log text to ${metrics.effectiveLogFontSize}px`
     );
 
     console.log(
       `PASS ${viewport.name}: ${metrics.viewport.width}x${metrics.viewport.height}, ` +
       `scale ${metrics.stageScale}, ` +
-      `shell ${Math.round(metrics.shell.width)}x${Math.round(metrics.shell.height)}, ` +
+      `adaptive shell ${Math.round(metrics.shell.width)}x${Math.round(metrics.shell.height)}, ` +
       `effective log font ${metrics.effectiveLogFontSize}px`
     );
 

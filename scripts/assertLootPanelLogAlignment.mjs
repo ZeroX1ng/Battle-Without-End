@@ -100,6 +100,16 @@ async function collectMetrics(page, label) {
       battleBottom: getRect('.main-scene__battle-bottom'),
       battleSkill: getRect('.main-scene__battle-bottom > :first-child'),
       lootPanel: getRect('[data-bwe-loot-panel]'),
+      lootRows: Array.from(document.querySelectorAll('[data-bwe-loot-stat-line]')).map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          text: element.textContent?.trim() ?? '',
+          top: round(rect.top),
+          bottom: round(rect.bottom),
+          height: round(rect.height),
+        };
+      }),
+      lootText: document.querySelector('[data-bwe-loot-panel]')?.textContent?.trim() ?? '',
       battleBottomStyle: battleBottomStyle
         ? {
             display: battleBottomStyle.display,
@@ -120,6 +130,8 @@ function assertLayout(metrics) {
     battleBottom,
     battleSkill,
     lootPanel,
+    lootRows,
+    lootText,
     battleBottomStyle,
   } = metrics;
   assert(Number.isFinite(stageScale) && stageScale > 0, `${label}: stage scale must be measurable`);
@@ -135,6 +147,13 @@ function assertLayout(metrics) {
   const lootBottomGap = Math.abs(lootPanel.bottom - battleBottom.bottom);
   const logLootBottomGap = Math.abs(lootPanel.bottom - battleLog.bottom);
   const minLootHeight = 185 * stageScale - tolerance;
+  assert(lootRows.length === 8, `${label}: LootPanel must render 8 visible stat rows, got ${lootRows.length}`);
+  assert(lootText.includes('史诗装备') && lootText.includes('传说装备'), `${label}: LootPanel must render epic and legendary equipment rows`);
+  const lastLootRow = lootRows[lootRows.length - 1];
+  assert(
+    lastLootRow.bottom <= lootPanel.bottom + tolerance && lastLootRow.height > 0,
+    `${label}: last loot row must stay inside the panel, row=${JSON.stringify(lastLootRow)}, loot=${rectToText(lootPanel)}`,
+  );
 
   const lootTopAlignedToLog = lootTopGap <= tolerance;
   const clearInformationColumn =
@@ -146,9 +165,19 @@ function assertLayout(metrics) {
     logLootBottomGap <= tolerance &&
     battleBottomStyle?.display === 'grid' &&
     battleBottomStyle.alignContent !== 'start';
+  const shortenedReadableLog =
+    battleBottomBottomGap <= tolerance &&
+    skillLootGap >= 0 &&
+    skillLootGap <= 12 * stageScale + tolerance &&
+    lootPanel.height >= minLootHeight &&
+    lootBottomGap <= tolerance &&
+    battleLog.height <= 426 * stageScale + tolerance &&
+    logRegion.height - battleLog.height >= 30 * stageScale - tolerance &&
+    battleBottomStyle?.display === 'grid' &&
+    battleBottomStyle.alignContent !== 'start';
 
   assert(
-    lootTopAlignedToLog || clearInformationColumn,
+    lootTopAlignedToLog || clearInformationColumn || shortenedReadableLog,
     `${label}: LootPanel must either top-align with the battle log or fill a clear battle-bottom information column; ` +
       `lootTopGap=${lootTopGap}, battleBottomTopGap=${battleBottomTopGap}, ` +
       `battleBottomBottomGap=${battleBottomBottomGap}, skillLootGap=${skillLootGap}, ` +
@@ -180,6 +209,7 @@ assert(
 assertIncludes(mainScene, 'className="main-scene__battle-bottom"', 'MainScene must keep BattleSkillPanel and LootPanel in battle-bottom.');
 assertIncludes(mainScene, '<LootPanel />', 'MainScene must render LootPanel in the main battle column.');
 assertIncludes(lootPanel, 'data-bwe-loot-panel', 'LootPanel must expose a stable DOM hook for rect smoke.');
+assertIncludes(lootPanel, 'data-bwe-loot-stat-line', 'LootPanel stat rows must expose stable hooks for complete-row smoke.');
 assertIncludes(allInfoPanel, 'data-bwe-battle-log-panel', 'AllInfoPanel must expose the battle log DOM hook for rect smoke.');
 assertIncludes(mainSceneCss, '.main-scene__battle-bottom', 'main-scene.css must own battle-bottom local layout.');
 assertIncludes(as3MainScene, 'allInfoPanel.y = 235;', 'AS3 MainScene must place the battle log in the lower information band.');

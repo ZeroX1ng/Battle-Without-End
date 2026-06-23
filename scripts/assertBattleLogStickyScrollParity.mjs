@@ -114,13 +114,18 @@ assertIncludes(
 );
 assertIncludes(
   mainSceneCss,
-  'min-height: 180px;',
+  'min-height: 320px;',
   'battle log viewport must reserve enough height to prevent long-run one-line collapse',
 );
 assertIncludes(
   mainSceneCss,
   'height: 100%;',
-  'battle log viewport must fill its grid area instead of shrinking to one visible row',
+  'battle log viewport must fill the lower-left region so it reaches the stage bottom',
+);
+assertIncludes(
+  mainSceneCss,
+  'font-size: var(--bwe-battle-log-font-size)',
+  'battle log viewport must use the measured log font size variable',
 );
 
 console.log('Battle log sticky scroll parity checks passed.');

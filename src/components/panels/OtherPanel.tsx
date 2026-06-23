@@ -31,6 +31,7 @@ const tabDefs: Array<{
 ]
 
 const TAB_SIZE = 40
+const TAB_FACE_ICON_SIZE = 24
 const AS3_VISIBLE_COUNT = 4
 const VISIBLE_COUNT = tabDefs.length
 const ARROW_WIDTH = 20
@@ -67,6 +68,16 @@ const ARROW_FACE_DIM: React.CSSProperties = {
   opacity: 0.3,
 }
 
+const TAB_FACE_LABEL_STYLE: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  lineHeight: '12px',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}
+
 function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
   return (
     <div style={{
@@ -76,18 +87,19 @@ function renderTabFace(tab: (typeof tabDefs)[number], selected: boolean) {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
+      gap: 1,
+      boxSizing: 'border-box',
+      paddingTop: 1,
     }}>
       <SpriteImage
         name={selected ? tab.afterKey : tab.beforeKey}
         autoPlay={false}
-        style={{ width: 30, height: 30, imageRendering: 'pixelated' }}
+        style={{ width: TAB_FACE_ICON_SIZE, height: TAB_FACE_ICON_SIZE, imageRendering: 'pixelated', flexShrink: 0 }}
       />
       <span style={{
-        fontSize: 11,
+        ...TAB_FACE_LABEL_STYLE,
         color: selected ? '#fff' : 'var(--color-text-dim)',
-        fontWeight: selected ? 'bold' : 'normal',
-        lineHeight: '11px',
       }}>
         {tab.label}
       </span>

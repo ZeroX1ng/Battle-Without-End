@@ -12,6 +12,10 @@
   overflow: hidden;
 }
 
+.game-layout[data-bwe-theme] {
+  color: var(--color-text);
+}
+
 .game-stage-frame {
   width: calc(var(--bwe-stage-width) * var(--bwe-stage-scale));
   height: calc(var(--bwe-stage-height) * var(--bwe-stage-scale));
@@ -25,6 +29,7 @@
   min-width: 0;
   min-height: 0;
   position: relative;
+  box-sizing: border-box;
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);

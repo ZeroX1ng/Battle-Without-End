@@ -117,9 +117,12 @@ async function collectMetrics(page, label) {
       scrollRegion: getRect('[data-bwe-equip-scroll-region]'),
       figurePanel: getRect('[data-bwe-equip-figure-panel]'),
       detailPanel: getRect('[data-bwe-equip-detail-panel]'),
-      statGrid: getRect('[data-bwe-equip-stat-grid]'),
-      statGridColumns: document.querySelector('[data-bwe-equip-stat-grid]')
-        ? getComputedStyle(document.querySelector('[data-bwe-equip-stat-grid]')).gridTemplateColumns
+      petInfo: getRect('[data-bwe-equip-pet-info]'),
+      petEmpty: getRect('[data-bwe-equip-pet-empty]'),
+      petStatGrid: getRect('[data-bwe-equip-pet-stat-grid]'),
+      petSkillList: getRect('[data-bwe-equip-pet-skill-list]'),
+      petStatGridColumns: document.querySelector('[data-bwe-equip-pet-stat-grid]')
+        ? getComputedStyle(document.querySelector('[data-bwe-equip-pet-stat-grid]')).gridTemplateColumns
         : '',
       detailText: document.querySelector('[data-bwe-equip-detail-panel]')?.textContent?.trim() ?? '',
     };
@@ -154,19 +157,25 @@ function assertSlotRects(metrics) {
 }
 
 function assertLowerFlow(metrics) {
-  const { scrollRegion, figurePanel, detailPanel, statGrid, statGridColumns, detailText } = metrics;
+  const { scrollRegion, figurePanel, detailPanel, petInfo, petEmpty, petStatGrid, petSkillList, petStatGridColumns, detailText } = metrics;
   for (const [name, rect] of Object.entries({ scrollRegion, figurePanel, detailPanel })) {
     assert(rect && rect.width > 0 && rect.height > 0, `${metrics.label}: ${name} must render with a visible rect`);
   }
-  assert(statGrid && statGrid.width > 0 && statGrid.height > 0, `${metrics.label}: statGrid must render with a visible rect`);
   assert(detailPanel.top >= figurePanel.bottom - 1, `${metrics.label}: detail panel must sit below the figure panel`);
 
   const visibleDetailHeight = Math.max(0, Math.min(detailPanel.bottom, scrollRegion.bottom) - Math.max(detailPanel.top, scrollRegion.top));
   const bottomGap = Math.abs(scrollRegion.bottom - detailPanel.bottom);
   assert(bottomGap <= 3, `${metrics.label}: lower detail panel must use the available scroll height, bottomGap=${bottomGap}px`);
   assert(visibleDetailHeight >= 190, `${metrics.label}: lower detail area must be readable in the scroll viewport, got ${visibleDetailHeight}px visible`);
-  assert(statGridColumns.trim().split(/\s+/).length >= 2, `${metrics.label}: stat delta grid must use multiple columns, got "${statGridColumns}"`);
-  assert(detailText.length >= 20, `${metrics.label}: lower detail panel must contain readable selected-slot guidance`);
+  if (detailText.includes('当前没有出战宠物')) {
+    assert(petEmpty && petEmpty.width > 0 && petEmpty.height > 0, `${metrics.label}: empty-pet guidance must render with a visible rect`);
+  } else {
+    assert(petInfo && petInfo.width > 0 && petInfo.height > 0, `${metrics.label}: active pet info must render with a visible rect`);
+    assert(petStatGrid && petStatGrid.width > 0 && petStatGrid.height > 0, `${metrics.label}: active pet stat grid must render with a visible rect`);
+    assert(petSkillList && petSkillList.width > 0 && petSkillList.height > 0, `${metrics.label}: active pet skill list must render with a visible rect`);
+    assert(petStatGridColumns.trim().split(/\s+/).length >= 2, `${metrics.label}: active pet stat grid must use multiple columns, got "${petStatGridColumns}"`);
+    assert(detailText.includes('宠物') && detailText.includes('技能'), `${metrics.label}: lower detail panel must contain active pet stats and skills`);
+  }
 }
 
 const packageJson = JSON.parse(read('package.json'));
@@ -187,8 +196,14 @@ assertIncludes(as3EquipWindow, 'this.petSkillSp.visible = false;', 'AS3 EquipWin
 
 assertIncludes(equipWindow, 'const AS3_SLOT_POSITIONS', 'EquipWindow must preserve the AS3 slot coordinate map.');
 assert(!equipWindow.includes("const EQUIP_WINDOW_CONTENT_MAX_HEIGHT = 'min(508px, 100%)'"), 'EquipWindow must not cap the scroll region below the available right-panel height.');
-assertIncludes(equipWindow, 'data-bwe-equip-stat-grid', 'EquipWindow must expose the multi-column stat delta grid for browser smoke.');
-assertIncludes(equipWindow, 'repeat(auto-fit, minmax(118px, 1fr))', 'EquipWindow stat deltas must use a responsive multi-column grid.');
+assertIncludes(equipWindow, 'getSlotCenterSourcePosition', 'EquipWindow guide lines must anchor to the current clickable slot centers.');
+assertIncludes(equipWindow, 'getSlotGuideLine', 'EquipWindow must define source-coordinate guide lines for the separated slot layer.');
+assertIncludes(equipWindow, 'data-bwe-equip-guide-line', 'EquipWindow guide lines must expose browser smoke hooks.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must expose the active pet block for browser smoke.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-stat-grid', 'EquipWindow must expose the multi-column active pet stat grid for browser smoke.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-skill-list', 'EquipWindow must expose the active pet skill list for browser smoke.');
+assertNotIncludes(equipWindow, 'data-bwe-equip-stat-grid', 'EquipWindow must not keep the removed unequip stat delta grid.');
+assertIncludes(equipWindow, "gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'", 'EquipWindow active pet stats must use a compact multi-column grid.');
 for (const [slot, x, y] of [
   ['head', 210, -50],
   ['feet', 210, 480],
@@ -204,8 +219,8 @@ for (const [slot, x, y] of [
     `EquipWindow ${slot} slot must keep AS3 coordinates (${x}, ${y}).`,
   );
 }
-assertNotIncludes(equipWindow, 'data-bwe-equip-pet-empty', 'EquipWindow must not keep the moved empty-pet lower-flow hint.');
-assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the moved active-pet info block.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-empty', 'EquipWindow must show an empty-pet lower-flow hint when no active pet exists.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must keep the AS3-style active-pet info block.');
 
 const { server, url } = await startViteServer();
 const browser = await chromium.launch({ headless: true });
@@ -231,6 +246,7 @@ try {
     const slotSummary = metrics.slots.map(({ slot, rect }) => `${slot}:${rectToText(rect)}`).join(' | ');
     console.log(
       `PASS ${metrics.label}: slots ${slotSummary}; detail=${rectToText(metrics.detailPanel)}; ` +
+      `petInfo=${metrics.petInfo ? rectToText(metrics.petInfo) : 'empty'}; ` +
       `detailVisible=${Math.max(0, Math.min(metrics.detailPanel.bottom, metrics.scrollRegion.bottom) - Math.max(metrics.detailPanel.top, metrics.scrollRegion.top))}`,
     );
 

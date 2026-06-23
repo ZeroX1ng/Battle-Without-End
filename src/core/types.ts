@@ -524,6 +524,7 @@ export interface PlayerState {
 export interface UIState {
   activeWindow: string | null;
   infoMessages: InfoMessage[];
+  themeMode: 'dark' | 'light';
 }
 
 // ═══ 信息消息 ═══

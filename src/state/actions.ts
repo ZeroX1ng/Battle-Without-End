@@ -93,6 +93,7 @@ type GameActionCore =
   | { type: 'UI_OPEN_WINDOW'; window: string }
   | { type: 'UI_CLOSE_WINDOW' }
   | { type: 'UI_ADD_LOG'; text: string; category?: string }
+  | { type: 'UI_SET_THEME'; themeMode: 'dark' | 'light' }
 
   // ── 存档 ──
   | { type: 'SAVE_GAME'; slot: string }

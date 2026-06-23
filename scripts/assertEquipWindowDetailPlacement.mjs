@@ -172,8 +172,9 @@ assertNotIncludes(
 assertIncludes(equipWindow, 'data-bwe-equip-scroll-region', 'EquipWindow must expose the bounded internal scroll region.');
 assertIncludes(equipWindow, 'data-bwe-equip-content-column', 'EquipWindow must expose the single vertical content column.');
 assertIncludes(equipWindow, 'data-bwe-equip-figure-panel', 'EquipWindow must expose the figure/slot panel for placement smoke.');
+assertIncludes(equipWindow, 'data-bwe-equip-guide-line', 'EquipWindow must expose aligned guide lines for the slot layer.');
 assertIncludes(equipWindow, 'data-bwe-equip-detail-panel', 'EquipWindow must expose the selected equipment detail panel.');
-assertNotIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must not keep the moved active-pet info block.');
+assertIncludes(equipWindow, 'data-bwe-equip-pet-info', 'EquipWindow must expose the AS3-style active-pet detail block below the figure.');
 assertOrder(equipWindow, 'data-bwe-equip-scroll-region', 'data-bwe-equip-content-column', 'EquipWindow content column must live inside the bounded scroll region.');
 assertOrder(equipWindow, 'data-bwe-equip-content-column', 'data-bwe-equip-figure-panel', 'EquipWindow figure panel must be first in the vertical flow.');
 assertOrder(equipWindow, 'data-bwe-equip-figure-panel', 'data-bwe-equip-detail-panel', 'EquipWindow detail panel must follow the figure panel.');

@@ -35,6 +35,16 @@ type PlayerInfoPanelProps = {
   testSpeedControl?: React.ReactNode
 }
 
+const PLAYER_INFO_ROW_FONT_SIZE = 16
+const PLAYER_INFO_ROW_LINE_HEIGHT = 23
+
+const PLAYER_INFO_COLUMN_STYLE: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(150px, 0.95fr) minmax(150px, 0.95fr) minmax(185px, 1.1fr)',
+  columnGap: 16,
+  alignItems: 'start',
+}
+
 // ═══ AS3 三列布局 ═══
 // AS3 原始公式: x = beginX + sXGap*(i%2) + bXGap*(i/14>>0)
 //               y = beginY + yGap + yGap*(i%14/2>>0)
@@ -62,7 +72,8 @@ export function PlayerInfoPanel({ testSpeedControl }: PlayerInfoPanelProps) {
   return (
     <div style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '8px 8px', width: 385, fontSize: 13, maxHeight: 220, overflowY: 'auto'
+      padding: '9px 12px', width: 385, height: '100%', fontSize: PLAYER_INFO_ROW_FONT_SIZE,
+      boxSizing: 'border-box', overflow: 'hidden'
     }}>
       {/* AS3: _name at x=10,y=10, prefix with title.realName when equipped */}
       <div
@@ -70,12 +81,12 @@ export function PlayerInfoPanel({ testSpeedControl }: PlayerInfoPanelProps) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 6,
-          minHeight: 24,
-          fontSize: 16,
+          gap: 8,
+          minHeight: 30,
+          fontSize: 20,
           fontWeight: 'bold',
           color: 'var(--color-red)',
-          marginBottom: 4,
+          marginBottom: 8,
         }}
       >
         <span>
@@ -85,7 +96,7 @@ export function PlayerInfoPanel({ testSpeedControl }: PlayerInfoPanelProps) {
       </div>
 
       {/* AS3: HP/MP/EXP bars — col0 row3-5, label at x=10, bar at x=40, width ~80px */}
-      <div style={{ display: 'flex', gap: 40 }}>
+      <div style={PLAYER_INFO_COLUMN_STYLE}>
         {/* Col 0: 种族, 年龄, LV (已在 header 中), 金钱 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <StatRow label="种族" value={s.raceName} />
@@ -126,9 +137,12 @@ export function PlayerInfoPanel({ testSpeedControl }: PlayerInfoPanelProps) {
 // ═══ Row components ═══
 
 const ROW_STYLE: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  fontSize: 11,
+  display: 'grid',
+  gridTemplateColumns: '62px minmax(0, 1fr)',
+  alignItems: 'baseline',
+  columnGap: 7,
+  fontSize: PLAYER_INFO_ROW_FONT_SIZE,
+  lineHeight: `${PLAYER_INFO_ROW_LINE_HEIGHT}px`,
 }
 
 const LABEL_STYLE: React.CSSProperties = {
@@ -138,7 +152,7 @@ const LABEL_STYLE: React.CSSProperties = {
 
 const VALUE_STYLE: React.CSSProperties = {
   fontWeight: 'bold',
-  textAlign: 'right',
+  textAlign: 'left',
   whiteSpace: 'nowrap',
 }
 
@@ -156,7 +170,7 @@ function StatRow({
   const handleEnter = hasTooltip ? onTooltip!(tooltip!) : undefined;
 
   return (
-    <div style={ROW_STYLE}>
+    <div data-bwe-player-stat-row={label} style={ROW_STYLE}>
       <span
         style={{ ...LABEL_STYLE, cursor: hasTooltip ? 'help' : undefined }}
         onMouseEnter={handleEnter}
@@ -165,7 +179,7 @@ function StatRow({
       >
         {label}
       </span>
-      <span style={{ ...VALUE_STYLE, color: valueColor || 'var(--color-text)' }}>{value}</span>
+      <span data-bwe-player-stat-value={label} style={{ ...VALUE_STYLE, color: valueColor || 'var(--color-text)' }}>{value}</span>
     </div>
   )
 }
@@ -185,7 +199,7 @@ function PrimaryRow({
   const handleEnter = hasTooltip ? onTooltip!(tooltip!) : undefined;
 
   return (
-    <div style={ROW_STYLE}>
+    <div data-bwe-player-stat-row={label} style={ROW_STYLE}>
       <span
         style={{ ...LABEL_STYLE, cursor: hasTooltip ? 'help' : undefined }}
         onMouseEnter={handleEnter}
@@ -194,9 +208,9 @@ function PrimaryRow({
       >
         {label}
       </span>
-      <span style={VALUE_STYLE}>
+      <span data-bwe-player-stat-value={label} style={VALUE_STYLE}>
         <span style={{ color: display.color }}>{display.valueText}</span>
-        <span style={{ color: 'var(--color-text-dim)', fontSize: 11, marginLeft: 1 }}>({display.basicText})</span>
+        <span style={{ color: 'var(--color-text-dim)', fontSize: 13, marginLeft: 2 }}>({display.basicText})</span>
       </span>
     </div>
   )
@@ -214,13 +228,14 @@ function AgeRow({
 
   return (
     <div
+      data-bwe-player-stat-row="age"
       style={{ ...ROW_STYLE, cursor: 'help' }}
       onMouseEnter={handleEnter}
       onMouseMove={e => updateMouse(e.clientX, e.clientY)}
       onMouseLeave={hideStringInfo}
     >
       <span style={LABEL_STYLE}>年龄</span>
-      <span style={{ ...VALUE_STYLE, color: 'var(--color-yellow)' }}>{age}岁</span>
+      <span data-bwe-player-stat-value="age" style={{ ...VALUE_STYLE, color: 'var(--color-yellow)' }}>{age}岁</span>
     </div>
   )
 }
@@ -242,12 +257,12 @@ function BarRow({
   };
 
   return (
-    <div style={ROW_STYLE}>
+    <div data-bwe-player-stat-row={label} style={ROW_STYLE}>
       <span style={LABEL_STYLE}>{label}</span>
       <div
         style={{
-          width: 60, height: 8,
-          background: 'var(--color-bg-dark)',
+          width: 86, height: 9,
+          background: 'var(--color-bar-track)',
           borderRadius: 'var(--radius-sm)',
           overflow: 'hidden',
           cursor: 'help',
@@ -284,7 +299,7 @@ function ProtectionRow({
   };
 
   return (
-    <div style={ROW_STYLE}>
+    <div data-bwe-player-stat-row="protection" style={ROW_STYLE}>
       <span
         style={{ ...LABEL_STYLE, cursor: 'help' }}
         onMouseEnter={handleLabelEnter}
@@ -294,6 +309,7 @@ function ProtectionRow({
         护甲
       </span>
       <span
+        data-bwe-player-stat-value="protection"
         style={{ ...VALUE_STYLE, color: 'var(--color-text)', cursor: 'help' }}
         onMouseEnter={handleValueEnter}
         onMouseMove={e => updateMouse(e.clientX, e.clientY)}

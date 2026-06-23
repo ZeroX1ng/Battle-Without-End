@@ -22,6 +22,21 @@ const ORANGE_H = 16740608;
 const GRAY_H = 7631988;
 const PURPLE_H = 9978046;
 
+function parseSavedNumber(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parseSavedStatList(value: string | undefined): StatImpl[] | null {
+  if (value === undefined) return null;
+  const stats: StatImpl[] = [];
+  for (const statSave of value.split('%')) {
+    if (!statSave || !statSave.includes('$')) continue;
+    stats.push(StatImpl.load(statSave));
+  }
+  return stats;
+}
+
 export class Equipment {
   public sortWeight!: number;
   public position!: string;
@@ -60,42 +75,23 @@ export class Equipment {
    * AS3 原始: Equipment.load(param1:String): Equipment
    * 格式: name#level#ratio#quality#basicStats%...%#qualityStats%...%
    */
-  static load(data: string): Equipment {
-    const _loc2_: string[] = data.split('#');
-    let _loc3_: Equipment | null = null;
-    let _loc4_: number = 0;
-    while (_loc4_ < EquipmentList.length) {
-      if (EquipmentList[_loc4_].name === _loc2_[0]) {
-        _loc3_ = new Equipment(EquipmentList[_loc4_], Number(_loc2_[2]));
-        break;
-      }
-      _loc4_++;
+  static load(data: string = ''): Equipment {
+    const _loc2_: string[] = String(data ?? '').split('#');
+    const source = EquipmentList.find((equipment) => equipment.name === _loc2_[0]) ?? EquipmentList[0];
+    const _loc3_ = new Equipment(source, parseSavedNumber(_loc2_[2], 1));
+    const savedBasicStats = parseSavedStatList(_loc2_[4]);
+    const savedQualityStats = parseSavedStatList(_loc2_[5]);
+
+    _loc3_.quality = parseSavedNumber(_loc2_[3], _loc3_.quality);
+    if (savedBasicStats !== null) {
+      _loc3_.basicStat = savedBasicStats;
     }
-    if (!_loc3_) {
-      _loc3_ = new Equipment(EquipmentList[0], 1);
+    if (savedQualityStats !== null) {
+      _loc3_.qualityStat = savedQualityStats;
+    } else if (_loc2_[3] !== undefined) {
+      _loc3_.qualityStat = [];
     }
-    _loc3_.quality = Number(_loc2_[3]);
-    _loc3_.basicStat = [];
-    const _loc5_: string[] = _loc2_[4].split('%');
-    _loc4_ = 0;
-    while (_loc4_ < _loc5_.length) {
-      if (_loc5_[_loc4_] !== '') {
-        _loc3_.basicStat.push(StatImpl.load(_loc5_[_loc4_]));
-      }
-      _loc4_++;
-    }
-    _loc3_.qualityStat = [];
-    if (_loc3_.quality > 0 && _loc2_.length > 5) {
-      const _loc6_: string[] = _loc2_[5].split('%');
-      _loc4_ = 0;
-      while (_loc4_ < _loc6_.length) {
-        if (_loc6_[_loc4_] !== '') {
-          _loc3_.qualityStat.push(StatImpl.load(_loc6_[_loc4_]));
-        }
-        _loc4_++;
-      }
-    }
-    _loc3_.setLevel(Number(_loc2_[1]));
+    _loc3_.setLevel(parseSavedNumber(_loc2_[1], 0));
     return _loc3_;
   }
 

@@ -1,3 +1,4 @@
+import type React from 'react'
 import { GameProvider, useGameContext } from './state/GameContext'
 import { GameLayout } from './components/layout/GameLayout'
 import { BeginScene } from './components/scenes/BeginScene'
@@ -12,13 +13,16 @@ import './styles/effects.css'
 
 function AppContent() {
   const { state } = useGameContext();
+  const sceneLayout = (children: React.ReactNode) => (
+    <GameLayout themeMode={state.ui.themeMode}>{children}</GameLayout>
+  );
 
   switch (state.scene) {
-    case 'race':    return <GameLayout><RaceScene /></GameLayout>;
-    case 'main':    return <GameLayout><MainScene /></GameLayout>;
-    case 'save':    return <GameLayout><SaveScene /></GameLayout>;
-    case 'confirm': return <GameLayout><ConfirmScene /></GameLayout>;
-    default:        return <GameLayout><BeginScene /></GameLayout>;
+    case 'race':    return sceneLayout(<RaceScene />);
+    case 'main':    return sceneLayout(<MainScene />);
+    case 'save':    return sceneLayout(<SaveScene />);
+    case 'confirm': return sceneLayout(<ConfirmScene />);
+    default:        return sceneLayout(<BeginScene />);
   }
 }
 

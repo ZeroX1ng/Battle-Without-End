@@ -11,6 +11,14 @@ import { useInfoWindow } from '../common/InfoWindow'
 import { getMonsterTitleDescription } from '../../core/data/monsterData'
 import { SpriteImage } from '../shared/SpriteImage'
 
+const MONSTER_INFO_PANEL_WIDTH = 170
+const MONSTER_INFO_PANEL_MIN_HEIGHT = 112
+const MONSTER_INFO_PANEL_BASE_FONT_SIZE = 13
+const MONSTER_INFO_PANEL_TITLE_FONT_SIZE = 17
+const MONSTER_INFO_PANEL_META_FONT_SIZE = 12
+const MONSTER_INFO_PANEL_BAR_HEIGHT = 9
+const MONSTER_INFO_PANEL_BUFF_ICON_SIZE = 18
+
 function getBuffInfoHtml(buff: BuffData): string {
   const count = Math.floor(Number(buff.count) || 0);
   switch (buff.name) {
@@ -66,13 +74,14 @@ export function MonsterInfoPanel() {
   return (
     <div style={{
       background: 'var(--color-bg-dark)', borderRadius: 'var(--radius-md)',
-      padding: '12px 16px', width: 185, fontSize: 13, minHeight: 135
+      padding: '10px 12px', width: MONSTER_INFO_PANEL_WIDTH, fontSize: MONSTER_INFO_PANEL_BASE_FONT_SIZE,
+      minHeight: MONSTER_INFO_PANEL_MIN_HEIGHT, boxSizing: 'border-box',
     }}>
       <div
-        style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 6 }}
+        style={{ fontSize: MONSTER_INFO_PANEL_TITLE_FONT_SIZE, fontWeight: 'bold', marginBottom: 5, lineHeight: 1.18 }}
         dangerouslySetInnerHTML={{ __html: mon.getNameHtml(getCombatPower(state.player)) }}
       />
-      <div style={{ color: 'var(--color-text-dim)', fontSize: 11, marginBottom: 2 }}>
+      <div style={{ color: 'var(--color-text-dim)', fontSize: MONSTER_INFO_PANEL_META_FONT_SIZE, marginBottom: 5, lineHeight: 1.25 }}>
         CP: {mon.CP} ·{' '}
         {mon.title ? (
           <span
@@ -84,9 +93,9 @@ export function MonsterInfoPanel() {
           />
         ) : ''}
       </div>
-      <Bar value={hp} max={maxHp} color='var(--color-red)' label={`HP ${Math.floor(hp)}/${maxHp}`} height={10} />
+      <Bar value={hp} max={maxHp} color='var(--color-red)' label={`HP ${Math.floor(hp)}/${maxHp}`} height={MONSTER_INFO_PANEL_BAR_HEIGHT} />
       {buffs.length > 0 && (
-        <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap', minHeight: 16 }}>
+        <div style={{ marginTop: 7, display: 'flex', gap: 5, flexWrap: 'wrap', minHeight: MONSTER_INFO_PANEL_BUFF_ICON_SIZE }}>
           {buffs.map((buff, index) => (
             <span
               key={`${buff.name}-${index}`}
@@ -94,12 +103,12 @@ export function MonsterInfoPanel() {
               onMouseEnter={event => handleBuffMouseEnter(buff, event)}
               onMouseMove={handleBuffMouseMove}
               onMouseLeave={hideItemInfo}
-              style={{ width: 16, height: 16, display: 'inline-flex', cursor: 'help' }}
+              style={{ width: MONSTER_INFO_PANEL_BUFF_ICON_SIZE, height: MONSTER_INFO_PANEL_BUFF_ICON_SIZE, display: 'inline-flex', cursor: 'help' }}
             >
               <SpriteImage
                 name={`buff_${buff.name}`}
                 autoPlay={false}
-                style={{ width: 16, height: 16, imageRendering: 'pixelated' }}
+                style={{ width: MONSTER_INFO_PANEL_BUFF_ICON_SIZE, height: MONSTER_INFO_PANEL_BUFF_ICON_SIZE, imageRendering: 'pixelated' }}
               />
             </span>
           ))}

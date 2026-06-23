@@ -41,6 +41,10 @@ if (packageJson.scripts?.['assert:otherpanel-tab-alignment'] !== 'node scripts/a
 }
 
 assertMatches(otherPanel, /const\s+TAB_SIZE\s*=\s*40/, 'OtherPanel must preserve AS3 40px tab buttons');
+assertMatches(otherPanel, /const\s+TAB_FACE_ICON_SIZE\s*=\s*24/, 'OtherPanel tab icons must shrink enough to leave room for the label.');
+assertIncludes(otherPanel, 'const TAB_FACE_LABEL_STYLE: React.CSSProperties', 'OtherPanel tab labels must use one stable compact style.');
+assertIncludes(otherPanel, "lineHeight: '12px'", 'OtherPanel tab labels must fit inside the 40px face.');
+assertIncludes(otherPanel, 'gap: 1', 'OtherPanel tab face must reserve a small controlled gap between icon and label.');
 assertMatches(otherPanel, /const\s+AS3_VISIBLE_COUNT\s*=\s*4/, 'OtherPanel must keep the AS3 four visible tabs as explicit evidence');
 assertMatches(
   otherPanel,

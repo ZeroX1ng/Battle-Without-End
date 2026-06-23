@@ -18,6 +18,12 @@ function assertIncludes(source, needle, message) {
   }
 }
 
+function assertNotIncludes(source, needle, message) {
+  if (source.includes(needle)) {
+    throw new Error(message);
+  }
+}
+
 const itemWindow = read('src/components/windows/ItemWindow.tsx');
 const actions = read('src/state/actions.ts');
 const gameContext = read('src/state/GameContext.tsx');
@@ -30,7 +36,9 @@ assertIncludes(itemWindow, "showStringInfo('按类型排列')", 'type sort butto
 assertIncludes(itemWindow, "dispatch({ type: 'ITEM_SORT', mode: 'value' })", 'value sort button must dispatch item sorting');
 assertIncludes(itemWindow, "dispatch({ type: 'ITEM_SORT', mode: 'type' })", 'type sort button must dispatch item sorting');
 assertIncludes(itemWindow, "showItemInfo(getItemDescription(item))", 'bag item cells must expose item descriptions on hover');
-assertIncludes(itemWindow, "showStringInfo(autoForgeLabel)", 'auto forge toggle must expose its original hover feedback');
+assertIncludes(itemWindow, "const autoForgeLockedHint = '学习锻造后可解锁自动锻造。'", 'auto forge locked hint must be localized Chinese.');
+assertIncludes(itemWindow, 'if (!blacksmithUnlocked) showStringInfo(autoForgeLockedHint)', 'auto forge unlock hint must only appear on hover while Blacksmithing is not learned.');
+assertNotIncludes(itemWindow, '学习 Blacksmithing', 'ItemWindow must not render English Blacksmithing copy.');
 assertIncludes(itemWindow, "dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })", 'ItemWindow sound toggle must share the AS3 sound setting');
 assertIncludes(itemWindow, "const [selectedIndex, setSelectedIndex] = useState<number | null>(null)", 'ItemWindow must track selected items by list index');
 assertIncludes(itemWindow, "if (selectedIndex !== null && selectedIndex >= items.length)", 'ItemWindow must clear selection when the selected index leaves the current bag');

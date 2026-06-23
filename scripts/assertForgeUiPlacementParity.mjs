@@ -32,7 +32,9 @@ assertIncludes(itemWindow, 'data-bwe-forge-panel="inventory-lower"', 'Forge cont
 assertIncludes(itemWindow, 'style={forgePanelStyle}', 'Forge controls must use the dedicated lower panel, not the item detail panel');
 assertIncludes(itemWindow, 'style={forgeItemPreviewStyle}', 'Forge panel must own the selected equipment preview');
 assertIncludes(itemWindow, 'style={forgeStatRowStyle}', 'Forge panel must own success-rate and cost rows');
-assertIncludes(itemWindow, "showStringInfo(autoForgeLabel)", 'Auto forge toggle must stay in the forge panel with AS3 hover feedback');
+assertIncludes(itemWindow, 'autoForgeLockedHint', 'Auto forge toggle must keep its locked hover hint in the forge panel.');
+assertIncludes(itemWindow, 'blacksmithUnlocked', 'Auto forge toggle must gate the locked hint by the Blacksmithing skill state.');
+assertNotIncludes(itemWindow, '学习 Blacksmithing', 'Auto forge panel must not render English Blacksmithing text.');
 assertIncludes(itemWindow, "dispatch({ type: 'CONFIG_TOGGLE', key: 'sound_toggle' })", 'Sound toggle must stay wired to the AS3 sound setting');
 assertIncludes(itemWindow, 'onClick={handleForge}', 'Forge panel must own the forge button action');
 assertIncludes(itemWindow, 'selectedItem ? (', 'Forge panel must render selected-equipment and empty states from the same selected item source');

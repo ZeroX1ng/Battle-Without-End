@@ -63,39 +63,18 @@ async function enterMainScene(page) {
 
 async function clickVisibleOtherTab(page, tabIndex) {
   await page.evaluate((index) => {
-    const container = document.querySelector('.main-scene__other > div');
-    const tabRail = container?.firstElementChild;
-    if (!tabRail) throw new Error('Could not find OtherPanel tab rail');
+    const tabRail = document.querySelector('[data-bwe-other-tab-rail]');
+    const tabViewport = document.querySelector('[data-bwe-other-tab-viewport]');
+    if (!tabRail || !tabViewport) throw new Error('Could not find OtherPanel tab rail');
 
-    const layout = document.querySelector('.game-layout');
-    const stageScale = layout
-      ? Number.parseFloat(getComputedStyle(layout).getPropertyValue('--bwe-stage-scale'))
-      : 1;
-    const scale = Number.isFinite(stageScale) && stageScale > 0 ? stageScale : 1;
-    const arrowButtons = Array.from(tabRail.querySelectorAll('button'))
-      .filter((button) => {
-        const rect = button.getBoundingClientRect();
-        return rect.width > 0
-          && rect.width <= 30 * scale
-          && rect.height >= 35 * scale
-          && rect.height <= 45 * scale;
-      })
-      .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-    const leftArrow = arrowButtons[0];
-    const rightArrow = arrowButtons[arrowButtons.length - 1];
-    if (!leftArrow || !rightArrow) throw new Error('Could not find OtherPanel tab arrows');
-
-    const tabClipLeft = leftArrow.getBoundingClientRect().right;
-    const tabClipRight = rightArrow.getBoundingClientRect().left;
-    const buttons = Array.from(tabRail.querySelectorAll('button'))
+    const viewportRect = tabViewport.getBoundingClientRect();
+    const buttons = Array.from(tabRail.querySelectorAll('[data-bwe-other-tab]'))
       .filter((button) => {
         const rect = button.getBoundingClientRect();
         const style = getComputedStyle(button);
-        const intersectsTabClip = rect.right > tabClipLeft + 1 && rect.left < tabClipRight - 1;
-        return rect.width >= 35 * scale
-          && rect.width <= 45 * scale
-          && rect.height >= 35 * scale
-          && rect.height <= 45 * scale
+        const intersectsTabClip = rect.right > viewportRect.left + 1 && rect.left < viewportRect.right - 1;
+        return rect.width > 0
+          && rect.height > 0
           && intersectsTabClip
           && style.visibility !== 'hidden'
           && style.display !== 'none'
@@ -156,8 +135,7 @@ async function openEquipTab(page) {
 }
 
 async function openShopOverlay(page) {
-  await scrollOtherTabsRight(page, 3);
-  await clickVisibleOtherTab(page, 3);
+  await clickVisibleOtherTab(page, 6);
   await page.waitForFunction(() => {
     return Array.from(document.querySelectorAll('[data-bwe-other-button-icon="button_shop"]'))
       .some((element) => {
